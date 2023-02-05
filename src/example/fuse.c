@@ -25,3 +25,5 @@
 // 13. rename(self, pathfrom, pathto)
 
 // 14. fsync(self, path, isfsyncfile
+
+// operations to implement from https://github.com/libfuse/libfuse/blob/master/include/fuse.h#L310

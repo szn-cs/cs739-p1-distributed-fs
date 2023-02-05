@@ -19,3 +19,7 @@ Distributed FS project
 - [x] <https://www.cs.cmu.edu/~fp/courses/15213-s07/lectures/15-filesys/index.html>
 - [ ] <https://stackoverflow.com/questions/15604191/fuse-detailed-documentation>
 - [ ] FUSE Documentation <https://www.cs.hmc.edu/~geoff/classes/hmc.cs135.201109/homework/fuse/fuse_doc.html>
+- [ ] Fuse Tutorial <https://www.youtube.com/watch?v=LZCILvr5tUk> 
+- [ ] 
+
+  
