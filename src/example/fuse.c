@@ -27,3 +27,13 @@
 // 14. fsync(self, path, isfsyncfile
 
 // operations to implement from https://github.com/libfuse/libfuse/blob/master/include/fuse.h#L310
+
+#define FUSE_USE_VERSION 35
+#include <fuse.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+TODO:
+    // https://wiki.osdev.org/FUSE
+    // https://libfuse.github.io/doxygen/fuse_8h.html

@@ -7,9 +7,11 @@ Distributed FS project
 
 # FUSE resources: 
 
+- [ ] specification <https://libfuse.github.io/doxygen/index.html> 
+  - [ ] <https://github.com/libfuse/libfuse/blob/master/include/fuse.h>
 - [ ] <https://manpages.ubuntu.com/manpages/bionic/man4/fuse.4.html>
 - [x] <https://fsgeek.ca/2019/06/18/fuse-file-systems-in-user-space/>
-- [ ] <https://wiki.osdev.org/FUSE>
+- [ ] ** <https://wiki.osdev.org/FUSE>
 - [ ] <https://man7.org/linux/man-pages/man4/fuse.4.html>
 - [x] <https://www.cs.nmsu.edu/~pfeiffer/fuse-tutorial/>
   - [ ] documentation & tutorial <https://www.cs.nmsu.edu/~pfeiffer/fuse-tutorial/html/index.html>
@@ -20,6 +22,6 @@ Distributed FS project
 - [ ] <https://stackoverflow.com/questions/15604191/fuse-detailed-documentation>
 - [ ] FUSE Documentation <https://www.cs.hmc.edu/~geoff/classes/hmc.cs135.201109/homework/fuse/fuse_doc.html>
 - [ ] Fuse Tutorial <https://www.youtube.com/watch?v=LZCILvr5tUk> 
-- [ ] 
+- [ ] Fuse info <https://northstar-www.dartmouth.edu/~richard/WhitePapers/FUSE.html#:~:text=The%20FUSE%20device%20driver%20is,via%20a%20well%20defined%20API.>
 
   
