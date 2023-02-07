@@ -24,4 +24,9 @@ Distributed FS project
 - [ ] Fuse Tutorial <https://www.youtube.com/watch?v=LZCILvr5tUk> 
 - [ ] Fuse info <https://northstar-www.dartmouth.edu/~richard/WhitePapers/FUSE.html#:~:text=The%20FUSE%20device%20driver%20is,via%20a%20well%20defined%20API.>
 
-  
+
+# gRPC resources:
+- [] Basics tutorial <https://grpc.io/docs/languages/cpp/basics/>
+
+# Protocal Buffers
+- [] Protocal Buffers <https://developers.google.com/protocol-buffers/docs/overview>
