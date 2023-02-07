@@ -26,7 +26,7 @@ Distributed FS project
 
 
 # gRPC resources:
-- [] Basics tutorial <https://grpc.io/docs/languages/cpp/basics/>
+- [ ] Basics tutorial <https://grpc.io/docs/languages/cpp/basics/>
 
 # Protocal Buffers
-- [] Protocal Buffers <https://developers.google.com/protocol-buffers/docs/overview>
+- [ ] Protocal Buffers <https://developers.google.com/protocol-buffers/docs/overview>
