@@ -1,1 +1,14 @@
-syntax = "proto3";
+syntax = "proto3"; // we use proto version 3
+package test;   // similar to namespace, avoid conflicts
+
+service TestFS {
+    rpc Mkdir(Path) returns (Status) {}
+}
+
+message Path {
+    string path = 1;
+}
+
+message Status {
+    int32 status = 1;
+}
