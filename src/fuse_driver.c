@@ -18,7 +18,6 @@ static struct fuse_operations custom_operations = {};
 
 int main(int argc, char* argv[]) {
     int i, _status = 0;
-    printf("⚫ Mounting file system.");
 
     /**
    *  get the device or image filename from arguments and remove it before initializing FUSE library
@@ -29,8 +28,13 @@ int main(int argc, char* argv[]) {
         fs_path = realpath(argv[i], NULL);  // convert to absolute path
         memcpy(&argv[i], &argv[i + 1], (argc - i) * sizeof(argv[0]));
         argc--;
-    } else
+    } else {
+        printf("❌ missing arguments or unknown\n");
         return -1;
+    }
+
+    printf("path: %s\n", fs_path);
+    printf("⚫ Mounting file system.\n");
 
     // register FUSE handlers
     _status = fuse_main(argc, argv, &custom_operations, private_data);

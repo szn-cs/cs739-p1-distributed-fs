@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "cppbuild",
-			"label": "C/C++: gcc build active file",
+			"label": "build fuse driver",
 			"command": "/usr/bin/gcc",
 			"args": [
 				"-fdiagnostics-color=always",
