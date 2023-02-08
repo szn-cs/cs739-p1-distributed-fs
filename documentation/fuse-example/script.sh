@@ -1,3 +1,8 @@
+build() {
+  mkdir -p ./build
+  gcc -fdiagnostics-color=always -Wall ./fuse_driver.c $(pkg-config fuse3 --cflags --libs) -o ./build/fuse_driver
+}
+
 mount() {
   rm -r ./target && mkdir -p ./target
   cd ./target && mkdir -p fuse_mount_directory

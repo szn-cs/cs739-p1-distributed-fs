@@ -6,6 +6,7 @@ Distributed FS project
 
 # Setup
 
+- run ./script/repo_setup.sh
 - install dependencies using VSCode task or script files `./script/dependency.sh`
 
 
