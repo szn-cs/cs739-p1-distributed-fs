@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 
 # Project
-project(sample)
+project(test)
 
 # Protobuf
 set(protobuf_MODULE_COMPATIBLE TRUE)
@@ -11,6 +11,10 @@ message(STATUS "Using protobuf ${protobuf_VERSION}")
 
 # Protobuf-compiler
 set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
+
+set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
+set(_REFLECTION gRPC::grpc++_reflection)
+
 
 # gRPC
 find_package(gRPC CONFIG REQUIRED)
@@ -40,9 +44,12 @@ add_custom_command(
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+
+
+
 # Modify names for the source code
 foreach(_target
-  test_client test_server)
+  test_server test_client)
   add_executable(${_target} "${_target}.cc"
     ${hw_proto_srcs}
     ${hw_grpc_srcs})

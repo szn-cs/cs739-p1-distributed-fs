@@ -25,6 +25,7 @@
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
+#include "test.grpc.pb.h"
 
 // #ifdef BAZEL_BUILD
 // #include "examples/protos/helloworld.grpc.pb.h"
@@ -41,16 +42,17 @@ using grpc::Status;
 // using helloworld::HelloRequest;
 using test::TestFS;
 using test::Path;
-using test::Status;
+using test::Reply;
 // Logic and data behind the server's behavior.
 class TestServiceImpl final : public TestFS::Service {
   Status Mkdir(ServerContext* context, const Path* requestt,
-                  Status* response) override {
+                  Reply* response) override {
     // response->set_return_code(0);
     // if(mkdir(getServerFilepath(request->filepath()).c_str(), 00777) == -1) {
     //     response->set_return_code(-1);
     //     response->set_error_number(errno);
     // }
+    response->set_status(1);
     return Status::OK;
   }
 };
