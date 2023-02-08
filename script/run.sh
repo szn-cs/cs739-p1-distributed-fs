@@ -5,5 +5,8 @@ mount() {
 }
 
 unmount() {
+  # Pressing [Ctrl]+[C] will umount
+
+  # otherwise:
   fusermount -u ./fuse_mount_directory
 }
