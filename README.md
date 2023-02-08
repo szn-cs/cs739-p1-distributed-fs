@@ -1,14 +1,18 @@
 # cs739-p1-distributed-fs
 Distributed FS project
 
+# Setup
+
+- install dependencies using VSCode task or script files `./script/dependency.sh`
 
 
 
 
 # FUSE resources: 
 
-- [ ] specification <https://libfuse.github.io/doxygen/index.html> 
+- [ ] official specification <https://libfuse.github.io/doxygen/index.html> 
   - [ ] <https://github.com/libfuse/libfuse/blob/master/include/fuse.h>
+- [ ] FUSE alternative doc <https://www.fsl.cs.stonybrook.edu/docs/fuse/fuse-article-appendices.html>
 - [ ] <https://manpages.ubuntu.com/manpages/bionic/man4/fuse.4.html>
 - [x] <https://fsgeek.ca/2019/06/18/fuse-file-systems-in-user-space/>
 - [ ] ** <https://wiki.osdev.org/FUSE>
@@ -23,6 +27,8 @@ Distributed FS project
 - [ ] FUSE Documentation <https://www.cs.hmc.edu/~geoff/classes/hmc.cs135.201109/homework/fuse/fuse_doc.html>
 - [ ] Fuse Tutorial <https://www.youtube.com/watch?v=LZCILvr5tUk> 
 - [ ] Fuse info <https://northstar-www.dartmouth.edu/~richard/WhitePapers/FUSE.html#:~:text=The%20FUSE%20device%20driver%20is,via%20a%20well%20defined%20API.>
+- [ ] cpp example FUSE <https://code.google.com/archive/p/fuse-examplefs/source/default/source>
+- [ ] <https://www.maastaar.net/fuse/linux/filesystem/c/2016/05/21/writing-a-simple-filesystem-using-fuse/>
 
 
 # gRPC resources:
