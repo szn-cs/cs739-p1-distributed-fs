@@ -20,8 +20,12 @@
 
 #include <iostream>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <memory>
 #include <string>
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
@@ -41,8 +45,22 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
                   Response* response) override {
     
     std::cout << "trigger mkdir" << std::endl;
-    
+    std::string new_directory_path = request->path();
+    std::string absolute_dir = fs::current_path();
+    absolute_dir += "/root_dir";
+    absolute_dir += new_directory_path;
+    fs::path path_new_dir(absolute_dir);
+
     response->set_status(1);
+    if (!fs::exists(path_new_dir)){
+      if (!fs::create_directories(path_new_dir)) {
+          perror("Failed to initialize the root directory.");
+          response->set_status(0);
+      }
+      
+    } else {
+      response->set_status(0);
+    }
     return Status::OK;
   }
 };
@@ -69,7 +87,18 @@ void RunServer() {
 }
 
 int main(int argc, char** argv) {
-    
+  struct stat info;
+  std::string root_dir = fs::current_path();
+  root_dir += "/root_dir";
+  std::cout << root_dir << std::endl;
+  fs::path path_root_dir(root_dir);
+  
+  if (!fs::exists(path_root_dir)){
+    if (!fs::create_directories(path_root_dir)) {
+        perror("Failed to initialize the root directory.");
+    }
+  }
+  std::cout << "success make the root directory." << std::endl;
   RunServer();
 
   return 0;

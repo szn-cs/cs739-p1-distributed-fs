@@ -75,7 +75,7 @@ int main(int, char **)
     AFSClient client(
         grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
-    std::string path("test");
+    std::string path("/test");
     int reply = client.Mkdir(path);
     std::cout << "reply: " << reply << std::endl;
 

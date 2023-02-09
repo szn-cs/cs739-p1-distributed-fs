@@ -1,6 +1,5 @@
 # Minimum CMake required
 cmake_minimum_required(VERSION 3.5.1)
-
 # Project
 project(afs_server)
 
@@ -23,7 +22,7 @@ set(_GRPC_GRPCPP gRPC::grpc++)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
 # Proto file
-get_filename_component(hw_proto "../../src/protos/afs.proto" ABSOLUTE)
+get_filename_component(hw_proto "../protos/afs.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
 
 # Generated sources
@@ -56,5 +55,6 @@ foreach(_target
   target_link_libraries(${_target}
     ${_REFLECTION}
     ${_GRPC_GRPCPP}
-    ${_PROTOBUF_LIBPROTOBUF})
+    ${_PROTOBUF_LIBPROTOBUF}
+    stdc++fs)
 endforeach()
