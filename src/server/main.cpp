@@ -39,12 +39,8 @@ using afs::Reply;
 class AFSServerServiceImpl final : public CustomAFS::Service {
   Status Mkdir(ServerContext* context, const Path* request,
                   Reply* response) override {
-    // response->set_return_code(0);
-    // if(mkdir(getServerFilepath(request->filepath()).c_str(), 00777) == -1) {
-    //     response->set_return_code(-1);
-    //     response->set_error_number(errno);
-    // }
     
+    std::cout << "trigger mkdir" << std::endl;
     
     response->set_status(1);
     return Status::OK;
