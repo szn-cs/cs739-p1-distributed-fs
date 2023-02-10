@@ -1,7 +1,8 @@
 # cs739-p1-distributed-fs
 Distributed FS project
 
-- build (adding AFS protocol based on RPC) on top of an existing FUSE filesystem [unreliablefs](https://github.com/ligurio/unreliablefs).
+- build (adding AFS protocol based on RPC) on top of an existing FUSE filesystem [unreliablefs](https://github.com/ligurio/unreliablefs)
+
 
 
 # Setup
