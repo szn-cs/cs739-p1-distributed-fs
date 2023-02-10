@@ -2,7 +2,7 @@
 
 fs_mount() {
 
-  ######## [shell instance 1] ##########################################################
+  ######## [terminal instance 1] ##########################################################
 
   mkdir -p /tmp/fs
 
@@ -15,7 +15,7 @@ fs_mount() {
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
   ./target/release/unreliablefs /tmp/fs -basedir=/tmp -seed=1618680646 -d
 
-  ######## [shell instance 2] ##########################################################
+  ######## [terminal instance 2] ##########################################################
 
   ## fault injection options for unreliablefs.conf <https://ligurio.github.io/unreliablefs/unreliablefs.conf.5.html>
   # (don't add tab in front of content lines)
