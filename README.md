@@ -9,7 +9,35 @@ Distributed FS project
 - run ./script/repo_setup.sh
 - install dependencies using VSCode task or script files `./script/dependency.sh`
 
+# TODO 
+# client side functions:
+- [ ] ls
+- [ ] stat
+- [ ] rmdir
+- [ ] mkdir
+- [ ] touch(create)
+- [ ] read
+- [ ] write
+- [ ] unlink
 
+# server side functions:
+- [ ] ls
+- [ ] stat
+- [ ] rmdir
+- [ ] mkdir
+- [ ] touch(create)
+- [ ] read
+- [ ] write
+- [ ] unlink
+
+# gRPC services:
+- [ ] getAttr
+- [ ] mkdir
+- [ ] rmdir
+- [ ] touch(create)
+- [ ] read
+- [ ] write
+- [ ] unlink
 
 
 # FUSE resources: 
@@ -40,3 +68,5 @@ Distributed FS project
 
 # Protocal Buffers
 - [ ] Protocal Buffers <https://developers.google.com/protocol-buffers/docs/overview>
+
+
