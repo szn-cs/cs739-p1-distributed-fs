@@ -6,6 +6,7 @@ fs_mount() {
 
   mkdir -p /tmp/fs
 
+  ## fix some issues probably with WSL2 setup
   sudo ln -s /proc/self/mounts /etc/mtab
   ## make sure it is unmounted
   fusermount -u /tmp/fs
