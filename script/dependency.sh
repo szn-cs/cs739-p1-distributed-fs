@@ -1,7 +1,7 @@
 # provision system dependencies
 # - libfuse 3+
 
-dependencies="build-essential pkg-config gcc cmake fuse3 libfuse3-dev"
+dependencies="build-essential autoconf libtool pkg-config gcc cmake fuse3 libfuse3-dev"
 
 apt update && apt upgrade
 for i in $dependencies; do apt install -y $i; done
