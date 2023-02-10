@@ -7,8 +7,10 @@ Distributed FS project
 
 # Setup
 
-- run ./script/repo_setup.sh
+- run `./script/repo_setup.sh`
 - install dependencies using VSCode task or script files `./script/dependency.sh`
+- run script `build.sh` will result in binary files in `./target/release` 
+- run individual commands in `run.sh`
 
 # TODO 
 # client side functions:
