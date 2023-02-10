@@ -64,10 +64,13 @@ Distributed FS project
 - [ ] Fuse info <https://northstar-www.dartmouth.edu/~richard/WhitePapers/FUSE.html#:~:text=The%20FUSE%20device%20driver%20is,via%20a%20well%20defined%20API.>
 - [ ] cpp example FUSE <https://code.google.com/archive/p/fuse-examplefs/source/default/source>
 - [ ] <https://www.maastaar.net/fuse/linux/filesystem/c/2016/05/21/writing-a-simple-filesystem-using-fuse/>
-
+- [ ] Examples: 
+  - [ ] <https://github.com/rohithvsm/SankalpaFS>
+  - [ ] <https://github.com/c5h11oh/DistributedSystems-AFSv1>
 
 # gRPC resources:
 - [ ] Basics tutorial <https://grpc.io/docs/languages/cpp/basics/>
+- [ ] 
 
 # Protocal Buffers
 - [ ] Protocal Buffers <https://developers.google.com/protocol-buffers/docs/overview>
