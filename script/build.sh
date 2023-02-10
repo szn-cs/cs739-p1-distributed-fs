@@ -1,6 +1,6 @@
-## build through `cmake` or use `make -w -C ./target/release/`
-cmake --build ./target/release --verbose --parallel
-cp ./target/release/dependency/unreliablefs/unreliablefs/unreliablefs ./target/release/unreliablefs
+## build through `cmake` or use `make -w -C ./target/config/`
+cmake --build ./target/config --verbose --parallel
+mkdir -p ./target/release && cp ./target/config/dependency/unreliablefs/unreliablefs/unreliablefs ./target/release/unreliablefs
 
 ## clean
-# cmake --build ./target/release --target clean
+# cmake --build ./target/config --target clean

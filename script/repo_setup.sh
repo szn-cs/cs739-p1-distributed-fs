@@ -7,4 +7,4 @@ chmod +x ${workspaceFolder}/script/* && sudo ${workspaceFolder}/script/dependenc
 git submodule update --init
 
 # create make files
-cmake -S . -B ./target/release
+cmake -S . -B ./target/config
