@@ -14,3 +14,6 @@ exit 0
 # dnf groupinstall 'Development Tools'
 # yum install gcc-c++
 # yum install fuse fuse-devel
+
+# TODO:  install vcpackage 
+vcpackage grpc
