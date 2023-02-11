@@ -34,11 +34,11 @@ using grpc::ServerContext;
 using grpc::Status;
 using afs::CustomAFS;
 using afs::Path;
-using afs::Reply;
+using afs::Response;
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
   Status Mkdir(ServerContext* context, const Path* request,
-                  Reply* response) override {
+                  Response* response) override {
     
     std::cout << "trigger mkdir" << std::endl;
     
