@@ -1,3 +1,6 @@
+[submodule "dependency/grpc"]
+	path = dependency/grpc
+	url = https://github.com/grpc/grpc
 [submodule "dependency/unreliablefs"]
 	path = dependency/unreliablefs
 	url = https://github.com/ligurio/unreliablefs
