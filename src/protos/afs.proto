@@ -2,7 +2,13 @@ syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
 service CustomAFS {
-    rpc Mkdir(Path) returns (Response) {}
+    // rpc GetMeta(Filepath) returns(Meta);
+    // rpc GetContent(Filepath) returns(stream MetaContent);
+    // rpc Ls(Filepath) returns(LsResult);
+    // rpc Write(stream FilepathContent) returns(Meta);
+    // rpc Stat(Filepath) returns(StatContent);
+
+    rpc Mkdir(Path) returns (Response) {};
     rpc Unlink(Path) returns(Response) {};
     rpc Rmdir(Path) returns(Response) {};
 }
