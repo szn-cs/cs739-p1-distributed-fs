@@ -30,7 +30,7 @@
 
 using afs::CustomAFS;
 using afs::Path;
-using afs::Reply;
+using afs::Response;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
@@ -46,7 +46,7 @@ public:
         // Follows the same pattern as SayHello.
         Path request;
         request.set_path(path);
-        Reply reply;
+        Response reply;
         ClientContext context;
 
         // Here we can use the stub's newly available method we just added.
@@ -77,7 +77,7 @@ int main(int, char **)
 
     std::string path("test");
     int reply = client.Mkdir(path);
-    std::cout << "reply" << std::endl;
+    std::cout << "reply: " << reply << std::endl;
 
     return 0;
 }
