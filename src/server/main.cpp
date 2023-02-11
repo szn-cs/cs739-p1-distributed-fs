@@ -39,21 +39,22 @@ using grpc::Status;
 using afs::CustomAFS;
 using afs::Path;
 using afs::Response;
+
+std::string root_dir = fs::current_path().generic_string() + "/root_dir";
+fs::path path_root_dir(root_dir);
+
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
   Status Mkdir(ServerContext* context, const Path* request,
                   Response* response) override {
     
     std::cout << "trigger mkdir" << std::endl;
-    std::string new_directory_path = request->path();
-    std::string absolute_dir = fs::current_path();
-    absolute_dir += "/root_dir";
-    absolute_dir += new_directory_path;
-    fs::path path_new_dir(absolute_dir);
+    std::string new_dir_path = root_dir + request->path();
+    fs::path path_new_dir(new_dir_path);
 
     response->set_status(1);
-    if (!fs::exists(path_new_dir)){
-      if (!fs::create_directories(path_new_dir)) {
+    if (!fs::exists(new_dir_path)){
+      if (!fs::create_directories(new_dir_path)) {
           perror("Failed to initialize the root directory.");
           response->set_status(0);
       }
@@ -88,11 +89,7 @@ void RunServer() {
 
 int main(int argc, char** argv) {
   struct stat info;
-  std::string root_dir = fs::current_path();
-  root_dir += "/root_dir";
-  std::cout << root_dir << std::endl;
-  fs::path path_root_dir(root_dir);
-  
+    
   if (!fs::exists(path_root_dir)){
     if (!fs::create_directories(path_root_dir)) {
         perror("Failed to initialize the root directory.");
