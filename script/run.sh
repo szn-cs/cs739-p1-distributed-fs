@@ -30,3 +30,11 @@ EOF
 
   umount /tmp/fs
 }
+
+server() {
+  echo 0
+}
+
+client() {
+  echo 0
+}
