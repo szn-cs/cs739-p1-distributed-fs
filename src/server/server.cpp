@@ -92,6 +92,30 @@ public:
     return Status::OK;
   }
 
+  Status Unlink(ServerContext *context, const Path *request,
+                Response *response) override
+  {
+    std::cout << "trigger unlink" << std::endl;
+    std::string remove_file = root_dir + request->path();
+    fs::path path_rm_file(remove_file);
+
+    response->set_status(1);
+    if (fs::exists(path_rm_file))
+    {
+      std::error_code errorCode;
+      if (!fs::remove(path_rm_file, errorCode))
+      {
+        perror("Failed to rm file.");
+        response->set_status(0);
+      }
+    }
+    else
+    {
+      response->set_status(0);
+    }
+    return Status::OK;
+  }
+
   // Status Read(ServerContext* context, const ReadFileStreamReq* request,
   //                 ServerWriter<ReadFileStreamReply>* writer) override {
   //     int numOfBytes = 0;
