@@ -4,3 +4,6 @@
 [submodule "dependency/unreliablefs"]
 	path = dependency/unreliablefs
 	url = https://github.com/ligurio/unreliablefs
+[submodule "dependency/vcpkg"]
+	path = dependency/vcpkg
+	url = https://github.com/Microsoft/vcpkg.git

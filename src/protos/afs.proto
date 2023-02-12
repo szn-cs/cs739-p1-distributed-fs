@@ -6,9 +6,9 @@ service CustomAFS {
     rpc Unlink(Path) returns (Response) {};
     rpc Rmdir(Path) returns (Response) {};
     //  rpc GetAttr(Path) returns (StatInfo) {};
-    rpc Read(Path) returns (stream Datablock) {};
+    rpc Read(ReadFileStreamReq) returns (stream ReadFileStreamReply) {};
     rpc Write(stream Datablock) returns (Response) {};
-    rpc Create(Path) returns (Response) {};
+    // rpc Create(Path) returns (Response) {};
 }
 
 message Path {
@@ -23,6 +23,18 @@ message Datablock {
     bytes content = 1;
 }
 
+message ReadFileStreamReq {
+    string path = 1;
+    int32  size = 2;
+    int32  offset = 3;
+}
+
+message ReadFileStreamReply {
+    int32 numBytes = 1;
+    bytes buf  = 2;
+    int32 err = 3;
+    int64 timestamp=4;
+}
 
 // https://linux.die.net/man/2/stat
 // struct stat {

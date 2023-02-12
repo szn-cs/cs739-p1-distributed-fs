@@ -48,7 +48,7 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # Modify names for the source code
 foreach(_target
-  main)
+  server)
   add_executable(${_target} "${_target}.cpp"
     ${hw_proto_srcs}
     ${hw_grpc_srcs})
