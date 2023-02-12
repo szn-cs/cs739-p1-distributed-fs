@@ -48,7 +48,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   Status Mkdir(ServerContext* context, const Path* request,
                   Response* response) override {
     
-    std::cout << "trigger mkdir" << std::endl;
+    // std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = root_dir + request->path();
     fs::path path_new_dir(new_dir_path);
 
@@ -60,6 +60,25 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
       }
       
     } else {
+      response->set_status(0);
+    }
+    return Status::OK;
+  }
+  Status Rmdir(ServerContext* context, const Path* request,
+                  Response* response) override {
+    std::cout << "trigger rmdir" << std::endl;
+    std::string remove_dir = root_dir + request->path();
+    fs::path path_rm_dir(remove_dir);
+
+    response->set_status(1);
+
+    if (fs::exists(path_rm_dir)){
+      std::error_code errorCode;
+      if (!fs::remove(path_rm_dir, errorCode)) {
+        perror("Failed to rm directory.");
+        response->set_status(0);
+      }
+    } else{
       response->set_status(0);
     }
     return Status::OK;

@@ -64,6 +64,28 @@ public:
         }
     }
 
+    int Rmdir(const std::string &path)
+    {
+        Path request;
+        request.set_path(path);
+        Response reply;
+        ClientContext context;
+
+        // Here we can use the stub's newly available method we just added.
+        Status status = stub_->Rmdir(&context, request, &reply);
+        if (status.ok())
+        {
+            // std::cout << status.status() << std::endl;
+            return reply.status();
+        }
+        else
+        {
+            std::cout << status.error_code() << ": " << status.error_message()
+                      << std::endl;
+            return -1;
+        }
+    }
+
 private:
     std::unique_ptr<CustomAFS::Stub> stub_;
 };
@@ -75,8 +97,8 @@ int main(int, char **)
     AFSClient client(
         grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
-    std::string path("/test");
-    int reply = client.Mkdir(path);
+    std::string path("/tesst/lslss");
+    int reply = client.Rmdir(path);
     std::cout << "reply: " << reply << std::endl;
 
     return 0;
