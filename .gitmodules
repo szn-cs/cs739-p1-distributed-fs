@@ -5,6 +5,3 @@
 [submodule "dependency/unreliablefs-fork"]
 	path = dependency/unreliablefs-fork
 	url = https://github.com/safizn/unreliablefs-fork
-[submodule "dependency/grpc"]
-	path = dependency/grpc
-	url = https://github.com/grpc/grpc
