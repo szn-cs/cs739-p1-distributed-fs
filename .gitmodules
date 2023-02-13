@@ -1,8 +1,10 @@
-[submodule "dependency/unreliablefs"]
-	path = dependency/unreliablefs
-	url = https://github.com/ligurio/unreliablefs
 [submodule "dependency/vcpkg"]
 	path = dependency/vcpkg
 	url = https://github.com/Microsoft/vcpkg.git
+
+[submodule "dependency/unreliablefs-fork"]
+	path = dependency/unreliablefs-fork
+	url = https://github.com/safizn/unreliablefs-fork
 [submodule "dependency/grpc"]
-	url = https://github.com/safizn/grpc-fork
+	path = dependency/grpc
+	url = https://github.com/safizn/grpc
