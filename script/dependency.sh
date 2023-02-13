@@ -11,6 +11,7 @@ apt autoremove
 exit 0
 
 ## install vcpkg package manager and dependencies
+# https://github.com/grpc/grpc/tree/master/src/cpp#install-using-vcpkg-package
 cd ./dependency/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics && ./vcpkg integrate install # >./CMake-script-for-vcpkg.txt
 ./vcpkg install grpc
 

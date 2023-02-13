@@ -33,10 +33,22 @@ fs_mount() {
   umount ./tmp/fs
 }
 
+example_grpc() {
+  ## an example for server & client is located at `./dependency/grpc/examples/cpp/helloworld`
+  # https://grpc.io/docs/languages/cpp/quickstart/#build-the-example
+  tree -L 2 ./dependency/grpc/examples/cpp/helloworld
+  cd ./dependency/grpc/exmples/cpp/helloworld
+  # assuming vcpkg manages grpc installation.
+  # DOESN'T WORK, SOMETHING TODO WITH THE PATHS
+  #cmake -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/../../../../../dependency/vcpkg/scripts/buildsystems/vcpkg.cmake .
+}
+
 server() {
+  ./target/release/server
   echo 0
 }
 
 client() {
+  ./target/release/client
   echo 0
 }
