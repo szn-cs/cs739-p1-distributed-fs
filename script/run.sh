@@ -1,5 +1,12 @@
 #!/bin/bash
 
+run_example() {
+  # terminal 1 ###########################################################################################
+  ./target/release/example-grpc/greeter_server
+  # terminal 2 ###########################################################################################
+  ./target/release/example-grpc/greeter_client
+}
+
 fs_mount() {
 
   ######## [terminal instance 1] ##########################################################
