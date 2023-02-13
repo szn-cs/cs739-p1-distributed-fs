@@ -12,4 +12,4 @@ mkdir -p ./target/release/example-grpc
 cp ./target/config/dependency/grpc/examples/cpp/helloworld/greeter* ./target/release/example-grpc
 
 ## clean
-# cmake --build ./target/config --target clean
+cmake --build ./target/config --target clean
