@@ -16,93 +16,97 @@
  *
  */
 
+// todo
+
 #include <iostream>
+#include <sys/stat.h>
 #include <memory>
 #include <string>
 
+#include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/health_check_service_interface.h>
+#include "afs.grpc.pb.h"
 
-#ifdef BAZEL_BUILD
-#include "examples/protos/helloworld.grpc.pb.h"
-#else
-#include "helloworld.grpc.pb.h"
-#endif
-
+using afs::CustomAFS;
+using afs::Path;
+using afs::Response;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-using helloworld::Greeter;
-using helloworld::HelloReply;
-using helloworld::HelloRequest;
 
-class GreeterClient {
+class AFSClient {
 public:
-  GreeterClient(std::shared_ptr<Channel> channel)
-      : stub_(Greeter::NewStub(channel)) {}
+  AFSClient(std::shared_ptr<Channel> channel)
+      : stub_(CustomAFS::NewStub(channel)) {}
 
-  // Assembles the client's payload, sends it and presents the response back
-  // from the server.
-  std::string SayHello(const std::string& user) {
-    // Data we are sending to the server.
-    HelloRequest request;
-    request.set_name(user);
-
-    // Container for the data we expect from the server.
-    HelloReply reply;
-
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
+  int Mkdir(const std::string& path) {
+    // Follows the same pattern as SayHello.
+    Path request;
+    request.set_path(path);
+    Response reply;
     ClientContext context;
 
-    // The actual RPC.
-    Status status = stub_->SayHello(&context, request, &reply);
-
-    // Act upon its status.
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Mkdir(&context, request, &reply);
     if (status.ok()) {
-      return reply.message();
+      // std::cout << status.status() << std::endl;
+      return reply.status();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
-      return "RPC failed";
+      return -1;
+    }
+  }
+
+  int Rmdir(const std::string& path) {
+    Path request;
+    request.set_path(path);
+    Response reply;
+    ClientContext context;
+
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Rmdir(&context, request, &reply);
+    if (status.ok()) {
+      // std::cout << status.status() << std::endl;
+      return reply.status();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return -1;
+    }
+  }
+
+  int Unlink(const std::string& path) {
+    Path request;
+    request.set_path(path);
+    Response reply;
+    ClientContext context;
+
+    // Here we can use the stub's newly available method we just added.
+    Status status = stub_->Unlink(&context, request, &reply);
+    if (status.ok()) {
+      return reply.status();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return -1;
     }
   }
 
 private:
-  std::unique_ptr<Greeter::Stub> stub_;
+  std::unique_ptr<CustomAFS::Stub> stub_;
 };
 
-int main(int argc, char** argv) {
-  // Instantiate the client. It requires a channel, out of which the actual RPCs
-  // are created. This channel models a connection to an endpoint specified by
-  // the argument "--target=" which is the only expected argument.
-  // We indicate that the channel isn't authenticated (use of
-  // InsecureChannelCredentials()).
-  std::string target_str;
-  std::string arg_str("--target");
-  if (argc > 1) {
-    std::string arg_val = argv[1];
-    size_t start_pos = arg_val.find(arg_str);
-    if (start_pos != std::string::npos) {
-      start_pos += arg_str.size();
-      if (arg_val[start_pos] == '=') {
-        target_str = arg_val.substr(start_pos + 1);
-      } else {
-        std::cout << "The only correct argument syntax is --target="
-                  << std::endl;
-        return 0;
-      }
-    } else {
-      std::cout << "The only acceptable argument is --target=" << std::endl;
-      return 0;
-    }
-  } else {
-    target_str = "localhost:50051";
-  }
-  GreeterClient greeter(
+int main(int, char**) {
+
+  std::string target_str = "localhost:50051";
+  AFSClient client(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-  std::string user("world");
-  std::string reply = greeter.SayHello(user);
-  std::cout << "Greeter received: " << reply << std::endl;
+
+  // std::string path("/test.txt");
+  // int reply = client.Unlink(path);
+  // std::cout << "reply: " << reply << std::endl;
 
   return 0;
 }
