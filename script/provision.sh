@@ -1,3 +1,12 @@
+#!/bin/bash
+
+## setup & configure repository
+workspaceFolder=$PWD
+chmod +x ${workspaceFolder}/script/* && sudo ${workspaceFolder}/script/dependency.sh
+
+# download corresponding submodules
+git submodule update --init --remote
+
 ## provision system dependencies
 # - libfuse 3+
 
@@ -9,12 +18,12 @@ for i in $dependencies; do sudo apt install -y $i; done
 sudo apt update && sudo apt upgrade
 sudo apt autoremove
 
-# exit 0
-
 ## install vcpkg package manager and dependencies
 # https://github.com/grpc/grpc/tree/master/src/cpp#install-using-vcpkg-package
-cd ./dependency/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics && ./vcpkg integrate install # >./CMake-script-for-vcpkg.txt
+pushd ./dependency/vcpkg
+./bootstrap-vcpkg.sh -disableMetrics && ./vcpkg integrate install # >./CMake-script-for-vcpkg.txt
 ./vcpkg install grpc
+popd
 
 ##########################################
 # Fedora gcc installation

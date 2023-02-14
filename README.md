@@ -1,14 +1,14 @@
 # cs739-p1-distributed-fs
 Distributed FS project
 
+- [P1 Instructions](documentation/CS739.P1.md)
 - build (adding AFS protocol based on RPC) on top of an existing FUSE filesystem [unreliablefs](https://github.com/ligurio/unreliablefs)
-- CloudLabs URL: <https://www.cloudlab.us/status.php?uuid=052ba884-abb2-11ed-b318-e4434b2381fc>
+- CloudLabs
 
 
 # Setup
 
-- install dependencies using script files `./script/dependency.sh` or using VSCode task
-- run `./script/repo_setup.sh`
+- execute `./script/provision.sh` to setup repo and install dependencies
 - run script `build.sh` will result in binary files in `./target/release` 
 - run individual commands (copy & paste) in `run.sh`
 
