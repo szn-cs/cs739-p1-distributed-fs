@@ -1,8 +1,9 @@
 # cs739-p1-distributed-fs
 Distributed FS project
 
+- [P1 Instructions](documentation/CS739.P1.md)
 - build (adding AFS protocol based on RPC) on top of an existing FUSE filesystem [unreliablefs](https://github.com/ligurio/unreliablefs)
-- CloudLabs URL: <https://www.cloudlab.us/status.php?uuid=052ba884-abb2-11ed-b318-e4434b2381fc>
+- CloudLabs
 
 
 # Setup
