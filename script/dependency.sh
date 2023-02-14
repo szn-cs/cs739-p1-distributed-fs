@@ -9,7 +9,7 @@ for i in $dependencies; do sudo apt install -y $i; done
 sudo apt update && sudo apt upgrade
 sudo apt autoremove
 
-# exit 0
+exit 0
 
 ## install vcpkg package manager and dependencies
 # https://github.com/grpc/grpc/tree/master/src/cpp#install-using-vcpkg-package
