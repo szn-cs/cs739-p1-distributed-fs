@@ -36,7 +36,7 @@ public:
 
     int clientReadFileStream(const std::string &path, const int &size, const int &offset, int &numBytes, std::string &buf, long &timestamp)
     {
-        std::cout << "grpc client read " << path << "\n";
+        std::cout << " grpc client read " << path << "\n";
         ReadFileStreamReq request;
         request.set_path(path);
         request.set_size(size);
@@ -45,9 +45,11 @@ public:
         ReadFileStreamReply reply;
         ClientContext context;
         std::chrono::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
-        context.set_deadline(deadline);
+        //context.set_deadline(deadline);
         std::cout << "1-1\n";
+
         std::unique_ptr<ClientReader<ReadFileStreamReply>> reader(stub_->ReadFileStream(&context, request));
+
         std::cout << "2\n";
         while (reader->Read(&reply))
         {   
@@ -154,10 +156,11 @@ int main(int argc, char* argv[]) {
   // int reply = client.Unlink(path);
   // std::cout << "reply: " << reply << std::endl;
     // ---------- test read ----------
-    AFSClient* client_read;
+    AFSClient client_read(
+      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
     std::string buf; 
     long timestamp;
     int numBytes;
-    client_read->clientReadFileStream("test.txt", 8, 0, numBytes, buf, timestamp);
+    client_read.clientReadFileStream("test.txt", 8, 0, numBytes, buf, timestamp);
   return 0;
 }

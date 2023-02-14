@@ -43,6 +43,7 @@ public:
   
   Status ReadFileStream(ServerContext* context, const ReadFileStreamReq* request,
                   ServerWriter<ReadFileStreamReply>* writer) override {
+      std::cout << "trigger server read" << std::endl;
       int numOfBytes = 0;
       struct timespec spec;
 
@@ -110,6 +111,7 @@ public:
   // EXAMPLE API
   Status SayHello(ServerContext* context, const HelloRequest* request,
                   HelloReply* reply) override {
+    std::cout << "server say hello triggered" << std::endl;
     std::string prefix("Hello ");
     reply->set_message(prefix + request->name());
     return Status::OK;
