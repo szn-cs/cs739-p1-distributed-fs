@@ -41,6 +41,7 @@ using grpc::Status;
 using afs::CustomAFS;
 using afs::Path;
 using afs::Response;
+using afs::StatInfo;
 // EXAMPLE
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -107,6 +108,34 @@ public:
       }
     } else {
       response->set_status(0);
+    }
+    return Status::OK;
+  }
+
+  Status GetAttr(ServerContext* context, const Path* request,
+                StatInfo* response) override {
+    std::cout << "trigger getattr" << std::endl;
+    std::string getattr_file = root_dir + request->path();
+    fs::path path_getattr_file(getattr_file);
+
+    response->set_status(0);
+    if (fs::exists(path_getattr_file)) {
+      struct stat sfile;
+      stat(getattr_file.c_str(), &sfile);
+      response->set_stdev(sfile.st_dev);     
+      response->set_stino(sfile.st_ino);    
+      response->set_stmode(sfile.st_mode);
+      response->set_stnlink(sfile.st_nlink);
+      response->set_stuid(sfile.st_uid); 
+      response->set_stgid(sfile.st_gid);
+      response->set_strdev(sfile.st_rdev);
+      response->set_stsize(sfile.st_size);
+      response->set_stblksize(sfile.st_blksize);
+      response->set_stblocks(sfile.st_blocks); 
+      response->set_statime(sfile.st_atime);  
+      response->set_stmtime(sfile.st_mtime);  
+      response->set_stctime(sfile.st_ctime);  
+      response->set_status(1);
     }
     return Status::OK;
   }

@@ -1,3 +1,6 @@
+# create make files
+cmake -S . -B ./target/config
+
 ## build through `cmake`
 cmake --build ./target/config --verbose --parallel
 # or use `make -w -C ./target/config/`

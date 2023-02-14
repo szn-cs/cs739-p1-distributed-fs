@@ -33,6 +33,7 @@ using grpc::Status;
 using afs::CustomAFS;
 using afs::Path;
 using afs::Response;
+using afs::StatInfo;
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -88,6 +89,35 @@ public:
     // Here we can use the stub's newly available method we just added.
     Status status = stub_->Unlink(&context, request, &reply);
     if (status.ok()) {
+      return reply.status();
+    } else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return -1;
+    }
+  }
+
+  int GetAttr(const std::string& path) {
+    Path request;
+    request.set_path(path);
+    StatInfo reply;
+    ClientContext context;
+
+    Status status = stub_->GetAttr(&context, request, &reply);
+    if (status.ok()) {
+      std::cout << reply.stdev() << std::endl;
+      std::cout << reply.stino() << std::endl;
+      std::cout << reply.stmode() << std::endl;
+      std::cout << reply.stnlink() << std::endl;
+      std::cout << reply.stuid() << std::endl;
+      std::cout << reply.stgid() << std::endl;
+      std::cout << reply.strdev() << std::endl;
+      std::cout << reply.stsize() << std::endl;
+      std::cout << reply.stblksize() << std::endl;
+      std::cout << reply.stblocks() << std::endl;
+      std::cout << reply.statime() << std::endl;
+      std::cout << reply.stmtime() << std::endl;
+      std::cout << reply.stctime() << std::endl;
       return reply.status();
     } else {
       std::cout << status.error_code() << ": " << status.error_message()
