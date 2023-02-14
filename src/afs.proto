@@ -6,7 +6,7 @@ service CustomAFS {
     rpc Unlink(Path) returns (Response) {};
     rpc Rmdir(Path) returns (Response) {};
     rpc GetAttr(Path) returns (StatInfo) {};
-    rpc Read(ReadFileStreamReq) returns (stream ReadFileStreamReply) {};
+    rpc ReadFileStream(ReadFileStreamReq) returns (stream ReadFileStreamReply) {};
     rpc Write(stream Datablock) returns (Response) {};
     // rpc Create(Path) returns (Response) {};
 

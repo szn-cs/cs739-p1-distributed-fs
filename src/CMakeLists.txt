@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.8)
 # Project
 project(afs_server C CXX)
 
+# debug
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+
 # Protobuf
 set(protobuf_MODULE_COMPATIBLE TRUE)
 find_package(Protobuf CONFIG REQUIRED)
@@ -56,7 +59,7 @@ target_link_libraries(custom_hw_grpc_proto
 
 # Modify names for the source code
 foreach(_target
-  server client grpc_client_yishen grpc_server_yishen)
+  server client grpc_server_yishen grpc_client_yishen)
   add_executable(${_target} "${_target}.cpp"
     ${hw_proto_srcs}
     ${hw_grpc_srcs})
