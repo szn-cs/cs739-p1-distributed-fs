@@ -1,8 +1,7 @@
 # Minimum CMake required
-cmake_minimum_required(VERSION 3.5.1)
-
+cmake_minimum_required(VERSION 3.8)
 # Project
-project(afs_server)
+project(afs_server C CXX)
 
 # Protobuf
 set(protobuf_MODULE_COMPATIBLE TRUE)
@@ -23,7 +22,7 @@ set(_GRPC_GRPCPP gRPC::grpc++)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
 # Proto file
-get_filename_component(hw_proto "../protos/afs.proto" ABSOLUTE)
+get_filename_component(hw_proto "./afs.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
 
 # Generated sources
@@ -44,17 +43,26 @@ add_custom_command(
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-
-
+# hw_grpc_proto
+add_library(hw_grpc_proto
+  ${hw_grpc_srcs}
+  ${hw_grpc_hdrs}
+  ${hw_proto_srcs}
+  ${hw_proto_hdrs})
+target_link_libraries(hw_grpc_proto
+  ${_REFLECTION}
+  ${_GRPC_GRPCPP}
+  ${_PROTOBUF_LIBPROTOBUF})
 
 # Modify names for the source code
 foreach(_target
-  client)
+  server client)
   add_executable(${_target} "${_target}.cpp"
     ${hw_proto_srcs}
     ${hw_grpc_srcs})
   target_link_libraries(${_target}
     ${_REFLECTION}
     ${_GRPC_GRPCPP}
-    ${_PROTOBUF_LIBPROTOBUF})
+    ${_PROTOBUF_LIBPROTOBUF}
+    stdc++fs)
 endforeach()

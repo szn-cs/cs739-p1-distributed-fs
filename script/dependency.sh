@@ -4,12 +4,12 @@
 dependencies="build-essential autoconf libtool pkg-config gcc cmake fuse3 libfuse3-dev libfuse-dev"
 # if any issues try: `libfuse3-dev libfuse3-3 fuse` or try searching for fuse3 libraries
 
-apt update && apt upgrade
-for i in $dependencies; do apt install -y $i; done
-apt update && apt upgrade
-apt autoremove
+sudo apt update && sudo apt upgrade
+for i in $dependencies; do sudo apt install -y $i; done
+sudo apt update && sudo apt upgrade
+sudo apt autoremove
 
-exit 0
+# exit 0
 
 ## install vcpkg package manager and dependencies
 # https://github.com/grpc/grpc/tree/master/src/cpp#install-using-vcpkg-package
