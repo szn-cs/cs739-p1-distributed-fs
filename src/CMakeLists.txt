@@ -56,7 +56,7 @@ target_link_libraries(custom_hw_grpc_proto
 
 # Modify names for the source code
 foreach(_target
-  server client)
+  server client grpc_client_yishen grpc_server_yishen)
   add_executable(${_target} "${_target}.cpp"
     ${hw_proto_srcs}
     ${hw_grpc_srcs})
