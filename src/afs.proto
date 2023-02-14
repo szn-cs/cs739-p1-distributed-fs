@@ -9,6 +9,11 @@ service CustomAFS {
     rpc Read(ReadFileStreamReq) returns (stream ReadFileStreamReply) {};
     rpc Write(stream Datablock) returns (Response) {};
     // rpc Create(Path) returns (Response) {};
+
+    // EXAMPLE API: keep this for debudding
+    // Sends a greeting
+    rpc SayHello(HelloRequest) returns (HelloReply) {}
+    rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {}
 }
 
 message Path {
@@ -68,3 +73,16 @@ message ReadFileStreamReply {
 //     st_mtime = 12;  
 //     st_ctime = 13;  
 // }
+
+
+
+/** EXAMPLE API **/
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}

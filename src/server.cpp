@@ -16,8 +16,6 @@
  *
  */
 
-// todo
-
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -33,15 +31,19 @@ namespace fs = std::experimental::filesystem;
 #include <grpcpp/health_check_service_interface.h>
 #include "afs.grpc.pb.h"
 
-using afs::CustomAFS;
-using afs::Path;
-using afs::Response;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerReader;
 using grpc::ServerWriter;
 using grpc::Status;
+
+using afs::CustomAFS;
+using afs::Path;
+using afs::Response;
+// EXAMPLE
+using afs::HelloReply;
+using afs::HelloRequest;
 
 #define CHUNK_SIZE 1572864
 
@@ -51,8 +53,7 @@ fs::path path_root_dir(root_dir);
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
 public:
-  Status Mkdir(ServerContext* context, const Path* request,
-               Response* response) override {
+  Status Mkdir(ServerContext* context, const Path* request, Response* response) override {
 
     // std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = root_dir + request->path();
@@ -175,6 +176,14 @@ public:
   //     return Status::OK;
 
   // }
+
+  // EXAMPLE API
+  Status SayHello(ServerContext* context, const HelloRequest* request,
+                  HelloReply* reply) override {
+    std::string prefix("Hello ");
+    reply->set_message(prefix + request->name());
+    return Status::OK;
+  }
 };
 
 void RunServer() {
