@@ -15,22 +15,24 @@
  * limitations under the License.
  *
  */
-#include <iostream>
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+
+#include <experimental/filesystem>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <experimental/filesystem>
-#include <fcntl.h>
-#include <signal.h>
-#include <errno.h>
 #include <vector>
 namespace fs = std::experimental::filesystem;
 
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
+
 #include "afs.grpc.pb.h"
 
 using grpc::Server;
@@ -42,10 +44,10 @@ using grpc::Status;
 
 using afs::CustomAFS;
 using afs::Path;
+using afs::ReadFileStreamReply;
+using afs::ReadFileStreamReq;
 using afs::Response;
 using afs::StatInfo;
-using afs::ReadFileStreamReq;
-using afs::ReadFileStreamReply;
 // EXAMPLE
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -57,9 +59,9 @@ fs::path path_root_dir(root_dir);
 
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
-public:
-  Status Mkdir(ServerContext* context, const Path* request, Response* response) override {
-
+ public:
+  Status Mkdir(ServerContext* context, const Path* request,
+               Response* response) override {
     // std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = root_dir + request->path();
     fs::path path_new_dir(new_dir_path);
@@ -117,7 +119,7 @@ public:
   }
 
   Status GetAttr(ServerContext* context, const Path* request,
-                StatInfo* response) override {
+                 StatInfo* response) override {
     std::cout << "trigger getattr" << std::endl;
     std::string getattr_file = root_dir + request->path();
     fs::path path_getattr_file(getattr_file);
@@ -126,89 +128,84 @@ public:
     if (fs::exists(path_getattr_file)) {
       struct stat sfile;
       stat(getattr_file.c_str(), &sfile);
-      response->set_stdev(sfile.st_dev);     
-      response->set_stino(sfile.st_ino);    
+      response->set_stdev(sfile.st_dev);
+      response->set_stino(sfile.st_ino);
       response->set_stmode(sfile.st_mode);
       response->set_stnlink(sfile.st_nlink);
-      response->set_stuid(sfile.st_uid); 
+      response->set_stuid(sfile.st_uid);
       response->set_stgid(sfile.st_gid);
       response->set_strdev(sfile.st_rdev);
       response->set_stsize(sfile.st_size);
       response->set_stblksize(sfile.st_blksize);
-      response->set_stblocks(sfile.st_blocks); 
-      response->set_statime(sfile.st_atime);  
-      response->set_stmtime(sfile.st_mtime);  
-      response->set_stctime(sfile.st_ctime);  
+      response->set_stblocks(sfile.st_blocks);
+      response->set_statime(sfile.st_atime);
+      response->set_stmtime(sfile.st_mtime);
+      response->set_stctime(sfile.st_ctime);
       response->set_status(1);
     }
     return Status::OK;
   }
 
-   Status ReadFileStream(ServerContext* context, const ReadFileStreamReq* request,
-                  ServerWriter<ReadFileStreamReply>* writer) override {
-      std::cout << "trigger server read" << std::endl;
-      int numOfBytes = 0;
-      struct timespec spec;
+  Status ReadFileStream(ServerContext* context,
+                        const ReadFileStreamReq* request,
+                        ServerWriter<ReadFileStreamReply>* writer) override {
+    std::cout << "trigger server read" << std::endl;
+    int numOfBytes = 0;
+    struct timespec spec;
 
-      ReadFileStreamReply *reply = new ReadFileStreamReply();
-      reply->set_numbytes(numOfBytes);
+    ReadFileStreamReply* reply = new ReadFileStreamReply();
+    reply->set_numbytes(numOfBytes);
 
-      int res;
-      std::string path = root_dir + request->path();
-      printf("ReadFileStream: %s \n", path.c_str());
+    int res;
+    std::string path = root_dir + request->path();
+    printf("ReadFileStream: %s \n", path.c_str());
 
-      int size = request->size();
-      int offset = request->offset();
+    int size = request->size();
+    int offset = request->offset();
 
-      int fd = open(path.c_str(), O_RDONLY);
-      if (fd == -1)
-      {
-          reply->set_err(-errno);
-          reply->set_numbytes(INT_MIN);
-          return Status::OK;
-      }
-
-      std::string buf;
-      buf.resize(size);
-
-      int bytesRead = pread(fd, &buf[0], size, offset);
-      if (bytesRead != size)
-      {
-          printf("Read Send: PREAD didn't read %d bytes from offset %d\n", size, offset);
-      }
-
-      if (bytesRead == -1)
-      {
-          reply->set_err(-errno);
-          reply->set_numbytes(INT_MIN);
-      }
-
-      int curr = 0;
-      while (bytesRead > 0)
-      {
-          if (buf.find("crash1") != std::string::npos)
-          {
-              std::cout << "Killing server process in read\n";
-              kill(getpid(), SIGINT);
-          }
-          clock_gettime(CLOCK_REALTIME, &spec);
-          reply->set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesRead)));
-          reply->set_numbytes(std::min(CHUNK_SIZE, bytesRead));
-          reply->set_err(0);
-          reply->set_timestamp(spec.tv_sec);
-          curr += std::min(CHUNK_SIZE, bytesRead);
-          bytesRead -= std::min(CHUNK_SIZE, bytesRead);
-
-          writer->Write(*reply);
-      }
-
-      if (fd > 0)
-      {
-          printf("Read Send: Calling close()\n");
-          close(fd);
-      }
+    int fd = open(path.c_str(), O_RDONLY);
+    if (fd == -1) {
+      reply->set_err(-errno);
+      reply->set_numbytes(INT_MIN);
       return Status::OK;
+    }
 
+    std::string buf;
+    buf.resize(size);
+
+    int bytesRead = pread(fd, &buf[0], size, offset);
+    if (bytesRead != size) {
+      printf("Read Send: PREAD didn't read %d bytes from offset %d\n", size,
+             offset);
+    }
+
+    if (bytesRead == -1) {
+      reply->set_err(-errno);
+      reply->set_numbytes(INT_MIN);
+    }
+
+    int curr = 0;
+    while (bytesRead > 0) {
+      if (buf.find("crash1") != std::string::npos) {
+        std::cout << "Killing server process in read\n";
+        kill(getpid(), SIGINT);
+      }
+      clock_gettime(CLOCK_REALTIME, &spec);
+      reply->set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesRead)));
+      reply->set_numbytes(std::min(CHUNK_SIZE, bytesRead));
+      reply->set_err(0);
+      reply->set_timestamp(spec.tv_sec);
+      curr += std::min(CHUNK_SIZE, bytesRead);
+      bytesRead -= std::min(CHUNK_SIZE, bytesRead);
+
+      writer->Write(*reply);
+    }
+
+    if (fd > 0) {
+      printf("Read Send: Calling close()\n");
+      close(fd);
+    }
+    return Status::OK;
   }
 
   // EXAMPLE API

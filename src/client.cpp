@@ -16,39 +16,41 @@
  *
  */
 
-#include <iostream>
-#include <sys/stat.h>
-#include <memory>
-#include <string>
-#include <chrono>
 #include <errno.h>
-#include <signal.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
+#include <signal.h>
+#include <sys/stat.h>
+
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include "afs.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
-using grpc::Status;
 using grpc::ClientReader;
 using grpc::ClientWriter;
+using grpc::Status;
 
 using afs::CustomAFS;
 using afs::Path;
-using afs::Response;
-using afs::StatInfo;
 using afs::ReadFileStreamReply;
 using afs::ReadFileStreamReq;
+using afs::Response;
+using afs::StatInfo;
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply;
 using afs::HelloRequest;
 
-#define TIMEOUT 60 * 1000 // this is in ms
+#define TIMEOUT 60 * 1000  // this is in ms
 #define CHUNK_SIZE 1572864
 
 class AFSClient {
-public:
+ public:
   AFSClient(std::shared_ptr<Channel> channel)
       : stub_(CustomAFS::NewStub(channel)) {}
 
@@ -134,51 +136,51 @@ public:
       return -1;
     }
   }
-    int clientReadFileStream(const std::string &path, const int &size, const int &offset, int &numBytes, std::string &buf, long &timestamp)
-    {
-        std::cout << " grpc client read " << path << "\n";
-        ReadFileStreamReq request;
-        request.set_path(path);
-        request.set_size(size);
-        request.set_offset(offset);
-        std::cout << "1\n";
-        ReadFileStreamReply reply;
-        ClientContext context;
-        std::chrono::time_point deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
-        //context.set_deadline(deadline);
-        std::cout << "1-1\n";
+  int clientReadFileStream(const std::string& path, const int& size,
+                           const int& offset, int& numBytes, std::string& buf,
+                           long& timestamp) {
+    std::cout << " grpc client read " << path << "\n";
+    ReadFileStreamReq request;
+    request.set_path(path);
+    request.set_size(size);
+    request.set_offset(offset);
+    std::cout << "1\n";
+    ReadFileStreamReply reply;
+    ClientContext context;
+    std::chrono::time_point deadline =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
+    // context.set_deadline(deadline);
+    std::cout << "1-1\n";
 
-        std::unique_ptr<ClientReader<ReadFileStreamReply>> reader(stub_->ReadFileStream(&context, request));
+    std::unique_ptr<ClientReader<ReadFileStreamReply>> reader(
+        stub_->ReadFileStream(&context, request));
 
-        std::cout << "2\n";
-        while (reader->Read(&reply))
-        {   
-            std::cout << "3\n";
-            if (reply.buf().find("crash3") != std::string::npos)
-            {
-                std::cout << "Killing client process in read()\n";
-                kill(getpid(), SIGABRT);
-            }
-            std::cout << reply.buf() << std::endl;
-            buf.append(reply.buf());
-            if (reply.numbytes() < 0)
-            {   
-                std::cout << "4\n";
-                break;
-            }
-        }
-        Status status = reader->Finish();
-        if (status.ok())
-        {
-            numBytes = reply.numbytes();
-            timestamp = reply.timestamp();
-            std::cout << "grpc Read client " << numBytes << " " << timestamp << std::endl;
-            return reply.err();
-        }
-        std::cout << "There was an error in the server Read " << status.error_code() << std::endl;
-        return status.error_code();
+    std::cout << "2\n";
+    while (reader->Read(&reply)) {
+      std::cout << "3\n";
+      if (reply.buf().find("crash3") != std::string::npos) {
+        std::cout << "Killing client process in read()\n";
+        kill(getpid(), SIGABRT);
+      }
+      std::cout << reply.buf() << std::endl;
+      buf.append(reply.buf());
+      if (reply.numbytes() < 0) {
+        std::cout << "4\n";
+        break;
+      }
     }
-  
+    Status status = reader->Finish();
+    if (status.ok()) {
+      numBytes = reply.numbytes();
+      timestamp = reply.timestamp();
+      std::cout << "grpc Read client " << numBytes << " " << timestamp
+                << std::endl;
+      return reply.err();
+    }
+    std::cout << "There was an error in the server Read " << status.error_code()
+              << std::endl;
+    return status.error_code();
+  }
 
   /** EXAMPLE: keep it to make sure things are working
    * Assembles the client's payload, sends it and presents the response back
@@ -209,7 +211,7 @@ public:
     }
   }
 
-private:
+ private:
   std::unique_ptr<CustomAFS::Stub> stub_;
 };
 
@@ -252,11 +254,11 @@ int main(int argc, char* argv[]) {
   // std::string path("/test.txt");
   // int reply = client.Unlink(path);
   // std::cout << "reply: " << reply << std::endl;
-    AFSClient client_read(
+  AFSClient client_read(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-    std::string buf; 
-    long timestamp;
-    int numBytes;
-    client_read.clientReadFileStream("test.txt", 8, 0, numBytes, buf, timestamp);
+  std::string buf;
+  long timestamp;
+  int numBytes;
+  client_read.clientReadFileStream("test.txt", 8, 0, numBytes, buf, timestamp);
   return 0;
 }
