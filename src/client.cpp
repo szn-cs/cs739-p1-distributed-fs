@@ -42,6 +42,8 @@ using afs::ReadFileStreamReply;
 using afs::ReadFileStreamReq;
 using afs::Response;
 using afs::StatInfo;
+using afs::WriteFileStreamReply;
+using afs::WriteFileStreamReq;
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -182,6 +184,49 @@ class AFSClient {
     return status.error_code();
   }
 
+  int clientWriteFileStream(const std::string& path, const std::string& buf,
+                            const int& size, const int& offset, int& numBytes,
+                            long& timestamp) {
+    std::cout << "GRPC client write\n";
+    WriteFileStreamReq request;
+    WriteFileStreamReply reply;
+    ClientContext context;
+    std::chrono::time_point deadline =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
+    context.set_deadline(deadline);
+    std::unique_ptr<ClientWriter<WriteFileStreamReq>> writer(
+        stub_->WriteFileStream(&context, &reply));
+    int bytesLeft = size;
+    int curr = offset;
+    while (bytesLeft >= 0) {
+      request.set_path(path);
+      request.set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesLeft)));
+      request.set_size(std::min(CHUNK_SIZE, bytesLeft));
+      request.set_offset(curr);
+      curr += CHUNK_SIZE;
+      bytesLeft -= CHUNK_SIZE;
+      if (!writer->Write(request)) {
+        // Broken stream.
+        break;
+      }
+      if (buf.find("crash4") != std::string::npos) {
+        std::cout << "Killing client process in write()\n";
+        kill(getpid(), SIGABRT);
+      }
+    }
+    writer->WritesDone();
+    Status status = writer->Finish();
+
+    if (status.ok()) {
+      numBytes = reply.numbytes();
+      timestamp = reply.timestamp();
+      return reply.err();
+    }
+    // cout << "There was an error in the server Write " << status.error_code()
+    // << endl;
+
+    return status.error_code();
+  }
   /** EXAMPLE: keep it to make sure things are working
    * Assembles the client's payload, sends it and presents the response back
    * from the server.

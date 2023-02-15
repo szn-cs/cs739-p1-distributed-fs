@@ -48,6 +48,8 @@ using afs::ReadFileStreamReply;
 using afs::ReadFileStreamReq;
 using afs::Response;
 using afs::StatInfo;
+using afs::WriteFileStreamReply;
+using afs::WriteFileStreamReq;
 // EXAMPLE
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -205,6 +207,73 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
       printf("Read Send: Calling close()\n");
       close(fd);
     }
+    return Status::OK;
+  }
+
+  Status WriteFileStream(ServerContext* context,
+                         ServerReader<WriteFileStreamReq>* reader,
+                         WriteFileStreamReply* reply) override {
+    std::string path;
+    WriteFileStreamReq request;
+    std::string tempFilePath = root_dir;
+    int fd = -1;
+    int res, size, offset, numOfBytes = 0;
+    reply->set_numbytes(numOfBytes);
+
+    while (reader->Read(&request)) {
+      path = root_dir + request.path();
+      size = request.size();
+      offset = request.offset();
+      std::string buf = request.buf();
+      if (numOfBytes == 0) {
+        tempFilePath = path + ".TMP";
+        // cout << "Creating new temp file at path = " << tempFilePath << " size
+        // = " << size << "\n";
+        fd = open(tempFilePath.c_str(), O_CREAT | O_SYNC | O_WRONLY, 0666);
+        if (fd == -1) {
+          reply->set_err(-errno);
+          reply->set_numbytes(INT_MIN);
+          return Status::OK;
+        }
+        // printf("Write Send: %s \n", path.c_str());
+      }
+      res = pwrite(fd, &buf[0], size, offset);
+      fsync(fd);
+      // pwrite returns -1 when error, and store type in errno
+      if (res == -1) {
+        reply->set_err(-errno);
+        reply->set_numbytes(INT_MIN);
+        printf("Write Send: Pwrite failed!");
+        return Status::OK;
+      }
+      numOfBytes += res;
+    }
+    if (context->IsCancelled()) {
+      fsync(fd);
+      close(fd);
+      reply->set_err(-errno);
+      reply->set_numbytes(INT_MIN);
+      return Status::CANCELLED;
+    }
+    if (fd > 0) {
+      if (path.find("crash2") != std::string::npos) {
+        // cout << "Killing server process in write()\n";
+        kill(getpid(), SIGINT);
+      }
+      // printf("Write Send: Calling fsync()\n");
+      fsync(fd);
+      close(fd);
+      int res = rename(tempFilePath.c_str(), path.c_str());
+      if (res) {
+        reply->set_err(-errno);
+        reply->set_numbytes(INT_MIN);
+      }
+    }
+    struct stat stbuf;
+    int rc = stat(path.c_str(), &stbuf);
+    reply->set_timestamp(stbuf.st_mtim.tv_sec);
+    reply->set_numbytes(numOfBytes);
+    reply->set_err(0);
     return Status::OK;
   }
 

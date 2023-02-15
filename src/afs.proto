@@ -13,7 +13,7 @@ service CustomAFS {
     // 5. read(self, path, size, offset)
     rpc ReadFileStream(ReadFileStreamReq) returns (stream ReadFileStreamReply) {};
     // 6. write(self, path, buf, offset)    
-    rpc Write(stream Datablock) returns (Response) {};
+    rpc WriteFileStream(stream WriteFileStreamReq) returns (WriteFileStreamReply) {};
     // 8. open(self, path, flags)
     rpc Open(Path) returns (Response) {};
 
@@ -54,6 +54,19 @@ message ReadFileStreamReply {
     bytes buf  = 2;
     int32 err = 3;
     int64 timestamp=4;
+}
+
+message WriteFileStreamReq {
+    string path = 1;
+    bytes  buf = 2;
+    int32  size = 3;
+    int32  offset = 4;
+}
+
+message WriteFileStreamReply {
+    int32 numBytes = 1;
+    int32 err=2;
+    int64 timestamp=3;
 }
 
 // https://linux.die.net/man/2/stat
