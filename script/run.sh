@@ -33,7 +33,7 @@ fs_mount() {
   # EOF
 
   ## use existing config file instead
-  cat ./src/unreliablefs.conf ./tmp/fs/unreliablefs.conf
+  cat ./config/unreliablefs.conf ./tmp/fs/unreliablefs.conf
 
   ls -la ./tmp/fs
 
