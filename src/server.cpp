@@ -56,7 +56,7 @@ using afs::HelloRequest;
 
 #define CHUNK_SIZE 1572864
 
-std::string root_dir = fs::current_path().generic_string() + "/root_dir";
+std::string root_dir = fs::current_path().generic_string() + "/root_dir/";
 fs::path path_root_dir(root_dir);
 
 // Logic and data behind the server's behavior.
