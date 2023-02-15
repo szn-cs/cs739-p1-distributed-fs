@@ -44,19 +44,19 @@ using grpc::Status;
 
 using afs::CustomAFS;
 using afs::Path;
-using afs::ReadFileStreamReply;
-using afs::ReadFileStreamReq;
+using afs::ReadReply;
+using afs::ReadRequest;
 using afs::Response;
 using afs::StatInfo;
-using afs::WriteFileStreamReply;
-using afs::WriteFileStreamReq;
+using afs::WriteReply;
+using afs::WriteRequest;
 // EXAMPLE
 using afs::HelloReply;
 using afs::HelloRequest;
 
 #define CHUNK_SIZE 1572864
 
-std::string root_dir = fs::current_path().generic_string() + "/root_dir";
+std::string root_dir = fs::current_path().generic_string() + "/root_dir/";
 fs::path path_root_dir(root_dir);
 
 // Logic and data behind the server's behavior.
@@ -148,14 +148,13 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status ReadFileStream(ServerContext* context,
-                        const ReadFileStreamReq* request,
-                        ServerWriter<ReadFileStreamReply>* writer) override {
+  Status Read(ServerContext* context, const ReadRequest* request,
+              ServerWriter<ReadReply>* writer) override {
     std::cout << "trigger server read" << std::endl;
     int numOfBytes = 0;
     struct timespec spec;
 
-    ReadFileStreamReply* reply = new ReadFileStreamReply();
+    ReadReply* reply = new ReadReply();
     reply->set_numbytes(numOfBytes);
 
     int res;
@@ -210,11 +209,10 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status WriteFileStream(ServerContext* context,
-                         ServerReader<WriteFileStreamReq>* reader,
-                         WriteFileStreamReply* reply) override {
+  Status Write(ServerContext* context, ServerReader<WriteRequest>* reader,
+               WriteReply* reply) override {
     std::string path;
-    WriteFileStreamReq request;
+    WriteRequest request;
     std::string tempFilePath = root_dir;
     int fd = -1;
     int res, size, offset, numOfBytes = 0;

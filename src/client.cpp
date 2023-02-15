@@ -38,12 +38,12 @@ using grpc::Status;
 
 using afs::CustomAFS;
 using afs::Path;
-using afs::ReadFileStreamReply;
-using afs::ReadFileStreamReq;
+using afs::ReadReply;
+using afs::ReadRequest;
 using afs::Response;
 using afs::StatInfo;
-using afs::WriteFileStreamReply;
-using afs::WriteFileStreamReq;
+using afs::WriteReply;
+using afs::WriteRequest;
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -142,20 +142,20 @@ class AFSClient {
                            const int& offset, int& numBytes, std::string& buf,
                            long& timestamp) {
     std::cout << " grpc client read " << path << "\n";
-    ReadFileStreamReq request;
+    ReadRequest request;
     request.set_path(path);
     request.set_size(size);
     request.set_offset(offset);
     std::cout << "1\n";
-    ReadFileStreamReply reply;
+    ReadReply reply;
     ClientContext context;
     std::chrono::time_point deadline =
         std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
     // context.set_deadline(deadline);
     std::cout << "1-1\n";
 
-    std::unique_ptr<ClientReader<ReadFileStreamReply>> reader(
-        stub_->ReadFileStream(&context, request));
+    std::unique_ptr<ClientReader<ReadReply>> reader(
+        stub_->Read(&context, request));
 
     std::cout << "2\n";
     while (reader->Read(&reply)) {
@@ -188,14 +188,14 @@ class AFSClient {
                             const int& size, const int& offset, int& numBytes,
                             long& timestamp) {
     std::cout << "GRPC client write\n";
-    WriteFileStreamReq request;
-    WriteFileStreamReply reply;
+    WriteRequest request;
+    WriteReply reply;
     ClientContext context;
     std::chrono::time_point deadline =
         std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
     context.set_deadline(deadline);
-    std::unique_ptr<ClientWriter<WriteFileStreamReq>> writer(
-        stub_->WriteFileStream(&context, &reply));
+    std::unique_ptr<ClientWriter<WriteRequest>> writer(
+        stub_->Write(&context, &reply));
     int bytesLeft = size;
     int curr = offset;
     while (bytesLeft >= 0) {
@@ -304,6 +304,6 @@ int main(int argc, char* argv[]) {
   std::string buf;
   long timestamp;
   int numBytes;
-  client_read.clientReadFileStream("test.txt", 8, 0, numBytes, buf, timestamp);
+  client_read.clientReadFileStream("/test.txt", 8, 0, numBytes, buf, timestamp);
   return 0;
 }

@@ -11,9 +11,9 @@ service CustomAFS {
     // 1. getattr(self, path)
     rpc GetAttr(Path) returns (StatInfo) {};
     // 5. read(self, path, size, offset)
-    rpc ReadFileStream(ReadFileStreamReq) returns (stream ReadFileStreamReply) {};
+    rpc Read(ReadRequest) returns (stream ReadReply) {};
     // 6. write(self, path, buf, offset)    
-    rpc WriteFileStream(stream WriteFileStreamReq) returns (WriteFileStreamReply) {};
+    rpc Write(stream WriteRequest) returns (WriteReply) {};
     // 8. open(self, path, flags)
     rpc Open(Path) returns (Response) {};
 
@@ -43,31 +43,33 @@ message Datablock {
     bytes content = 1;
 }
 
-message ReadFileStreamReq {
+message ReadRequest {
     string path = 1;
     int32  size = 2;
     int32  offset = 3;
 }
 
-message ReadFileStreamReply {
+message ReadReply {
     int32 numBytes = 1;
-    bytes buf  = 2;
+    bytes buf = 2;
     int32 err = 3;
-    int64 timestamp=4;
+    int64 timestamp = 4;
 }
 
-message WriteFileStreamReq {
+message WriteRequest {
     string path = 1;
     bytes  buf = 2;
     int32  size = 3;
     int32  offset = 4;
 }
 
-message WriteFileStreamReply {
+message WriteReply {
     int32 numBytes = 1;
-    int32 err=2;
-    int64 timestamp=3;
+    int32 err = 2;
+    int64 timestamp = 3;
 }
+
+
 
 // https://linux.die.net/man/2/stat
 // struct stat {
