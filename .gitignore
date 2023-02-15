@@ -73,3 +73,8 @@ tmp/
 **/compile_commands.json
 **/CTestTestfile.cmake
 **/_deps
+
+# from unreliablefs
+build
+tags
+*.swp

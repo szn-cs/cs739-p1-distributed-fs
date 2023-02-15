@@ -11,12 +11,20 @@ cp ./target/config/dependency/unreliablefs-fork/unreliablefs/unreliablefs ./targ
 cp ./target/config/src/client ./target/release/client
 cp ./target/config/src/server ./target/release/server
 
-cp ./target/config/src/grpc_client_yishen ./target/release/grpc_client_yishen
-cp ./target/config/src/grpc_server_yishen ./target/release/grpc_server_yishen
-
 # copy grpc example binaries
 mkdir -p ./target/release/example-grpc
 cp ./target/config/dependency/grpc/examples/cpp/helloworld/greeter* ./target/release/example-grpc
 
 ## clean
 # cmake --build ./target/config --target clean
+
+################
+# Build comments from unreliablefs
+# cmake libc-dev build-essential fuse libfuse-dev
+# apt-get install -y cmake libc-dev build-essential fuse libfuse-dev mandoc python3-pytest fio
+# build_script:
+# - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
+# - make
+
+# test_script:
+# - make -C build pytest

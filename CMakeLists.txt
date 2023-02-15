@@ -11,7 +11,7 @@ find_package(gRPC CONFIG REQUIRED)
 # # note: 7 additional targets are not displayed.
 # target_link_libraries(main PRIVATE gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
 
-# include(./script/PrintVariables.cmake) # log cmake variables
+# include(./config/PrintVariables.cmake) # log cmake variables
 # include(CTest)
 # enable_testing()
 
@@ -19,7 +19,7 @@ find_package(gRPC CONFIG REQUIRED)
 # add_executable(${PROJECT_NAME} ./src/server/main.cpp)
 # include(${CMAKE_CURRENT_SOURCE_DIR}/src/server/CMakeLists.txt)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependency/unreliablefs-fork/)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/unreliablefs)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/) # server & client directory
 # add example grpc code: 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependency/grpc/examples/cpp/helloworld)
