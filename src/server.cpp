@@ -17,21 +17,21 @@
  */
 #include <errno.h>
 #include <fcntl.h>
+#include <grpcpp/ext/proto_server_reflection_plugin.h>
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/health_check_service_interface.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
 
 #include <experimental/filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
-namespace fs = std::experimental::filesystem;
-
-#include <grpcpp/ext/proto_server_reflection_plugin.h>
-#include <grpcpp/grpcpp.h>
-#include <grpcpp/health_check_service_interface.h>
 
 #include "afs.grpc.pb.h"
 
@@ -54,6 +54,7 @@ using afs::WriteRequest;
 using afs::HelloReply;
 using afs::HelloRequest;
 
+namespace fs = std::experimental::filesystem;
 #define CHUNK_SIZE 1572864
 
 std::string root_dir = fs::current_path().generic_string() + "/root_dir/";
@@ -152,19 +153,60 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
               ServerWriter<ReadReply>* writer) override {
     std::cout << "trigger server read" << std::endl;
     int numOfBytes = 0;
-    struct timespec spec;
-
-    ReadReply* reply = new ReadReply();
-    reply->set_numbytes(numOfBytes);
-
     int res;
-    std::string path = root_dir + request->path();
-    printf("ReadFileStream: %s \n", path.c_str());
+    struct timespec spec;
+    ReadReply* reply = new ReadReply();
 
+    std::string path = root_dir + request->path();
     int size = request->size();
     int offset = request->offset();
+    std::cout << "ReadFileStream: " << path << std::endl;
 
+    std::ifstream is;
+    is.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    try {
+      // read data to buffer with offset and size
+      is.open(path, std::ios::binary | std::ios::ate);
+      if (offset + size > is.tellg()) {
+        std::cout << "The offset + size is greater then the file size.\n"
+                  << "file size: " << is.tellg() << "\n"
+                  << "offset: " << offset << "\n"
+                  << "size: " << size << std::endl;
+      }
+      is.seekg(offset, std::ios::beg);
+      std::string buffer(size, '\0');
+      is.read(&buffer[0], size);
+      // send data chunk to client
+      int bytesRead = 0;
+      int minSize = std::min(CHUNK_SIZE, size);
+      while (bytesRead < size) {
+        clock_gettime(CLOCK_REALTIME, &spec);
+        std::string subBuffer = buffer.substr(bytesRead, minSize);
+        if (subBuffer.find("SERVER_READ_CRASH") != std::string::npos) {
+          std::cout << "Killing server process in read\n";
+          kill(getpid(), SIGINT);
+        }
+        reply->set_buf(subBuffer);
+        reply->set_numbytes(minSize);
+        reply->set_err(0);
+        reply->set_timestamp(spec.tv_sec);
+        bytesRead += minSize;
+        writer->Write(*reply);
+      }
+      is.close();
+    } catch (std::ifstream::failure e) {
+      reply->set_buf("");
+      reply->set_numbytes(0);
+      reply->set_err(-1);
+      reply->set_timestamp(-1);
+      writer->Write(*reply);
+      std::cout << "Caught a failure when read.\n"
+                << "Explanatory string: " << e.what() << '\n'
+                << "Error code: " << e.code() << std::endl;
+    }
+    /*
     int fd = open(path.c_str(), O_RDONLY);
+
     if (fd == -1) {
       reply->set_err(-errno);
       reply->set_numbytes(INT_MIN);
@@ -206,6 +248,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
       printf("Read Send: Calling close()\n");
       close(fd);
     }
+    */
     return Status::OK;
   }
 

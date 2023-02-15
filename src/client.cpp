@@ -141,7 +141,7 @@ class AFSClient {
   int clientReadFileStream(const std::string& path, const int& size,
                            const int& offset, int& numBytes, std::string& buf,
                            long& timestamp) {
-    std::cout << " grpc client read " << path << "\n";
+    std::cout << "trigger grpc client read on path: " << path << "\n";
     ReadRequest request;
     request.set_path(path);
     request.set_size(size);
@@ -151,15 +151,12 @@ class AFSClient {
     ClientContext context;
     std::chrono::time_point deadline =
         std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
-    // context.set_deadline(deadline);
-    std::cout << "1-1\n";
+    context.set_deadline(deadline);
 
     std::unique_ptr<ClientReader<ReadReply>> reader(
         stub_->Read(&context, request));
 
-    std::cout << "2\n";
     while (reader->Read(&reply)) {
-      std::cout << "3\n";
       if (reply.buf().find("crash3") != std::string::npos) {
         std::cout << "Killing client process in read()\n";
         kill(getpid(), SIGABRT);
@@ -167,7 +164,6 @@ class AFSClient {
       std::cout << reply.buf() << std::endl;
       buf.append(reply.buf());
       if (reply.numbytes() < 0) {
-        std::cout << "4\n";
         break;
       }
     }
@@ -222,8 +218,8 @@ class AFSClient {
       timestamp = reply.timestamp();
       return reply.err();
     }
-    // cout << "There was an error in the server Write " << status.error_code()
-    // << endl;
+    std::cout << "There was an error in the server Write "
+              << status.error_code() << std::endl;
 
     return status.error_code();
   }
@@ -304,6 +300,7 @@ int main(int argc, char* argv[]) {
   std::string buf;
   long timestamp;
   int numBytes;
-  client_read.clientReadFileStream("/test.txt", 8, 0, numBytes, buf, timestamp);
+  client_read.clientReadFileStream("/test.txt", 60, 0, numBytes, buf,
+                                   timestamp);
   return 0;
 }
