@@ -15,7 +15,6 @@
  * limitations under the License.
  *
  */
-
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -24,6 +23,9 @@
 #include <string>
 #include <experimental/filesystem>
 #include <fcntl.h>
+#include <signal.h>
+#include <errno.h>
+#include <vector>
 namespace fs = std::experimental::filesystem;
 
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
@@ -42,6 +44,8 @@ using afs::CustomAFS;
 using afs::Path;
 using afs::Response;
 using afs::StatInfo;
+using afs::ReadFileStreamReq;
+using afs::ReadFileStreamReply;
 // EXAMPLE
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -140,71 +144,72 @@ public:
     return Status::OK;
   }
 
-  // Status Read(ServerContext* context, const ReadFileStreamReq* request,
-  //                 ServerWriter<ReadFileStreamReply>* writer) override {
-  //     int numOfBytes = 0;
-  //     struct timespec spec;
+   Status ReadFileStream(ServerContext* context, const ReadFileStreamReq* request,
+                  ServerWriter<ReadFileStreamReply>* writer) override {
+      std::cout << "trigger server read" << std::endl;
+      int numOfBytes = 0;
+      struct timespec spec;
 
-  //     ReadFileStreamReply *reply = new ReadFileStreamReply();
-  //     reply->set_numbytes(numOfBytes);
+      ReadFileStreamReply *reply = new ReadFileStreamReply();
+      reply->set_numbytes(numOfBytes);
 
-  //     int res;
-  //     std::string path = root_dir + request->path();
-  //     // printf("ReadFileStream: %s \n", path.c_str());
+      int res;
+      std::string path = root_dir + request->path();
+      printf("ReadFileStream: %s \n", path.c_str());
 
-  //     int size = request->size();
-  //     int offset = request->offset();
+      int size = request->size();
+      int offset = request->offset();
 
-  //     int fd = open(path.c_str(), O_RDONLY);
-  //     if (fd == -1)
-  //     {
-  //         reply->set_err(-errno);
-  //         reply->set_numbytes(INT_MIN);
-  //         return Status::OK;
-  //     }
+      int fd = open(path.c_str(), O_RDONLY);
+      if (fd == -1)
+      {
+          reply->set_err(-errno);
+          reply->set_numbytes(INT_MIN);
+          return Status::OK;
+      }
 
-  //     std::string buf;
-  //     buf.resize(size);
+      std::string buf;
+      buf.resize(size);
 
-  //     int bytesRead = pread(fd, &buf[0], size, offset);
-  //     if (bytesRead != size)
-  //     {
-  //         printf("Read Send: PREAD didn't read %d bytes from offset %d\n", size, offset);
-  //     }
+      int bytesRead = pread(fd, &buf[0], size, offset);
+      if (bytesRead != size)
+      {
+          printf("Read Send: PREAD didn't read %d bytes from offset %d\n", size, offset);
+      }
 
-  //     if (bytesRead == -1)
-  //     {
-  //         reply->set_err(-errno);
-  //         reply->set_numbytes(INT_MIN);
-  //     }
+      if (bytesRead == -1)
+      {
+          reply->set_err(-errno);
+          reply->set_numbytes(INT_MIN);
+      }
 
-  //     int curr = 0;
-  //     while (bytesRead > 0)
-  //     {
-  //         if (buf.find("crash1") != string::npos)
-  //         {
-  //             // cout << "Killing server process in read\n";
-  //             kill(getpid(), SIGINT);
-  //         }
-  //         clock_gettime(CLOCK_REALTIME, &spec);
-  //         reply->set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesRead)));
-  //         reply->set_numbytes(std::min(CHUNK_SIZE, bytesRead));
-  //         reply->set_err(0);
-  //         reply->set_timestamp(spec.tv_sec);
-  //         curr += std::min(CHUNK_SIZE, bytesRead);
-  //         bytesRead -= std::min(CHUNK_SIZE, bytesRead);
+      int curr = 0;
+      while (bytesRead > 0)
+      {
+          if (buf.find("crash1") != std::string::npos)
+          {
+              std::cout << "Killing server process in read\n";
+              kill(getpid(), SIGINT);
+          }
+          clock_gettime(CLOCK_REALTIME, &spec);
+          reply->set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesRead)));
+          reply->set_numbytes(std::min(CHUNK_SIZE, bytesRead));
+          reply->set_err(0);
+          reply->set_timestamp(spec.tv_sec);
+          curr += std::min(CHUNK_SIZE, bytesRead);
+          bytesRead -= std::min(CHUNK_SIZE, bytesRead);
 
-  //         writer->Write(*reply);
-  //     }
+          writer->Write(*reply);
+      }
 
-  //     if (fd > 0)
-  //     {
-  //         // printf("Read Send: Calling close()\n");
-  //         close(fd);
-  //     }
-  //     return Status::OK;
+      if (fd > 0)
+      {
+          printf("Read Send: Calling close()\n");
+          close(fd);
+      }
+      return Status::OK;
 
-  // }
+  }
 
   // EXAMPLE API
   Status SayHello(ServerContext* context, const HelloRequest* request,
