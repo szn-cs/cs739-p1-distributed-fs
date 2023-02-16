@@ -27,7 +27,7 @@
 # Single threaded synchronous (O_DSYNC) random writes (2KB I/Os) on a 1GB file.
 # Stops when 64K ($count) writes have been done.
 
-set $dir=../../tmp/log
+set $dir=log
 set $count=65536
 set $filesize=1g
 set $iosize=2k

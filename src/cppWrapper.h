@@ -1,8 +1,28 @@
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 
-#ifndef AAA_C_CONNECTOR_H
-#define AAA_C_CONNECTOR_H
+#include <sys/ioctl.h>
+#include <sys/file.h>
+#ifdef HAVE_XATTR
+#include <sys/xattr.h>
+#endif /* HAVE_XATTR */
+
+#ifdef linux
+/* For pread()/pwrite()/utimensat() */
+#define _XOPEN_SOURCE 700
+#endif
+
+#define ERRNO_NOOP -999
+
+#include <fuse.h>
+
+#ifndef CPP_WRAPPER_IN_C_H
+#define CPP_WRAPPER_IN_C_H
 
 #ifdef __cplusplus
 
@@ -11,46 +31,61 @@
 extern "C" {
 #endif
 
-int cppWrapper_lstat();
-int cppWrapper_getattr();
-int cppWrapper_readlink();
-int cppWrapper_mknod();
+// 11. mkdir(self, path, mode)
+// 4. unlink(self, path)
+// 12. rmdir(self, path)
+// 1. getattr(self, path)
+// 5. read(self, path, size, offset)
+// 8. open(self, path, flags)
+// 6. write(self, path, buf, offset)
+// 2. readdir(self, path, offset)
+// 3. mknod(self, path, mode, dev)
+// 13. rename(self, pathfrom, pathto)
+// 14. fsync(self, path, isfsyncfile
+// 7. release(self, path, flags)
+// 9. truncate(self, path, size)
+// 10. utime(self, path, times)
+
+int cppWrapper_lstat(const char* path, struct stat* buf);
+int cppWrapper_getattr(const char* path, struct stat* buf);
+int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz);
+int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev);
 int cppWrapper_mkdir(const char*, mode_t);
-int cppWrapper_unlink();
-int cppWrapper_rmdir();
-int cppWrapper_symlink();
-int cppWrapper_rename();
-int cppWrapper_link();
-int cppWrapper_chmod();
-int cppWrapper_chown();
-int cppWrapper_truncate();
-int cppWrapper_open();
-int cppWrapper_read();
-int cppWrapper_write();
-int cppWrapper_statfs();
-int cppWrapper_flush();
-int cppWrapper_release();
-int cppWrapper_fsync();
-int cppWrapper_setxattr();
-int cppWrapper_getxattr();
-int cppWrapper_listxattr();
-int cppWrapper_removexattr();
-int cppWrapper_opendir();
-int cppWrapper_readdir();
-int cppWrapper_releasedir();
-int cppWrapper_fsyncdir();
-int cppWrapper_access();
-int cppWrapper_create();
-int cppWrapper_ftruncate();
-int cppWrapper_fgetattr();
-int cppWrapper_lock();
-int cppWrapper_ioctl();
-int cppWrapper_flock();
-int cppWrapper_fallocate();
-int cppWrapper_utimens();
+int cppWrapper_unlink(const char* path);
+int cppWrapper_rmdir(const char* path);
+int cppWrapper_symlink(const char* target, const char* linkpath);
+int cppWrapper_rename(const char* oldpath, const char* newpath);
+int cppWrapper_link(const char* oldpath, const char* newpath);
+int cppWrapper_chmod(const char* path, mode_t mode);
+int cppWrapper_chown(const char* path, uid_t owner, gid_t group);
+int cppWrapper_truncate(const char* path, off_t length);
+int cppWrapper_open(const char* path, struct fuse_file_info* fi);
+int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi);
+int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi);
+int cppWrapper_statfs(const char* path, struct statvfs* buf);
+int cppWrapper_flush(const char* path, struct fuse_file_info* fi);
+int cppWrapper_release(const char* path, struct fuse_file_info* fi);
+int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi);
+int cppWrapper_setxattr(const char* path, const char* name, const char* value, size_t size, int flags);
+int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t size);
+int cppWrapper_listxattr(const char* path, char* list, size_t size);
+int cppWrapper_removexattr(const char* path, const char* name);
+int cppWrapper_opendir(const char* path, struct fuse_file_info* fi);
+int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi);
+int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi);
+int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* fi);
+int cppWrapper_access(const char* path, int mode);
+int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi);
+int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* fi);
+int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_info* fi);
+int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd, struct flock* fl);
+int cppWrapper_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi, unsigned int flags, void* data);
+int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op);
+int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len, struct fuse_file_info* fi);
+int cppWrapper_utimens(const char* path, const struct timespec ts[2]);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* CPP_WRAPPER_IN_C_H */

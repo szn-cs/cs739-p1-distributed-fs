@@ -24,7 +24,7 @@
 #
 # ident	"%Z%%M%	%I%	%E% SMI"
 
-set $dir=../../tmp/log
+set $dir=log
 set $nfiles=10000
 set $filesize=16k
 set $dirwidth=200

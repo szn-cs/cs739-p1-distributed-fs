@@ -9,6 +9,29 @@ extern "C"
 
 #include <fuse.h>
 
+#include "cppWrapper.h"  // include cpp wrappers
+
+#define _GNU_SOURCE
+#include <dirent.h>
+#include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+
+#include <sys/ioctl.h>
+#include <sys/file.h>
+
+#ifdef HAVE_XATTR
+#include <sys/xattr.h>
+#endif /* HAVE_XATTR */
+
+#ifdef linux
+/* For pread()/pwrite()/utimensat() */
+#define _XOPEN_SOURCE 700
+#endif
+
+#define ERRNO_NOOP -999
+
     int
     unreliable_getattr(const char *, struct stat *);
 int unreliable_readlink(const char *, char *, size_t);

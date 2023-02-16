@@ -28,7 +28,7 @@
 # a 1GB file.
 # Stops after 1 series of 1024 ($count) writes has been done.
 
-set $dir=../../tmp/log
+set $dir=log
 set $count=10240
 set $iosize=1m
 set $nthreads=1

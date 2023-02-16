@@ -2,28 +2,14 @@ syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
 service CustomAFS {
-    // 11. mkdir(self, path, mode)
     rpc Mkdir(Path) returns (Response) {};
-    // 4. unlink(self, path)
     rpc Unlink(Path) returns (Response) {};
-    // 12. rmdir(self, path)
     rpc Rmdir(Path) returns (Response) {};    
-    // 1. getattr(self, path)
     rpc GetAttr(Path) returns (StatInfo) {};
-    // 5. read(self, path, size, offset)
     rpc Read(ReadRequest) returns (stream ReadReply) {};
-    // 6. write(self, path, buf, offset)    
     rpc Write(stream WriteRequest) returns (WriteReply) {};
-    // 8. open(self, path, flags)
     rpc Open(Path) returns (Response) {};
-
-    // 2. readdir(self, path, offset)
-    // 3. mknod(self, path, mode, dev)
-    // 13. rename(self, pathfrom, pathto)
-    // 14. fsync(self, path, isfsyncfile
-    // 7. release(self, path, flags)
-    // 9. truncate(self, path, size)
-    // 10. utime(self, path, times)
+    
 
     // EXAMPLE API: keep this for debudding
     // Sends a greeting
