@@ -81,6 +81,6 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 
 - [ ] Protocal Buffers <https://developers.google.com/protocol-buffers/docs/overview>
 
-# Live Share
+# Resoureces: 
 
-https://prod.liveshare.vsengsaas.visualstudio.com/join?19E8CBD4CA6B7C76D4E612FB1544BD0257E7
+- CPP in C <https://github.com/jacky-wangjj/C_call_Cpp>

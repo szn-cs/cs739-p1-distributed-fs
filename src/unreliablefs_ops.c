@@ -87,7 +87,7 @@ int unreliable_lstat(const char *path, struct stat *buf) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_lstat();
 }
 
 int unreliable_getattr(const char *path, struct stat *buf) {
@@ -103,7 +103,7 @@ int unreliable_getattr(const char *path, struct stat *buf) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_getattr();
 }
 
 int unreliable_readlink(const char *path, char *buf, size_t bufsiz) {
@@ -120,7 +120,7 @@ int unreliable_readlink(const char *path, char *buf, size_t bufsiz) {
     }
     buf[ret] = 0;
 
-    return 0;
+    return cppWrapper_readlink();
 }
 
 int unreliable_mknod(const char *path, mode_t mode, dev_t dev) {
@@ -136,7 +136,7 @@ int unreliable_mknod(const char *path, mode_t mode, dev_t dev) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_mknod();
 }
 
 int unreliable_mkdir(const char *path, mode_t mode) {
@@ -163,7 +163,7 @@ int unreliable_unlink(const char *path) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_unlink();
 }
 
 int unreliable_rmdir(const char *path) {
@@ -179,7 +179,7 @@ int unreliable_rmdir(const char *path) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_rmdir();
 }
 
 int unreliable_symlink(const char *target, const char *linkpath) {
@@ -195,7 +195,7 @@ int unreliable_symlink(const char *target, const char *linkpath) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_symlink();
 }
 
 int unreliable_rename(const char *oldpath, const char *newpath) {
@@ -211,7 +211,7 @@ int unreliable_rename(const char *oldpath, const char *newpath) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_rename();
 }
 
 int unreliable_link(const char *oldpath, const char *newpath) {
@@ -227,7 +227,7 @@ int unreliable_link(const char *oldpath, const char *newpath) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_link();
 }
 
 int unreliable_chmod(const char *path, mode_t mode) {
@@ -243,7 +243,7 @@ int unreliable_chmod(const char *path, mode_t mode) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_chmod();
 }
 
 int unreliable_chown(const char *path, uid_t owner, gid_t group) {
@@ -259,7 +259,7 @@ int unreliable_chown(const char *path, uid_t owner, gid_t group) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_chown();
 }
 
 int unreliable_truncate(const char *path, off_t length) {
@@ -275,7 +275,7 @@ int unreliable_truncate(const char *path, off_t length) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_truncate();
 }
 
 int unreliable_open(const char *path, struct fuse_file_info *fi) {
@@ -292,11 +292,10 @@ int unreliable_open(const char *path, struct fuse_file_info *fi) {
     }
     fi->fh = ret;
 
-    return 0;
+    return cppWrapper_open();
 }
 
-int unreliable_read(const char *path, char *buf, size_t size, off_t offset,
-                    struct fuse_file_info *fi) {
+int unreliable_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
     int ret = error_inject(path, OP_READ);
     if (ret == -ERRNO_NOOP) {
         return 0;
@@ -324,6 +323,8 @@ int unreliable_read(const char *path, char *buf, size_t size, off_t offset,
     if (fi == NULL) {
         close(fd);
     }
+
+    cppWrapper_read();
 
     return ret;
 }
@@ -358,6 +359,8 @@ int unreliable_write(const char *path, const char *buf, size_t size,
         close(fd);
     }
 
+    cppWrapper_write();
+
     return ret;
 }
 
@@ -374,7 +377,7 @@ int unreliable_statfs(const char *path, struct statvfs *buf) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_statfs();
 }
 
 int unreliable_flush(const char *path, struct fuse_file_info *fi) {
@@ -390,7 +393,7 @@ int unreliable_flush(const char *path, struct fuse_file_info *fi) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_flush();
 }
 
 int unreliable_release(const char *path, struct fuse_file_info *fi) {
@@ -406,7 +409,7 @@ int unreliable_release(const char *path, struct fuse_file_info *fi) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_release();
 }
 
 int unreliable_fsync(const char *path, int datasync, struct fuse_file_info *fi) {
@@ -429,7 +432,7 @@ int unreliable_fsync(const char *path, int datasync, struct fuse_file_info *fi) 
         }
     }
 
-    return 0;
+    return cppWrapper_fsync();
 }
 
 #ifdef HAVE_XATTR
@@ -451,7 +454,7 @@ int unreliable_setxattr(const char *path, const char *name,
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_setxattr();
 }
 
 int unreliable_getxattr(const char *path, const char *name,
@@ -472,7 +475,7 @@ int unreliable_getxattr(const char *path, const char *name,
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_getxattr();
 }
 
 int unreliable_listxattr(const char *path, char *list, size_t size) {
@@ -491,6 +494,8 @@ int unreliable_listxattr(const char *path, char *list, size_t size) {
     if (ret == -1) {
         return -errno;
     }
+
+    cppWrapper_listxattr();
 
     return ret;
 }
@@ -512,7 +517,7 @@ int unreliable_removexattr(const char *path, const char *name) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_removexattr();
 }
 #endif /* HAVE_XATTR */
 
@@ -531,7 +536,7 @@ int unreliable_opendir(const char *path, struct fuse_file_info *fi) {
     }
     fi->fh = (int64_t)dir;
 
-    return 0;
+    return cppWrapper_opendir();
 }
 
 int unreliable_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
@@ -562,7 +567,7 @@ int unreliable_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     }
     closedir(dp);
 
-    return 0;
+    return cppWrapper_readdir();
 }
 
 int unreliable_releasedir(const char *path, struct fuse_file_info *fi) {
@@ -580,7 +585,7 @@ int unreliable_releasedir(const char *path, struct fuse_file_info *fi) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_releasedir();
 }
 
 int unreliable_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi) {
@@ -609,14 +614,7 @@ int unreliable_fsyncdir(const char *path, int datasync, struct fuse_file_info *f
     }
     closedir(dir);
 
-    return 0;
-}
-
-void *unreliable_init(struct fuse_conn_info *conn) {
-    return NULL;
-}
-
-void unreliable_destroy(void *private_data) {
+    return cppWrapper_fsyncdir();
 }
 
 int unreliable_access(const char *path, int mode) {
@@ -632,7 +630,7 @@ int unreliable_access(const char *path, int mode) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_access();
 }
 
 int unreliable_create(const char *path, mode_t mode,
@@ -650,7 +648,7 @@ int unreliable_create(const char *path, mode_t mode,
     }
     fi->fh = ret;
 
-    return 0;
+    return cppWrapper_create();
 }
 
 int unreliable_ftruncate(const char *path, off_t length,
@@ -667,7 +665,7 @@ int unreliable_ftruncate(const char *path, off_t length,
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_ftruncate();
 }
 
 int unreliable_fgetattr(const char *path, struct stat *buf,
@@ -684,7 +682,7 @@ int unreliable_fgetattr(const char *path, struct stat *buf,
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_fgetattr();
 }
 
 int unreliable_lock(const char *path, struct fuse_file_info *fi, int cmd,
@@ -701,7 +699,14 @@ int unreliable_lock(const char *path, struct fuse_file_info *fi, int cmd,
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_lock();
+}
+
+void *unreliable_init(struct fuse_conn_info *conn) {
+    return NULL;
+}
+
+void unreliable_destroy(void *private_data) {
 }
 
 #if !defined(__OpenBSD__)
@@ -719,6 +724,8 @@ int unreliable_ioctl(const char *path, int cmd, void *arg,
     if (ret == -1) {
         return -errno;
     }
+
+    cppWrapper_ioctl();
 
     return ret;
 }
@@ -738,7 +745,7 @@ int unreliable_flock(const char *path, struct fuse_file_info *fi, int op) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_flock();
 }
 #endif /* HAVE_FLOCK */
 
@@ -779,7 +786,7 @@ int unreliable_fallocate(const char *path, int mode,
         close(fd);
     }
 
-    return 0;
+    return cppWrapper_fallocate();
 }
 #endif /* HAVE_FALLOCATE */
 
@@ -798,6 +805,6 @@ int unreliable_utimens(const char *path, const struct timespec ts[2]) {
         return -errno;
     }
 
-    return 0;
+    return cppWrapper_utimens();
 }
 #endif /* HAVE_UTIMENSAT */
