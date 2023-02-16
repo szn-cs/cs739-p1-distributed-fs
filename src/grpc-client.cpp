@@ -87,9 +87,7 @@ int AFSClient::GetAttr(const std::string& path) {
   }
 }
 
-int AFSClient::clientReadFileStream(const std::string& path, const int& size,
-                                    const int& offset, int& numBytes, std::string& buf,
-                                    long& timestamp) {
+int AFSClient::clientReadFileStream(const std::string& path, const int& size, const int& offset, int& numBytes, std::string& buf, long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
   request.set_path(path);
@@ -129,9 +127,7 @@ int AFSClient::clientReadFileStream(const std::string& path, const int& size,
   return status.error_code();
 }
 
-int AFSClient::clientWriteFileStream(const std::string& path, const std::string& buf,
-                                     const int& size, const int& offset, int& numBytes,
-                                     long& timestamp) {
+int AFSClient::clientWriteFileStream(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
   std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;
@@ -175,6 +171,7 @@ int AFSClient::clientWriteFileStream(const std::string& path, const std::string&
 
   return status.error_code();
 }
+
 /** EXAMPLE: keep it to make sure things are working
  * Assembles the client's payload, sends it and presents the response back
  * from the server.
