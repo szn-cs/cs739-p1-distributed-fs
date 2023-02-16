@@ -57,7 +57,7 @@ set(UNRELIABLEFS_SRC conf.c
                      unreliablefs_errinj.c
                      unreliablefs_ops.c 
                      cppWrapper.cpp
-                     client.cpp
+                     grpc-client.cpp
                      )
 
 find_package(FUSE 2.9 REQUIRED)
@@ -73,10 +73,10 @@ add_executable(${PROJECT_NAME} ${UNRELIABLEFS_SRC}
   stdc++fs)
 
     
-add_executable(server server.cpp
+add_executable(grpc-server grpc-server.cpp
     ${hw_proto_srcs}
     ${hw_grpc_srcs})
-  target_link_libraries(server
+  target_link_libraries(grpc-server
     ${_REFLECTION}
     ${_GRPC_GRPCPP}
     ${_PROTOBUF_LIBPROTOBUF}

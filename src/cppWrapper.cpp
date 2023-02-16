@@ -1,5 +1,5 @@
 #include "./cppWrapper.h"
-#include "./client.h"
+#include "./grpc-client.h"
 
 #ifdef __cplusplus
 extern "C" {

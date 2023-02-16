@@ -1,5 +1,5 @@
 
-#include "./client.h"
+#include "./grpc-client.h"
 
 AFSClient::AFSClient(std::shared_ptr<Channel> channel)
     : stub_(CustomAFS::NewStub(channel)) {}
