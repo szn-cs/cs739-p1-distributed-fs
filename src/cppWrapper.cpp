@@ -1,5 +1,5 @@
 #include "./cppWrapper.h"
-// #include "./client.h"
+#include "./client.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,10 +10,10 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
 
   std::string target_str = "localhost:50051";
 
-  // AFSClient client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+  AFSClient client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
-  // const std::string _path = "/tmp/fs";
-  // client.Mkdir(_path);
+  const std::string _path = "/tmp/fs";
+  client.Mkdir(_path);
 
   int ret = mkdir(path, mode);
   if (ret == -1) {

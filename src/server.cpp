@@ -57,15 +57,15 @@ using afs::HelloRequest;
 namespace fs = std::experimental::filesystem;
 #define CHUNK_SIZE 1572864
 
-std::string root_dir = fs::current_path().generic_string() + "/root_dir/";
+std::string root_dir = fs::current_path().generic_string() + "/tmp/fs-server/";
 fs::path path_root_dir(root_dir);
 
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
- public:
+public:
   Status Mkdir(ServerContext* context, const Path* request,
                Response* response) override {
-    // std::cout << "trigger mkdir" << std::endl;
+    std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = root_dir + request->path();
     fs::path path_new_dir(new_dir_path);
 
@@ -357,6 +357,7 @@ int main(int argc, char** argv) {
     }
   }
   std::cout << "success make the root directory." << std::endl;
+  std::cout << "⚫ Updated 1" << std::endl;
   RunServer();
 
   return 0;
