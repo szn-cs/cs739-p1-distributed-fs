@@ -19,7 +19,7 @@ fs_mount() {
   # or use `umount ./tmp/fs`
 
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  ./target/release/unreliablefs ./tmp/fs -basedir=./tmp -seed=1618680646 -d
+  ./target/release/unreliablefs ./tmp/fs -basedir=/tmp -seed=1618680646 -d
 
   ######## [terminal instance 2] ##########################################################
 

@@ -1,4 +1,5 @@
 #include "./cppWrapper.h"
+
 #include "./grpc-client.h"
 
 #ifdef __cplusplus
@@ -14,7 +15,6 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
-
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) {
     return -errno;
@@ -34,7 +34,6 @@ int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
 }
 
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
-
   int ret = mknod(path, mode, dev);
   if (ret == -1) {
     return -errno;
@@ -48,7 +47,8 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
 
   std::string target_str = "localhost:50051";
 
-  AFSClient client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+  AFSClient client(
+      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
   const std::string _path = "/tmp/fs";
   client.Mkdir(_path);
@@ -69,6 +69,7 @@ int cppWrapper_unlink(const char* path) {
 
   return 0;
 }
+
 int cppWrapper_rmdir(const char* path) {
   int ret = rmdir(path);
   if (ret == -1) {
@@ -142,7 +143,8 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   return 0;
 }
 
-int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset,
+                    struct fuse_file_info* fi) {
   int fd;
 
   if (fi == NULL) {
@@ -167,7 +169,8 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
   return 0;
 }
 
-int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+int cppWrapper_write(const char* path, const char* buf, size_t size,
+                     off_t offset, struct fuse_file_info* fi) {
   int fd;
   (void)fi;
   if (fi == NULL) {
@@ -219,7 +222,8 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   return 0;
 }
 
-int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
+int cppWrapper_fsync(const char* path, int datasync,
+                     struct fuse_file_info* fi) {
   int ret;
   if (datasync) {
     ret = fdatasync(fi->fh);
@@ -237,7 +241,8 @@ int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) 
 }
 
 #ifdef HAVE_XATTR
-int cppWrapper_setxattr(const char* path, const char* name, const char* value, size_t size, int flags) {
+int cppWrapper_setxattr(const char* path, const char* name, const char* value,
+                        size_t size, int flags) {
   int ret;
 #ifdef __APPLE__
   ret = setxattr(path, name, value, size, 0, flags);
@@ -251,7 +256,8 @@ int cppWrapper_setxattr(const char* path, const char* name, const char* value, s
   return 0;
 }
 
-int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t size) {
+int cppWrapper_getxattr(const char* path, const char* name, char* value,
+                        size_t size) {
   int ret;
 #ifdef __APPLE__
   ret = getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
@@ -305,7 +311,8 @@ int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
   return 0;
 }
 
-int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
+int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler,
+                       off_t offset, struct fuse_file_info* fi) {
   DIR* dp = opendir(path);
   if (dp == NULL) {
     return -errno;
@@ -320,8 +327,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
     memset(&st, 0, sizeof(st));
     st.st_ino = de->d_ino;
     st.st_mode = de->d_type << 12;
-    if (filler(buf, de->d_name, &st, 0))
-      break;
+    if (filler(buf, de->d_name, &st, 0)) break;
   }
   closedir(dp);
 
@@ -339,7 +345,8 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
   return 0;
 }
 
-int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* fi) {
+int cppWrapper_fsyncdir(const char* path, int datasync,
+                        struct fuse_file_info* fi) {
   int ret;
 
   DIR* dir = opendir(path);
@@ -372,7 +379,8 @@ int cppWrapper_access(const char* path, int mode) {
   return 0;
 }
 
-int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
+int cppWrapper_create(const char* path, mode_t mode,
+                      struct fuse_file_info* fi) {
   int ret = open(path, fi->flags, mode);
   if (ret == -1) {
     return -errno;
@@ -382,7 +390,8 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
   return 0;
 }
 
-int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* fi) {
+int cppWrapper_ftruncate(const char* path, off_t length,
+                         struct fuse_file_info* fi) {
   int ret = truncate(path, length);
   if (ret == -1) {
     return -errno;
@@ -391,7 +400,8 @@ int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* 
   return 0;
 }
 
-int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_info* fi) {
+int cppWrapper_fgetattr(const char* path, struct stat* buf,
+                        struct fuse_file_info* fi) {
   int ret = fstat((int)fi->fh, buf);
   if (ret == -1) {
     return -errno;
@@ -400,7 +410,8 @@ int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_inf
   return 0;
 }
 
-int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd, struct flock* fl) {
+int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd,
+                    struct flock* fl) {
   int ret = fcntl((int)fi->fh, cmd, fl);
   if (ret == -1) {
     return -errno;
@@ -410,7 +421,9 @@ int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd, struct
 }
 
 #if !defined(__OpenBSD__)
-int cppWrapper_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi, unsigned int flags, void* data) {
+int cppWrapper_ioctl(const char* path, int cmd, void* arg,
+                     struct fuse_file_info* fi, unsigned int flags,
+                     void* data) {
   int ret = ioctl(fi->fh, cmd, arg);
   if (ret == -1) {
     return -errno;
@@ -422,7 +435,6 @@ int cppWrapper_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info
 
 #ifdef HAVE_FLOCK
 int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op) {
-
   int ret = flock(((int)fi->fh), op);
   if (ret == -1) {
     return -errno;
@@ -433,7 +445,8 @@ int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op) {
 #endif /* HAVE_FLOCK */
 
 #ifdef HAVE_FALLOCATE
-int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len, struct fuse_file_info* fi) {
+int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len,
+                         struct fuse_file_info* fi) {
   int ret;
   int fd;
   (void)fi;
