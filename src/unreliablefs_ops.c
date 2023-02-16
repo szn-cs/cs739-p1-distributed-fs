@@ -1,5 +1,5 @@
 // include cpp wrappers
-#include "../cppWrapper.h"
+#include "cppWrapper.h"
 
 #define _GNU_SOURCE
 #include <dirent.h>
