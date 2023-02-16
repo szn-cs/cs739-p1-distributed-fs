@@ -108,7 +108,8 @@ if (${HAVE_XATTR})
     target_compile_definitions(${PROJECT_NAME} PUBLIC HAVE_XATTR)
 endif ()
 
-add_subdirectory(tests)
+# Tests that were used in the original repository
+# add_subdirectory(./tests)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 install(FILES "unreliablefs.1" DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)

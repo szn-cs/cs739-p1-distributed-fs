@@ -8,4 +8,7 @@
 
 [submodule "dependency/filebench"]
 	path = dependency/filebench
-	url = https://github.com/yishen-sun/filebench-fork
+	url = https://github.com/filebench/filebench
+[submodule "dependency/unreliablefs"]
+	path = dependency/unreliablefs
+	url = https://github.com/ligurio/unreliablefs
