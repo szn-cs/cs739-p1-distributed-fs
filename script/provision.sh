@@ -2,7 +2,7 @@
 
 ## setup & configure repository
 workspaceFolder=$PWD
-chmod +x ${workspaceFolder}/script/* && sudo ${workspaceFolder}/script/dependency.sh
+chmod +x ${workspaceFolder}/script/*
 
 # download corresponding submodules
 git submodule update --init --remote
