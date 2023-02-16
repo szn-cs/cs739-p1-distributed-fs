@@ -51,7 +51,7 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
   const std::string _path = "/tmp/fs";
-  client.Mkdir(_path);
+  client.clientMkdir(_path);
 
   int ret = mkdir(path, mode);
   if (ret == -1) {

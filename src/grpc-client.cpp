@@ -4,7 +4,7 @@
 AFSClient::AFSClient(std::shared_ptr<Channel> channel)
     : stub_(CustomAFS::NewStub(channel)) {}
 
-int AFSClient::Mkdir(const std::string& path) {
+int AFSClient::clientMkdir(const std::string& path) {
   // Follows the same pattern as SayHello.
   Path request;
   request.set_path(path);
@@ -23,7 +23,7 @@ int AFSClient::Mkdir(const std::string& path) {
   }
 }
 
-int AFSClient::Rmdir(const std::string& path) {
+int AFSClient::clientRmdir(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
@@ -41,7 +41,7 @@ int AFSClient::Rmdir(const std::string& path) {
   }
 }
 
-int AFSClient::Unlink(const std::string& path) {
+int AFSClient::clientUnlink(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
@@ -58,7 +58,7 @@ int AFSClient::Unlink(const std::string& path) {
   }
 }
 
-int AFSClient::GetAttr(const std::string& path) {
+int AFSClient::clientGetAttr(const std::string& path) {
   Path request;
   request.set_path(path);
   StatInfo reply;
@@ -87,7 +87,9 @@ int AFSClient::GetAttr(const std::string& path) {
   }
 }
 
-int AFSClient::clientReadFileStream(const std::string& path, const int& size, const int& offset, int& numBytes, std::string& buf, long& timestamp) {
+int AFSClient::clientRead(const std::string& path, const int& size,
+                          const int& offset, int& numBytes, std::string& buf,
+                          long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
   request.set_path(path);
@@ -127,7 +129,9 @@ int AFSClient::clientReadFileStream(const std::string& path, const int& size, co
   return status.error_code();
 }
 
-int AFSClient::clientWriteFileStream(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
+int AFSClient::clientWrite(const std::string& path, const std::string& buf,
+                           const int& size, const int& offset, int& numBytes,
+                           long& timestamp) {
   std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;
