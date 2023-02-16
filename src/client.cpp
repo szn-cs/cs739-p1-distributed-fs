@@ -120,6 +120,7 @@ int AFSClient::GetAttr(const std::string& path) {
               << std::endl;
     return -1;
   }
+<<<<<<< HEAD
 }
 int AFSClient::clientReadFileStream(const std::string& path, const int& size,
                                     const int& offset, int& numBytes, std::string& buf,
@@ -136,16 +137,45 @@ int AFSClient::clientReadFileStream(const std::string& path, const int& size,
       std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
   // context.set_deadline(deadline);
   std::cout << "1-1\n";
+=======
+  int clientReadFileStream(const std::string& path, const int& size,
+                           const int& offset, int& numBytes, std::string& buf,
+                           long& timestamp) {
+    std::cout << "trigger grpc client read on path: " << path << "\n";
+    ReadRequest request;
+    request.set_path(path);
+    request.set_size(size);
+    request.set_offset(offset);
+    std::cout << "1\n";
+    ReadReply reply;
+    ClientContext context;
+    std::chrono::time_point deadline =
+        std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
+    context.set_deadline(deadline);
+>>>>>>> aedcb578d874c3f0cf0300e5d624c1ac0bf1a88d
 
   std::unique_ptr<ClientReader<ReadReply>> reader(
       stub_->Read(&context, request));
 
+<<<<<<< HEAD
   std::cout << "2\n";
   while (reader->Read(&reply)) {
     std::cout << "3\n";
     if (reply.buf().find("crash3") != std::string::npos) {
       std::cout << "Killing client process in read()\n";
       kill(getpid(), SIGABRT);
+=======
+    while (reader->Read(&reply)) {
+      if (reply.buf().find("crash3") != std::string::npos) {
+        std::cout << "Killing client process in read()\n";
+        kill(getpid(), SIGABRT);
+      }
+      std::cout << reply.buf() << std::endl;
+      buf.append(reply.buf());
+      if (reply.numbytes() < 0) {
+        break;
+      }
+>>>>>>> aedcb578d874c3f0cf0300e5d624c1ac0bf1a88d
     }
     std::cout << reply.buf() << std::endl;
     buf.append(reply.buf());
@@ -196,9 +226,14 @@ int AFSClient::clientWriteFileStream(const std::string& path, const std::string&
       std::cout << "Killing client process in write()\n";
       kill(getpid(), SIGABRT);
     }
+<<<<<<< HEAD
   }
   writer->WritesDone();
   Status status = writer->Finish();
+=======
+    std::cout << "There was an error in the server Write "
+              << status.error_code() << std::endl;
+>>>>>>> aedcb578d874c3f0cf0300e5d624c1ac0bf1a88d
 
   if (status.ok()) {
     numBytes = reply.numbytes();
@@ -283,6 +318,7 @@ int main(int argc, char* argv[]) {
   std::string buf;
   long timestamp;
   int numBytes;
-  client_read.clientReadFileStream("/test.txt", 8, 0, numBytes, buf, timestamp);
+  client_read.clientReadFileStream("/test.txt", 60, 0, numBytes, buf,
+                                   timestamp);
   return 0;
 }
