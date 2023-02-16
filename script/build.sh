@@ -8,7 +8,7 @@ cmake --build ./target/config --verbose --parallel
 ## move binaries from nested builds
 mkdir -p ./target/release
 cp ./target/config/src/unreliablefs ./target/release/unreliablefs
-cp ./target/config/src/server ./target/release/server
+cp ./target/config/src/grpc-server ./target/release/grpc-server
 
 # copy grpc example binaries
 mkdir -p ./target/release/example-grpc
