@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C"
+#endif
+
 #ifndef UNRELIABLEFS_OPS_HH
 #define UNRELIABLEFS_OPS_HH
 
@@ -5,7 +9,8 @@
 
 #include <fuse.h>
 
-int unreliable_getattr(const char *, struct stat *);
+    int
+    unreliable_getattr(const char *, struct stat *);
 int unreliable_readlink(const char *, char *, size_t);
 int unreliable_mknod(const char *, mode_t, dev_t);
 int unreliable_mkdir(const char *, mode_t);

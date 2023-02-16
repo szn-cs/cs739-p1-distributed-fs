@@ -13,109 +13,108 @@
 #include "unreliablefs_ops.h"
 #include "unreliablefs.h"
 
-extern struct err_inj_q *config_init(const char* conf_path);
+extern struct err_inj_q *config_init(const char *conf_path);
 extern void config_delete(struct err_inj_q *config);
 
 struct unreliablefs_config conf;
 
 static struct fuse_operations unreliable_ops = {
-    .getattr     = unreliable_getattr,
-    .readlink    = unreliable_readlink,
-    .mknod       = unreliable_mknod,
-    .mkdir       = unreliable_mkdir,
-    .unlink      = unreliable_unlink,
-    .rmdir       = unreliable_rmdir,
-    .symlink     = unreliable_symlink,
-    .rename      = unreliable_rename,
-    .link        = unreliable_link,
-    .chmod       = unreliable_chmod,
-    .chown       = unreliable_chown,
-    .truncate    = unreliable_truncate,
-    .open	 = unreliable_open,
-    .read	 = unreliable_read,
-    .write       = unreliable_write,
-    .statfs      = unreliable_statfs,
-    .flush       = unreliable_flush,
-    .release     = unreliable_release,
-    .fsync       = unreliable_fsync,
+    .getattr = unreliable_getattr,
+    .readlink = unreliable_readlink,
+    .mknod = unreliable_mknod,
+    .mkdir = unreliable_mkdir,
+    .unlink = unreliable_unlink,
+    .rmdir = unreliable_rmdir,
+    .symlink = unreliable_symlink,
+    .rename = unreliable_rename,
+    .link = unreliable_link,
+    .chmod = unreliable_chmod,
+    .chown = unreliable_chown,
+    .truncate = unreliable_truncate,
+    .open = unreliable_open,
+    .read = unreliable_read,
+    .write = unreliable_write,
+    .statfs = unreliable_statfs,
+    .flush = unreliable_flush,
+    .release = unreliable_release,
+    .fsync = unreliable_fsync,
 #ifdef HAVE_XATTR
-    .setxattr    = unreliable_setxattr,
-    .getxattr    = unreliable_getxattr,
-    .listxattr   = unreliable_listxattr,
+    .setxattr = unreliable_setxattr,
+    .getxattr = unreliable_getxattr,
+    .listxattr = unreliable_listxattr,
     .removexattr = unreliable_removexattr,
 #endif /* HAVE_XATTR */
-    .opendir     = unreliable_opendir,
-    .readdir     = unreliable_readdir,
-    .releasedir  = unreliable_releasedir,
-    .fsyncdir    = unreliable_fsyncdir,
+    .opendir = unreliable_opendir,
+    .readdir = unreliable_readdir,
+    .releasedir = unreliable_releasedir,
+    .fsyncdir = unreliable_fsyncdir,
 
-    .init        = unreliable_init,
-    .destroy     = unreliable_destroy,
+    .init = unreliable_init,
+    .destroy = unreliable_destroy,
 
-    .access      = unreliable_access,
-    .create      = unreliable_create,
-    .ftruncate   = unreliable_ftruncate,
-    .fgetattr    = unreliable_fgetattr,
-    .lock        = unreliable_lock,
+    .access = unreliable_access,
+    .create = unreliable_create,
+    .ftruncate = unreliable_ftruncate,
+    .fgetattr = unreliable_fgetattr,
+    .lock = unreliable_lock,
 #if !defined(__OpenBSD__)
-    .ioctl       = unreliable_ioctl,
+    .ioctl = unreliable_ioctl,
 #endif /* __OpenBSD__ */
 #ifdef HAVE_FLOCK
-    .flock       = unreliable_flock,
+    .flock = unreliable_flock,
 #endif /* HAVE_FLOCK */
 #ifdef HAVE_FALLOCATE
-    .fallocate   = unreliable_fallocate,
+    .fallocate = unreliable_fallocate,
 #endif /* HAVE_FALLOCATE */
 #ifdef HAVE_UTIMENSAT
-    .utimens     = unreliable_utimens,
+    .utimens = unreliable_utimens,
 #endif /* HAVE_UTIMENSAT */
 };
 
 enum {
-     KEY_HELP,
-     KEY_VERSION,
-     KEY_DEBUG,
+    KEY_HELP,
+    KEY_VERSION,
+    KEY_DEBUG,
 };
 
-#define UNRELIABLEFS_OPT(t, p, v) { t, offsetof(struct unreliablefs_config, p), v }
+#define UNRELIABLEFS_OPT(t, p, v) \
+    { t, offsetof(struct unreliablefs_config, p), v }
 #define UNRELIABLEFS_VERSION "0.1"
 
 static struct fuse_opt unreliablefs_opts[] = {
-    UNRELIABLEFS_OPT("-seed=%u",           seed, 0),
-    UNRELIABLEFS_OPT("-basedir=%s",        basedir, 0),
+    UNRELIABLEFS_OPT("-seed=%u", seed, 0),
+    UNRELIABLEFS_OPT("-basedir=%s", basedir, 0),
 
-    FUSE_OPT_KEY("-d",             KEY_DEBUG),
-    FUSE_OPT_KEY("-V",             KEY_VERSION),
-    FUSE_OPT_KEY("-v",             KEY_VERSION),
-    FUSE_OPT_KEY("--version",      KEY_VERSION),
-    FUSE_OPT_KEY("-h",             KEY_HELP),
-    FUSE_OPT_KEY("--help",         KEY_HELP),
-    FUSE_OPT_KEY("subdir",         FUSE_OPT_KEY_DISCARD),
-    FUSE_OPT_KEY("modules=",       FUSE_OPT_KEY_DISCARD),
-    FUSE_OPT_END
-};
+    FUSE_OPT_KEY("-d", KEY_DEBUG),
+    FUSE_OPT_KEY("-V", KEY_VERSION),
+    FUSE_OPT_KEY("-v", KEY_VERSION),
+    FUSE_OPT_KEY("--version", KEY_VERSION),
+    FUSE_OPT_KEY("-h", KEY_HELP),
+    FUSE_OPT_KEY("--help", KEY_HELP),
+    FUSE_OPT_KEY("subdir", FUSE_OPT_KEY_DISCARD),
+    FUSE_OPT_KEY("modules=", FUSE_OPT_KEY_DISCARD),
+    FUSE_OPT_END};
 
-static int unreliablefs_opt_proc(void *data, const char *arg, int key, struct fuse_args *outargs)
-{
+static int unreliablefs_opt_proc(void *data, const char *arg, int key, struct fuse_args *outargs) {
     switch (key) {
-    case KEY_HELP:
-        fprintf(stderr,
-            "usage: unreliablefs mountpoint [options]\n\n"
-            "general options:\n"
-            "    -h   --help            print help\n"
-            "    -v   --version         print version\n"
-            "    -d                     enable debug output (implies -f)\n"
-            "    -f                     foreground operation\n\n"
-            "unreliablefs options:\n"
-            "    -seed=NUM              random seed\n"
-            "    -basedir=STRING        directory to mount\n\n");
-        exit(1);
+        case KEY_HELP:
+            fprintf(stderr,
+                    "usage: unreliablefs mountpoint [options]\n\n"
+                    "general options:\n"
+                    "    -h   --help            print help\n"
+                    "    -v   --version         print version\n"
+                    "    -d                     enable debug output (implies -f)\n"
+                    "    -f                     foreground operation\n\n"
+                    "unreliablefs options:\n"
+                    "    -seed=NUM              random seed\n"
+                    "    -basedir=STRING        directory to mount\n\n");
+            exit(1);
 
-    case KEY_VERSION:
-        fprintf(stderr, "unreliablefs version %s\n", UNRELIABLEFS_VERSION);
-        fuse_opt_add_arg(outargs, "--version");
-        fuse_main(outargs->argc, outargs->argv, &unreliable_ops, NULL);
-        exit(1);
+        case KEY_VERSION:
+            fprintf(stderr, "unreliablefs version %s\n", UNRELIABLEFS_VERSION);
+            fuse_opt_add_arg(outargs, "--version");
+            fuse_main(outargs->argc, outargs->argv, &unreliable_ops, NULL);
+            exit(1);
     }
     return 1;
 }
@@ -129,8 +128,7 @@ int is_dir(const char *path) {
     return S_ISDIR(statbuf.st_mode);
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
     memset(&conf, 0, sizeof(conf));
     conf.seed = time(0);
@@ -140,9 +138,9 @@ int main(int argc, char *argv[])
     fprintf(stdout, "random seed = %d\n", conf.seed);
 
     if (is_dir(conf.basedir) == 0) {
-       fprintf(stderr, "basedir ('%s') is not a directory\n", conf.basedir);
-       fuse_opt_free_args(&args);
-       return EXIT_FAILURE;
+        fprintf(stderr, "basedir ('%s') is not a directory\n", conf.basedir);
+        fuse_opt_free_args(&args);
+        return EXIT_FAILURE;
     }
     char subdir_option[PATH_MAX];
     sprintf(subdir_option, "-omodules=subdir,subdir=%s", conf.basedir);
@@ -188,3 +186,51 @@ int main(int argc, char *argv[])
 
     return ret;
 }
+
+// int main(int argc, char *argv[]) {
+//     // Instantiate the client. It requires a channel, out of which the actual RPCs
+//     // are created. This channel models a connection to an endpoint specified by
+//     // the argument "--target=" which is the only expected argument.
+//     // We indicate that the channel isn't authenticated (use of
+//     // InsecureChannelCredentials()).
+//     std::string target_str;
+//     std::string arg_str("--target");
+//     if (argc > 1) {
+//         std::string arg_val = argv[1];
+//         size_t start_pos = arg_val.find(arg_str);
+//         if (start_pos != std::string::npos) {
+//             start_pos += arg_str.size();
+//             if (arg_val[start_pos] == '=') {
+//                 target_str = arg_val.substr(start_pos + 1);
+//             } else {
+//                 std::cout << "The only correct argument syntax is --target="
+//                           << std::endl;
+//                 return 0;
+//             }
+//         } else {
+//             std::cout << "The only acceptable argument is --target=" << std::endl;
+//             return 0;
+//         }
+//     } else {
+//         target_str = "localhost:50051";
+//     }
+
+//     AFSClient client(
+//         grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+
+//     // EXAMPLE: keep it to make sure things are working
+//     std::string user("world");
+//     std::string reply = client.SayHello(user);
+//     std::cout << "Greeter received: " << reply << std::endl;
+
+//     // std::string path("/test.txt");
+//     // int reply = client.Unlink(path);
+//     // std::cout << "reply: " << reply << std::endl;
+//     AFSClient client_read(
+//         grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+//     std::string buf;
+//     long timestamp;
+//     int numBytes;
+//     client_read.clientReadFileStream("/test.txt", 8, 0, numBytes, buf, timestamp);
+//     return 0;
+// }

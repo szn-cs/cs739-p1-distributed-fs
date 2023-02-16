@@ -1,20 +1,5 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+
+#include "./client.h"
 
 #include <errno.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
@@ -48,217 +33,211 @@ using afs::WriteRequest;
 using afs::HelloReply;
 using afs::HelloRequest;
 
-#define TIMEOUT 60 * 1000  // this is in ms
+#define TIMEOUT 60 * 1000 // this is in ms
 #define CHUNK_SIZE 1572864
 
-class AFSClient {
- public:
-  AFSClient(std::shared_ptr<Channel> channel)
-      : stub_(CustomAFS::NewStub(channel)) {}
+AFSClient::AFSClient(std::shared_ptr<Channel> channel)
+    : stub_(CustomAFS::NewStub(channel)) {}
 
-  int Mkdir(const std::string& path) {
-    // Follows the same pattern as SayHello.
-    Path request;
-    request.set_path(path);
-    Response reply;
-    ClientContext context;
+int AFSClient::Mkdir(const std::string& path) {
+  // Follows the same pattern as SayHello.
+  Path request;
+  request.set_path(path);
+  Response reply;
+  ClientContext context;
 
-    // Here we can use the stub's newly available method we just added.
-    Status status = stub_->Mkdir(&context, request, &reply);
-    if (status.ok()) {
-      // std::cout << status.status() << std::endl;
-      return reply.status();
-    } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return -1;
-    }
-  }
-
-  int Rmdir(const std::string& path) {
-    Path request;
-    request.set_path(path);
-    Response reply;
-    ClientContext context;
-
-    // Here we can use the stub's newly available method we just added.
-    Status status = stub_->Rmdir(&context, request, &reply);
-    if (status.ok()) {
-      // std::cout << status.status() << std::endl;
-      return reply.status();
-    } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return -1;
-    }
-  }
-
-  int Unlink(const std::string& path) {
-    Path request;
-    request.set_path(path);
-    Response reply;
-    ClientContext context;
-
-    // Here we can use the stub's newly available method we just added.
-    Status status = stub_->Unlink(&context, request, &reply);
-    if (status.ok()) {
-      return reply.status();
-    } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return -1;
-    }
-  }
-
-  int GetAttr(const std::string& path) {
-    Path request;
-    request.set_path(path);
-    StatInfo reply;
-    ClientContext context;
-
-    Status status = stub_->GetAttr(&context, request, &reply);
-    if (status.ok()) {
-      std::cout << reply.stdev() << std::endl;
-      std::cout << reply.stino() << std::endl;
-      std::cout << reply.stmode() << std::endl;
-      std::cout << reply.stnlink() << std::endl;
-      std::cout << reply.stuid() << std::endl;
-      std::cout << reply.stgid() << std::endl;
-      std::cout << reply.strdev() << std::endl;
-      std::cout << reply.stsize() << std::endl;
-      std::cout << reply.stblksize() << std::endl;
-      std::cout << reply.stblocks() << std::endl;
-      std::cout << reply.statime() << std::endl;
-      std::cout << reply.stmtime() << std::endl;
-      std::cout << reply.stctime() << std::endl;
-      return reply.status();
-    } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return -1;
-    }
-  }
-  int clientReadFileStream(const std::string& path, const int& size,
-                           const int& offset, int& numBytes, std::string& buf,
-                           long& timestamp) {
-    std::cout << " grpc client read " << path << "\n";
-    ReadRequest request;
-    request.set_path(path);
-    request.set_size(size);
-    request.set_offset(offset);
-    std::cout << "1\n";
-    ReadReply reply;
-    ClientContext context;
-    std::chrono::time_point deadline =
-        std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
-    // context.set_deadline(deadline);
-    std::cout << "1-1\n";
-
-    std::unique_ptr<ClientReader<ReadReply>> reader(
-        stub_->Read(&context, request));
-
-    std::cout << "2\n";
-    while (reader->Read(&reply)) {
-      std::cout << "3\n";
-      if (reply.buf().find("crash3") != std::string::npos) {
-        std::cout << "Killing client process in read()\n";
-        kill(getpid(), SIGABRT);
-      }
-      std::cout << reply.buf() << std::endl;
-      buf.append(reply.buf());
-      if (reply.numbytes() < 0) {
-        std::cout << "4\n";
-        break;
-      }
-    }
-    Status status = reader->Finish();
-    if (status.ok()) {
-      numBytes = reply.numbytes();
-      timestamp = reply.timestamp();
-      std::cout << "grpc Read client " << numBytes << " " << timestamp
-                << std::endl;
-      return reply.err();
-    }
-    std::cout << "There was an error in the server Read " << status.error_code()
+  // Here we can use the stub's newly available method we just added.
+  Status status = stub_->Mkdir(&context, request, &reply);
+  if (status.ok()) {
+    // std::cout << status.status() << std::endl;
+    return reply.status();
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message()
               << std::endl;
-    return status.error_code();
+    return -1;
   }
+}
 
-  int clientWriteFileStream(const std::string& path, const std::string& buf,
-                            const int& size, const int& offset, int& numBytes,
-                            long& timestamp) {
-    std::cout << "GRPC client write\n";
-    WriteRequest request;
-    WriteReply reply;
-    ClientContext context;
-    std::chrono::time_point deadline =
-        std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
-    context.set_deadline(deadline);
-    std::unique_ptr<ClientWriter<WriteRequest>> writer(
-        stub_->Write(&context, &reply));
-    int bytesLeft = size;
-    int curr = offset;
-    while (bytesLeft >= 0) {
-      request.set_path(path);
-      request.set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesLeft)));
-      request.set_size(std::min(CHUNK_SIZE, bytesLeft));
-      request.set_offset(curr);
-      curr += CHUNK_SIZE;
-      bytesLeft -= CHUNK_SIZE;
-      if (!writer->Write(request)) {
-        // Broken stream.
-        break;
-      }
-      if (buf.find("crash4") != std::string::npos) {
-        std::cout << "Killing client process in write()\n";
-        kill(getpid(), SIGABRT);
-      }
-    }
-    writer->WritesDone();
-    Status status = writer->Finish();
+int AFSClient::Rmdir(const std::string& path) {
+  Path request;
+  request.set_path(path);
+  Response reply;
+  ClientContext context;
 
-    if (status.ok()) {
-      numBytes = reply.numbytes();
-      timestamp = reply.timestamp();
-      return reply.err();
-    }
-    // cout << "There was an error in the server Write " << status.error_code()
-    // << endl;
-
-    return status.error_code();
+  // Here we can use the stub's newly available method we just added.
+  Status status = stub_->Rmdir(&context, request, &reply);
+  if (status.ok()) {
+    // std::cout << status.status() << std::endl;
+    return reply.status();
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message()
+              << std::endl;
+    return -1;
   }
-  /** EXAMPLE: keep it to make sure things are working
-   * Assembles the client's payload, sends it and presents the response back
-   * from the server.
-   */
-  std::string SayHello(const std::string& user) {
-    // Data we are sending to the server.
-    HelloRequest request;
-    request.set_name(user);
+}
 
-    // Container for the data we expect from the server.
-    HelloReply reply;
+int AFSClient::Unlink(const std::string& path) {
+  Path request;
+  request.set_path(path);
+  Response reply;
+  ClientContext context;
 
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
-    ClientContext context;
+  // Here we can use the stub's newly available method we just added.
+  Status status = stub_->Unlink(&context, request, &reply);
+  if (status.ok()) {
+    return reply.status();
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message()
+              << std::endl;
+    return -1;
+  }
+}
 
-    // The actual RPC.
-    Status status = stub_->SayHello(&context, request, &reply);
+int AFSClient::GetAttr(const std::string& path) {
+  Path request;
+  request.set_path(path);
+  StatInfo reply;
+  ClientContext context;
 
-    // Act upon its status.
-    if (status.ok()) {
-      return reply.message();
-    } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return "RPC failed";
+  Status status = stub_->GetAttr(&context, request, &reply);
+  if (status.ok()) {
+    std::cout << reply.stdev() << std::endl;
+    std::cout << reply.stino() << std::endl;
+    std::cout << reply.stmode() << std::endl;
+    std::cout << reply.stnlink() << std::endl;
+    std::cout << reply.stuid() << std::endl;
+    std::cout << reply.stgid() << std::endl;
+    std::cout << reply.strdev() << std::endl;
+    std::cout << reply.stsize() << std::endl;
+    std::cout << reply.stblksize() << std::endl;
+    std::cout << reply.stblocks() << std::endl;
+    std::cout << reply.statime() << std::endl;
+    std::cout << reply.stmtime() << std::endl;
+    std::cout << reply.stctime() << std::endl;
+    return reply.status();
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message()
+              << std::endl;
+    return -1;
+  }
+}
+int AFSClient::clientReadFileStream(const std::string& path, const int& size,
+                                    const int& offset, int& numBytes, std::string& buf,
+                                    long& timestamp) {
+  std::cout << " grpc client read " << path << "\n";
+  ReadRequest request;
+  request.set_path(path);
+  request.set_size(size);
+  request.set_offset(offset);
+  std::cout << "1\n";
+  ReadReply reply;
+  ClientContext context;
+  std::chrono::time_point deadline =
+      std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
+  // context.set_deadline(deadline);
+  std::cout << "1-1\n";
+
+  std::unique_ptr<ClientReader<ReadReply>> reader(
+      stub_->Read(&context, request));
+
+  std::cout << "2\n";
+  while (reader->Read(&reply)) {
+    std::cout << "3\n";
+    if (reply.buf().find("crash3") != std::string::npos) {
+      std::cout << "Killing client process in read()\n";
+      kill(getpid(), SIGABRT);
+    }
+    std::cout << reply.buf() << std::endl;
+    buf.append(reply.buf());
+    if (reply.numbytes() < 0) {
+      std::cout << "4\n";
+      break;
     }
   }
+  Status status = reader->Finish();
+  if (status.ok()) {
+    numBytes = reply.numbytes();
+    timestamp = reply.timestamp();
+    std::cout << "grpc Read client " << numBytes << " " << timestamp
+              << std::endl;
+    return reply.err();
+  }
+  std::cout << "There was an error in the server Read " << status.error_code()
+            << std::endl;
+  return status.error_code();
+}
 
- private:
-  std::unique_ptr<CustomAFS::Stub> stub_;
-};
+int AFSClient::clientWriteFileStream(const std::string& path, const std::string& buf,
+                                     const int& size, const int& offset, int& numBytes,
+                                     long& timestamp) {
+  std::cout << "GRPC client write\n";
+  WriteRequest request;
+  WriteReply reply;
+  ClientContext context;
+  std::chrono::time_point deadline =
+      std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
+  context.set_deadline(deadline);
+  std::unique_ptr<ClientWriter<WriteRequest>> writer(
+      stub_->Write(&context, &reply));
+  int bytesLeft = size;
+  int curr = offset;
+  while (bytesLeft >= 0) {
+    request.set_path(path);
+    request.set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesLeft)));
+    request.set_size(std::min(CHUNK_SIZE, bytesLeft));
+    request.set_offset(curr);
+    curr += CHUNK_SIZE;
+    bytesLeft -= CHUNK_SIZE;
+    if (!writer->Write(request)) {
+      // Broken stream.
+      break;
+    }
+    if (buf.find("crash4") != std::string::npos) {
+      std::cout << "Killing client process in write()\n";
+      kill(getpid(), SIGABRT);
+    }
+  }
+  writer->WritesDone();
+  Status status = writer->Finish();
+
+  if (status.ok()) {
+    numBytes = reply.numbytes();
+    timestamp = reply.timestamp();
+    return reply.err();
+  }
+  // cout << "There was an error in the server Write " << status.error_code()
+  // << endl;
+
+  return status.error_code();
+}
+/** EXAMPLE: keep it to make sure things are working
+ * Assembles the client's payload, sends it and presents the response back
+ * from the server.
+ */
+std::string AFSClient::SayHello(const std::string& user) {
+  // Data we are sending to the server.
+  HelloRequest request;
+  request.set_name(user);
+
+  // Container for the data we expect from the server.
+  HelloReply reply;
+
+  // Context for the client. It could be used to convey extra information to
+  // the server and/or tweak certain RPC behaviors.
+  ClientContext context;
+
+  // The actual RPC.
+  Status status = stub_->SayHello(&context, request, &reply);
+
+  // Act upon its status.
+  if (status.ok()) {
+    return reply.message();
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message()
+              << std::endl;
+    return "RPC failed";
+  }
+}
 
 int main(int argc, char* argv[]) {
   // Instantiate the client. It requires a channel, out of which the actual RPCs
