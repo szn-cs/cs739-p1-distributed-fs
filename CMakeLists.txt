@@ -20,7 +20,7 @@ find_package(gRPC CONFIG REQUIRED)
 # include(${CMAKE_CURRENT_SOURCE_DIR}/src/server/CMakeLists.txt)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/unreliablefs)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/) # server & client directory
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/) # server & client directory
 # add example grpc code: 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependency/grpc/examples/cpp/helloworld)
 

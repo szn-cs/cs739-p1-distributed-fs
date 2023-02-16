@@ -1,5 +1,12 @@
 #pragma once
 
+#include <errno.h>
+#include <grpcpp/ext/proto_server_reflection_plugin.h>
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/health_check_service_interface.h>
+#include <signal.h>
+#include <sys/stat.h>
+
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -7,8 +14,26 @@
 
 #include "afs.grpc.pb.h"
 
-using afs::CustomAFS;
 using grpc::Channel;
+using grpc::ClientContext;
+using grpc::ClientReader;
+using grpc::ClientWriter;
+using grpc::Status;
+
+using afs::CustomAFS;
+using afs::Path;
+using afs::ReadReply;
+using afs::ReadRequest;
+using afs::Response;
+using afs::StatInfo;
+using afs::WriteReply;
+using afs::WriteRequest;
+// EXAMPLE API keep it to amke sure thigns are working
+using afs::HelloReply;
+using afs::HelloRequest;
+
+#define TIMEOUT 60 * 1000 // this is in ms
+#define CHUNK_SIZE 1572864
 
 class AFSClient {
 public:
