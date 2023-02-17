@@ -41,7 +41,7 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
 }
 
 int cppWrapper_mkdir(const char* path, mode_t mode) {
-  std::cout << "⚫ cppWrapper_mkdir" << std::endl;
+  std::cout << "⚫cppWrapper_mkdir" << std::endl;
 
   std::string target_str = "localhost:50051";
 
@@ -49,10 +49,11 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
   const std::string _path = "/tmp/fs";
+  client.clientMkdir(_path);
 
   int ret = mkdir(path, mode);
   if (ret == -1) {
-    return -error;
+    return -errno;
   }
 
   return 0;
@@ -142,6 +143,14 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset,
                     struct fuse_file_info* fi) {
+  std::cout << "👍cppWrapper_read" << std::endl;
+  std::string target_str = "localhost:50051";
+  AFSClient client(
+      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+  int fd;   // file handle id
+  int ret;  // return
+
+  /*
   int fd;
 
   if (fi == NULL) {
@@ -162,6 +171,7 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset,
   if (fi == NULL) {
     close(fd);
   }
+  */
 
   return 0;
 }
@@ -490,3 +500,8 @@ int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
 #ifdef __cplusplus
 }
 #endif
+
+int main(int argc, char* argv[]) {
+  cppWrapper_mkdir("test_dir", 777);
+  return 0;
+}

@@ -1,0 +1,109 @@
+syntax = "proto3"; // we use proto version 3
+package afs;   // similar to namespace, avoid conflicts
+
+service CustomAFS {
+    rpc Mkdir(Path) returns (Response) {};
+    rpc Unlink(Path) returns (Response) {};
+    rpc Rmdir(Path) returns (Response) {};    
+    rpc GetAttr(Path) returns (StatInfo) {};
+    rpc Read(ReadRequest) returns (stream ReadReply) {};
+    rpc Write(stream WriteRequest) returns (WriteReply) {};
+    rpc Open(OpenRequest) returns (OpenResponse) {};
+    
+
+    // EXAMPLE API: keep this for debudding
+    // Sends a greeting
+    rpc SayHello(HelloRequest) returns (HelloReply) {};
+    rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {};
+}
+message OpenRequest {
+    string path = 1;
+    int32  mode = 2;
+}
+
+message OpenResponse {
+    int32 err = 1;
+    int64 timestamp = 2;
+}
+
+message Path {
+    string path = 1;
+}
+
+message Response {
+    int32 status = 1;
+}
+
+message Datablock {
+    bytes content = 1;
+}
+
+message ReadRequest {
+    string path = 1;
+    int32  size = 2;
+    int32  offset = 3;
+}
+
+message ReadReply {
+    int32 numBytes = 1;
+    bytes buf = 2;
+    int32 err = 3;
+    int64 timestamp = 4;
+}
+
+message WriteRequest {
+    string path = 1;
+    bytes  buf = 2;
+    int32  size = 3;
+    int32  offset = 4;
+}
+
+message WriteReply {
+    int32 numBytes = 1;
+    int32 err = 2;
+    int64 timestamp = 3;
+}
+
+
+
+// https://linux.die.net/man/2/stat
+// struct stat {
+//     dev_t     st_dev;     /* ID of device containing file */    -> unsigned long int
+//     ino_t     st_ino;     /* inode number */                    -> unsigned long int
+//     mode_t    st_mode;    /* protection */                      -> unsigned int
+//     nlink_t   st_nlink;   /* number of hard links */            -> unsigned long int
+//     uid_t     st_uid;     /* user ID of owner */                -> unsigned int
+//     gid_t     st_gid;     /* group ID of owner */               -> unsigned int
+//     dev_t     st_rdev;    /* device ID (if special file) */     -> unsigned long int
+//     off_t     st_size;    /* total size, in bytes */            -> long int
+//     blksize_t st_blksize; /* blocksize for file system I/O */   -> long int
+//     blkcnt_t  st_blocks;  /* number of 512B blocks allocated */ -> long int
+//     time_t    st_atime;   /* time of last access */             -> long int
+//     time_t    st_mtime;   /* time of last modification */       -> long int
+//     time_t    st_ctime;   /* time of last status change */      -> long int
+// };
+message StatInfo {
+    int32 status = 1;
+    uint64 stdev = 2;     
+    uint64 stino = 3;    
+    uint32 stmode = 4;
+    uint64 stnlink = 5;
+    uint32 stuid = 6; 
+    uint32 stgid = 7;
+    uint64 strdev = 8;
+    int64 stsize = 9;
+    int64 stblksize = 10;
+    int64 stblocks = 11; 
+    int64 statime = 12;  
+    int64 stmtime = 13;  
+    int64 stctime = 14;  
+}
+
+
+
+/********************************************************************************************************** EXAMPLE API *******************************f**/
+message HelloRequest { string name = 1; }
+message HelloReply { string message = 1; }
+
+
+
