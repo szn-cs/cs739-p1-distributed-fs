@@ -4,19 +4,24 @@
 AFSClient::AFSClient(std::shared_ptr<Channel> channel)
     : stub_(CustomAFS::NewStub(channel)) {}
 
-int AFSClient::clientMkdir(const std::string& path) {
-  // Follows the same pattern as SayHello.
-  Path request;
+int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
+  
+  MkdirRequest request;
   request.set_path(path);
-  Response reply;
+  request.set_modet(mode);
+  MkdirResponse reply;
   ClientContext context;
 
-  // Here we can use the stub's newly available method we just added.
+ 
   Status status = stub_->Mkdir(&context, request, &reply);
   if (status.ok()) {
     // std::cout << status.status() << std::endl;
+    if (reply.status() != 0) {
+      errornum = reply.erronum();
+    }
     return reply.status();
   } else {
+    errornum = -1;
     std::cout << status.error_code() << ": " << status.error_message()
               << std::endl;
     return -1;
@@ -58,27 +63,33 @@ int AFSClient::clientUnlink(const std::string& path) {
   }
 }
 
-int AFSClient::clientGetAttr(const std::string& path) {
+int AFSClient::clientGetAttr(const std::string& path, struct stat* buf,
+                             int& errornum) {
   Path request;
   request.set_path(path);
   StatInfo reply;
   ClientContext context;
 
   Status status = stub_->GetAttr(&context, request, &reply);
+
   if (status.ok()) {
-    std::cout << reply.stdev() << std::endl;
-    std::cout << reply.stino() << std::endl;
-    std::cout << reply.stmode() << std::endl;
-    std::cout << reply.stnlink() << std::endl;
-    std::cout << reply.stuid() << std::endl;
-    std::cout << reply.stgid() << std::endl;
-    std::cout << reply.strdev() << std::endl;
-    std::cout << reply.stsize() << std::endl;
-    std::cout << reply.stblksize() << std::endl;
-    std::cout << reply.stblocks() << std::endl;
-    std::cout << reply.statime() << std::endl;
-    std::cout << reply.stmtime() << std::endl;
-    std::cout << reply.stctime() << std::endl;
+    if (reply.status() != 0) {
+      errornum = reply.errornum();
+    } else {
+      buf->st_dev = reply.stdev();
+      buf->st_ino = reply.stino();
+      buf->st_mode = reply.stmode();
+      buf->st_nlink = reply.stnlink();
+      buf->st_uid = reply.stuid();
+      buf->st_gid = reply.stgid();
+      buf->st_rdev = reply.strdev();
+      buf->st_size = reply.stsize();
+      buf->st_blksize = reply.stblksize();
+      buf->st_blocks = reply.stblocks();
+      buf->st_atime = reply.statime();
+      buf->st_mtime = reply.stmtime();
+      buf->st_ctime = reply.stctime();
+    }
     return reply.status();
   } else {
     std::cout << status.error_code() << ": " << status.error_message()
@@ -98,7 +109,7 @@ int AFSClient::clientRead(const std::string& path, const int& size,
   std::cout << "1\n";
   ReadReply reply;
   ClientContext context;
-  std::chrono::time_point deadline =
+  std::chrono::time_point<std::chrono::system_clock> deadline =
       std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
   context.set_deadline(deadline);
 
@@ -136,7 +147,7 @@ int AFSClient::clientWrite(const std::string& path, const std::string& buf,
   WriteRequest request;
   WriteReply reply;
   ClientContext context;
-  std::chrono::time_point deadline =
+  std::chrono::time_point<std::chrono::system_clock> deadline =
       std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
   context.set_deadline(deadline);
   std::unique_ptr<ClientWriter<WriteRequest>> writer(

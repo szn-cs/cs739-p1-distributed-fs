@@ -28,6 +28,8 @@ using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
 using afs::WriteRequest;
+using afs::MkdirRequest;
+using afs::MkdirResponse;
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -39,13 +41,13 @@ class AFSClient {
 public:
   AFSClient(std::shared_ptr<Channel> channel);
 
-  int clientMkdir(const std::string& path);
+  int clientMkdir(const std::string& path, mode_t mode, int& errornum);
 
   int clientRmdir(const std::string& path);
 
   int clientUnlink(const std::string& path);
 
-  int clientGetAttr(const std::string& path);
+  int clientGetAttr(const std::string& path, struct stat *buf, int &errornum);
 
   int clientRead(const std::string& path, const int& size, const int& offset, int& numBytes, std::string& buf, long& timestamp);
 

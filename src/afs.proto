@@ -2,7 +2,7 @@ syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
 service CustomAFS {
-    rpc Mkdir(Path) returns (Response) {};
+    rpc Mkdir(MkdirRequest) returns (MkdirResponse) {};
     rpc Unlink(Path) returns (Response) {};
     rpc Rmdir(Path) returns (Response) {};    
     rpc GetAttr(Path) returns (StatInfo) {};
@@ -23,6 +23,16 @@ message Path {
 
 message Response {
     int32 status = 1;
+}
+
+message MkdirRequest {
+    string path = 1;
+    uint32 modet = 2;
+}
+
+message MkdirResponse {
+    int32 status = 1;
+    int32 erronum = 2;
 }
 
 message Datablock {
@@ -75,19 +85,20 @@ message WriteReply {
 // };
 message StatInfo {
     int32 status = 1;
-    uint64 stdev = 2;     
-    uint64 stino = 3;    
-    uint32 stmode = 4;
-    uint64 stnlink = 5;
-    uint32 stuid = 6; 
-    uint32 stgid = 7;
-    uint64 strdev = 8;
-    int64 stsize = 9;
-    int64 stblksize = 10;
-    int64 stblocks = 11; 
-    int64 statime = 12;  
-    int64 stmtime = 13;  
-    int64 stctime = 14;  
+    int32 errornum = 2;
+    uint64 stdev = 3;     
+    uint64 stino = 4;    
+    uint32 stmode = 5;
+    uint64 stnlink = 6;
+    uint32 stuid = 7; 
+    uint32 stgid = 8;
+    uint64 strdev = 9;
+    int64 stsize = 10;
+    int64 stblksize = 11;
+    int64 stblocks = 12; 
+    int64 statime = 13;  
+    int64 stmtime = 14;  
+    int64 stctime = 15;  
 }
 
 

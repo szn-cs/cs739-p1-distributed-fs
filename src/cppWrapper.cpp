@@ -13,11 +13,20 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
-  memset(buf, 0, sizeof(struct stat));
-  if (lstat(path, buf) == -1) {
-    return -errno;
-  }
+  std::cout << "⚫ cppWrapper_getattr" << std::endl;
 
+  std::string target_str = "localhost:50051";
+
+  AFSClient client(
+      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+
+  const std::string _path(path);
+  int errornum;
+  std::memset(buf, 0, sizeof(struct stat));
+  int ret = client.clientGetAttr(_path, buf, errornum);
+  if (ret == -1) {
+    return -errornum;
+  }
   return 0;
 }
 
@@ -48,13 +57,12 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
   AFSClient client(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
-  const std::string _path = "/tmp/fs";
-
-  int ret = mkdir(path, mode);
+  const std::string _path(path);
+  int errornum;
+  int ret = client.clientMkdir(_path, mode, errornum);
   if (ret == -1) {
-    return -error;
+    return -errornum;
   }
-
   return 0;
 }
 
