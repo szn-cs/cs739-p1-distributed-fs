@@ -63,27 +63,33 @@ int AFSClient::clientUnlink(const std::string& path) {
   }
 }
 
-int AFSClient::clientGetAttr(const std::string& path) {
+int AFSClient::clientGetAttr(const std::string& path, struct stat* buf,
+                             int& errornum) {
   Path request;
   request.set_path(path);
   StatInfo reply;
   ClientContext context;
 
   Status status = stub_->GetAttr(&context, request, &reply);
+
   if (status.ok()) {
-    std::cout << reply.stdev() << std::endl;
-    std::cout << reply.stino() << std::endl;
-    std::cout << reply.stmode() << std::endl;
-    std::cout << reply.stnlink() << std::endl;
-    std::cout << reply.stuid() << std::endl;
-    std::cout << reply.stgid() << std::endl;
-    std::cout << reply.strdev() << std::endl;
-    std::cout << reply.stsize() << std::endl;
-    std::cout << reply.stblksize() << std::endl;
-    std::cout << reply.stblocks() << std::endl;
-    std::cout << reply.statime() << std::endl;
-    std::cout << reply.stmtime() << std::endl;
-    std::cout << reply.stctime() << std::endl;
+    if (reply.status() != 0) {
+      errornum = reply.errornum();
+    } else {
+      buf->st_dev = reply.stdev();
+      buf->st_ino = reply.stino();
+      buf->st_mode = reply.stmode();
+      buf->st_nlink = reply.stnlink();
+      buf->st_uid = reply.stuid();
+      buf->st_gid = reply.stgid();
+      buf->st_rdev = reply.strdev();
+      buf->st_size = reply.stsize();
+      buf->st_blksize = reply.stblksize();
+      buf->st_blocks = reply.stblocks();
+      buf->st_atime = reply.statime();
+      buf->st_mtime = reply.stmtime();
+      buf->st_ctime = reply.stctime();
+    }
     return reply.status();
   } else {
     std::cout << status.error_code() << ": " << status.error_message()

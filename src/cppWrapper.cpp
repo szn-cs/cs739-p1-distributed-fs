@@ -15,11 +15,20 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
-  memset(buf, 0, sizeof(struct stat));
-  if (lstat(path, buf) == -1) {
-    return -errno;
-  }
+  std::cout << "⚫ cppWrapper_getattr" << std::endl;
 
+  std::string target_str = "localhost:50051";
+  
+  AFSClient client(
+      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+  
+  const std::string _path(path);
+  int errornum;
+  std::memset(buf, 0, sizeof(struct stat));
+  int ret = client.clientGetAttr(_path, buf, errornum);
+  if (ret == -1) {
+    return -errornum;
+  }
   return 0;
 }
 
@@ -487,6 +496,32 @@ int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
   return 0;
 }
 #endif /* HAVE_UTIMENSAT */
+
+int main() {
+  std::string path("test.txt");
+  struct stat *buf;
+  buf = (struct stat *)malloc(sizeof(struct stat));
+  std::cout << "here" << std::endl;
+  
+  std::memset(buf, 0, sizeof(struct stat));
+  std::cout << "here" << std::endl;
+  std::cout << cppWrapper_getattr(path.c_str(), buf) << std::endl;
+  std::cout << buf->st_dev << std::endl;
+  std::cout << buf->st_ino << std::endl;
+  std::cout << buf->st_mode << std::endl;
+  std::cout << buf->st_nlink << std::endl;
+  std::cout << buf->st_uid << std::endl;
+  std::cout << buf->st_gid << std::endl;
+  std::cout << buf->st_rdev << std::endl;
+  std::cout << buf->st_size << std::endl;
+  std::cout << buf->st_blksize << std::endl;
+  std::cout << buf->st_blocks << std::endl;
+  std::cout << buf->st_atime << std::endl;
+  std::cout << buf->st_mtime << std::endl;
+  std::cout << buf->st_ctime << std::endl;
+  free(buf);
+  return 0;
+}
 
 #ifdef __cplusplus
 }

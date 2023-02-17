@@ -47,7 +47,7 @@ public:
 
   int clientUnlink(const std::string& path);
 
-  int clientGetAttr(const std::string& path);
+  int clientGetAttr(const std::string& path, struct stat *buf, int &errornum);
 
   int clientRead(const std::string& path, const int& size, const int& offset, int& numBytes, std::string& buf, long& timestamp);
 

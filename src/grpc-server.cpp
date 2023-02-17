@@ -124,10 +124,11 @@ public:
     std::string getattr_file = root_dir + request->path();
     fs::path path_getattr_file(getattr_file);
 
-    response->set_status(0);
-    if (fs::exists(path_getattr_file)) {
-      struct stat sfile;
-      stat(getattr_file.c_str(), &sfile);
+    response->set_status(-1);
+    
+    struct stat sfile;
+    if (lstat(getattr_file.c_str(), &sfile) != -1) {
+      response->set_status(0);
       response->set_stdev(sfile.st_dev);
       response->set_stino(sfile.st_ino);
       response->set_stmode(sfile.st_mode);
@@ -141,8 +142,24 @@ public:
       response->set_statime(sfile.st_atime);
       response->set_stmtime(sfile.st_mtime);
       response->set_stctime(sfile.st_ctime);
-      response->set_status(1);
+      // std::cout << sfile.st_dev << std::endl;
+      // std::cout << sfile.st_ino << std::endl;
+      // std::cout << sfile.st_mode << std::endl;
+      // std::cout << sfile.st_nlink << std::endl;
+      // std::cout << sfile.st_uid << std::endl;
+      // std::cout << sfile.st_gid << std::endl;
+      // std::cout << sfile.st_rdev << std::endl;
+      // std::cout << sfile.st_size << std::endl;
+      // std::cout << sfile.st_blksize << std::endl;
+      // std::cout << sfile.st_blocks << std::endl;
+      // std::cout << sfile.st_atime << std::endl;
+      // std::cout << sfile.st_mtime << std::endl;
+      // std::cout << sfile.st_ctime << std::endl;
+    } else {
+      response->set_status(-1);
+      response->set_errornum(errno);
     }
+    
     return Status::OK;
   }
 
