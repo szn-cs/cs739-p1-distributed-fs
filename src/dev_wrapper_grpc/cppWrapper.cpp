@@ -147,9 +147,16 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset,
   std::string target_str = "localhost:50051";
   AFSClient client(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-  int fd;   // file handle id
-  int ret;  // return
-
+  string filePath = string(path);
+  string cacheFilePath = client.cache.getFilePathCache(filePath);
+  int res;
+  (void)path;
+  res = pread(fi->fh, buf, size, offset);
+  if (res == -1) res = -errno;
+  struct timespec spec;
+  clock_gettime(CLOCK_REALTIME, &spec);
+  client.cache.set(cacheFilePath, spec.tv_sec);
+  return res;
   /*
   int fd;
 

@@ -168,7 +168,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     response->set_err(0);
     return Status::OK;
   }
-  
+
   Status Read(ServerContext* context, const ReadRequest* request,
               ServerWriter<ReadReply>* writer) override {
     std::cout << "trigger server read" << std::endl;

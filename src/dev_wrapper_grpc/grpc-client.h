@@ -40,6 +40,7 @@ using afs::HelloRequest;
 
 class AFSClient {
  public:
+  LRUCache cache;
   AFSClient(std::shared_ptr<Channel> channel);
 
   int clientMkdir(const std::string& path);
@@ -67,6 +68,4 @@ class AFSClient {
 
  private:
   std::unique_ptr<CustomAFS::Stub> stub_;
-  // LRUCache *pcache;
-  LRUCache cache;
 };
