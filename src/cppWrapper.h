@@ -50,7 +50,7 @@ int cppWrapper_lstat(const char* path, struct stat* buf);
 int cppWrapper_getattr(const char* path, struct stat* buf);
 int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz);
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev);
-int cppWrapper_mkdir(const char*, mode_t);
+int cppWrapper_mkdir(const char*, mode_t mode);
 int cppWrapper_unlink(const char* path);
 int cppWrapper_rmdir(const char* path);
 int cppWrapper_symlink(const char* target, const char* linkpath);

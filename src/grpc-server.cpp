@@ -50,6 +50,8 @@ using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
 using afs::WriteRequest;
+using afs::MkdirRequest;
+using afs::MkdirResponse;
 // EXAMPLE
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -63,22 +65,17 @@ fs::path path_root_dir(root_dir);
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
 public:
-  Status Mkdir(ServerContext* context, const Path* request,
-               Response* response) override {
+  Status Mkdir(ServerContext* context, const MkdirRequest* request,
+               MkdirResponse* response) override {
     std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = root_dir + request->path();
+    mode_t mode = (mode_t) request->modet();
     fs::path path_new_dir(new_dir_path);
-
-    response->set_status(1);
-    if (!fs::exists(new_dir_path)) {
-      if (!fs::create_directories(new_dir_path)) {
-        perror("Failed to initialize the root directory.");
-        response->set_status(0);
-      }
-
-    } else {
-      response->set_status(0);
+    int ret = mkdir(path_new_dir.c_str(), mode);
+    if (ret != 0) {
+      response->set_erronum(errno);
     }
+    response->set_status(ret);
     return Status::OK;
   }
 

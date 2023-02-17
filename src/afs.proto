@@ -2,7 +2,7 @@ syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
 service CustomAFS {
-    rpc Mkdir(Path) returns (Response) {};
+    rpc Mkdir(MkdirRequest) returns (MkdirResponse) {};
     rpc Unlink(Path) returns (Response) {};
     rpc Rmdir(Path) returns (Response) {};    
     rpc GetAttr(Path) returns (StatInfo) {};
@@ -23,6 +23,16 @@ message Path {
 
 message Response {
     int32 status = 1;
+}
+
+message MkdirRequest {
+    string path = 1;
+    uint32 modet = 2;
+}
+
+message MkdirResponse {
+    int32 status = 1;
+    int32 erronum = 2;
 }
 
 message Datablock {

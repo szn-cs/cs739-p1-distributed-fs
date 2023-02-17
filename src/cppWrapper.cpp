@@ -50,14 +50,12 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
   AFSClient client(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
 
-  const std::string _path = "/tmp/fs";
-  client.clientMkdir(_path);
-
-  int ret = mkdir(path, mode);
+  const std::string _path(path);
+  int errornum;
+  int ret = client.clientMkdir(_path, mode, errornum);
   if (ret == -1) {
-    return -errno;
+    return -errornum;
   }
-
   return 0;
 }
 

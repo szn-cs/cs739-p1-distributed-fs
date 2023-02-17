@@ -4,19 +4,24 @@
 AFSClient::AFSClient(std::shared_ptr<Channel> channel)
     : stub_(CustomAFS::NewStub(channel)) {}
 
-int AFSClient::clientMkdir(const std::string& path) {
-  // Follows the same pattern as SayHello.
-  Path request;
+int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
+  
+  MkdirRequest request;
   request.set_path(path);
-  Response reply;
+  request.set_modet(mode);
+  MkdirResponse reply;
   ClientContext context;
 
-  // Here we can use the stub's newly available method we just added.
+ 
   Status status = stub_->Mkdir(&context, request, &reply);
   if (status.ok()) {
     // std::cout << status.status() << std::endl;
+    if (reply.status() != 0) {
+      errornum = reply.erronum();
+    }
     return reply.status();
   } else {
+    errornum = -1;
     std::cout << status.error_code() << ": " << status.error_message()
               << std::endl;
     return -1;
@@ -98,7 +103,7 @@ int AFSClient::clientRead(const std::string& path, const int& size,
   std::cout << "1\n";
   ReadReply reply;
   ClientContext context;
-  std::chrono::time_point deadline =
+  std::chrono::time_point<std::chrono::system_clock> deadline =
       std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
   context.set_deadline(deadline);
 
@@ -136,7 +141,7 @@ int AFSClient::clientWrite(const std::string& path, const std::string& buf,
   WriteRequest request;
   WriteReply reply;
   ClientContext context;
-  std::chrono::time_point deadline =
+  std::chrono::time_point<std::chrono::system_clock> deadline =
       std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
   context.set_deadline(deadline);
   std::unique_ptr<ClientWriter<WriteRequest>> writer(
