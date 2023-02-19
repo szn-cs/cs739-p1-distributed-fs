@@ -43,6 +43,10 @@ using grpc::ServerWriter;
 using grpc::Status;
 
 using afs::CustomAFS;
+using afs::MkdirRequest;
+using afs::MkdirResponse;
+using afs::OpenRequest;
+using afs::OpenResponse;
 using afs::Path;
 using afs::ReadReply;
 using afs::ReadRequest;
@@ -50,8 +54,6 @@ using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
 using afs::WriteRequest;
-using afs::MkdirRequest;
-using afs::MkdirResponse;
 // EXAMPLE
 using afs::HelloReply;
 using afs::HelloRequest;
@@ -64,12 +66,12 @@ fs::path path_root_dir(root_dir);
 
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
-public:
+ public:
   Status Mkdir(ServerContext* context, const MkdirRequest* request,
                MkdirResponse* response) override {
     std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = root_dir + request->path();
-    mode_t mode = (mode_t) request->modet();
+    mode_t mode = (mode_t)request->modet();
     fs::path path_new_dir(new_dir_path);
     int ret = mkdir(path_new_dir.c_str(), mode);
     if (ret != 0) {
@@ -125,7 +127,7 @@ public:
     fs::path path_getattr_file(getattr_file);
 
     response->set_status(-1);
-    
+
     struct stat sfile;
     if (lstat(getattr_file.c_str(), &sfile) != -1) {
       response->set_status(0);
@@ -159,7 +161,28 @@ public:
       response->set_status(-1);
       response->set_errornum(errno);
     }
-    
+
+    return Status::OK;
+  }
+
+  Status Open(ServerContext* context, const OpenRequest* request,
+              OpenResponse* response) override {
+    std::cout << "trigger server open" << std::endl;
+    int rc;
+    std::string path = root_dir + request->path();
+
+    // rc = creat(path.c_str(), request->mode());
+
+    rc = open(path.c_str(), request->mode(), S_IRWXU);
+    if (rc == -1) {
+      // cout << "create returned wrong value\n";
+      response->set_err(-errno);
+      return Status::OK;
+    }
+    struct timespec spec;
+    clock_gettime(CLOCK_REALTIME, &spec);
+    response->set_timestamp(spec.tv_sec);
+    response->set_err(0);
     return Status::OK;
   }
 
@@ -172,8 +195,7 @@ public:
     ReadReply* reply = new ReadReply();
 
     std::string path = root_dir + request->path();
-    int size = request->size();
-    int offset = request->offset();
+
     std::cout << "ReadFileStream: " << path << std::endl;
 
     std::ifstream is;
@@ -181,25 +203,44 @@ public:
     try {
       // read data to buffer with offset and size
       is.open(path, std::ios::binary | std::ios::ate);
+      is.seekg(0, is.end);
+      int length = is.tellg();
+      is.seekg(0, is.beg);
+      /*
       if (offset + size > is.tellg()) {
         std::cout << "The offset + size is greater then the file size.\n"
                   << "file size: " << is.tellg() << "\n"
                   << "offset: " << offset << "\n"
                   << "size: " << size << std::endl;
       }
-      is.seekg(offset, std::ios::beg);
-      std::string buffer(size, '\0');
-      is.read(&buffer[0], size);
+      */
+      // is.seekg(offset, std::ios::beg);
+      if (length == 0) {
+        clock_gettime(CLOCK_REALTIME, &spec);
+        reply->set_buf("");
+        reply->set_numbytes(0);
+        reply->set_err(0);
+        reply->set_timestamp(spec.tv_sec);
+        writer->Write(*reply);
+        std::cout << "File is empty." << std::endl;
+        is.close();
+        return Status::OK;
+      }
+
+      std::string buffer(length, '\0');
+      is.read(&buffer[0], length);
+      std::cout << "buffer: " << buffer << std::endl;
       // send data chunk to client
       int bytesRead = 0;
-      int minSize = std::min(CHUNK_SIZE, size);
-      while (bytesRead < size) {
+      int minSize = std::min(CHUNK_SIZE, length);
+
+      while (bytesRead < is.tellg()) {
         clock_gettime(CLOCK_REALTIME, &spec);
         std::string subBuffer = buffer.substr(bytesRead, minSize);
-        if (subBuffer.find("SERVER_READ_CRASH") != std::string::npos) {
-          std::cout << "Killing server process in read\n";
-          kill(getpid(), SIGINT);
-        }
+        // if (subBuffer.find("SERVER_READ_CRASH") != std::string::npos) {
+        //   std::cout << "Killing server process in read\n";
+        //   kill(getpid(), SIGINT);
+        // }
         reply->set_buf(subBuffer);
         reply->set_numbytes(minSize);
         reply->set_err(0);
@@ -207,6 +248,7 @@ public:
         bytesRead += minSize;
         writer->Write(*reply);
       }
+
       is.close();
     } catch (std::ifstream::failure e) {
       reply->set_buf("");
@@ -217,7 +259,9 @@ public:
       std::cout << "Caught a failure when read.\n"
                 << "Explanatory string: " << e.what() << '\n'
                 << "Error code: " << e.code() << std::endl;
+      is.close();
     }
+    return Status::OK;
     /*
     int fd = open(path.c_str(), O_RDONLY);
 
@@ -263,11 +307,11 @@ public:
       close(fd);
     }
     */
-    return Status::OK;
   }
 
   Status Write(ServerContext* context, ServerReader<WriteRequest>* reader,
                WriteReply* reply) override {
+    std::cout << "trigger server write" << std::endl;
     std::string path;
     WriteRequest request;
     std::string tempFilePath = root_dir;
@@ -371,7 +415,6 @@ int main(int argc, char** argv) {
     }
   }
   std::cout << "success make the root directory." << std::endl;
-  std::cout << "⚫ Updated 1" << std::endl;
   RunServer();
 
   return 0;

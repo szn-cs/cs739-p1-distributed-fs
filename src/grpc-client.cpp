@@ -4,15 +4,14 @@
 AFSClient::AFSClient(std::shared_ptr<Channel> channel)
     : stub_(CustomAFS::NewStub(channel)) {}
 
-int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
-  
+int AFSClient::clientMkdir(const std::string& path, mode_t mode,
+                           int& errornum) {
   MkdirRequest request;
   request.set_path(path);
   request.set_modet(mode);
   MkdirResponse reply;
   ClientContext context;
 
- 
   Status status = stub_->Mkdir(&context, request, &reply);
   if (status.ok()) {
     // std::cout << status.status() << std::endl;
@@ -98,15 +97,31 @@ int AFSClient::clientGetAttr(const std::string& path, struct stat* buf,
   }
 }
 
-int AFSClient::clientRead(const std::string& path, const int& size,
-                          const int& offset, int& numBytes, std::string& buf,
+int AFSClient::clientOpen(const std::string& path, const int& mode,
                           long& timestamp) {
+  OpenRequest request;
+  request.set_path(path);
+  request.set_mode(mode);
+  OpenResponse reply;
+  ClientContext context;
+  Status status = stub_->Open(&context, request, &reply);
+  if (status.ok()) {
+    timestamp = reply.timestamp();
+    return reply.err();
+  }
+  // grpc fail
+  return -1;
+  // return status.error_code();
+}
+
+int AFSClient::clientRead(const std::string& path,
+                          /*const int& size,
+ const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
   request.set_path(path);
-  request.set_size(size);
-  request.set_offset(offset);
-  std::cout << "1\n";
+  // request.set_size(size);
+  // request.set_offset(offset);
   ReadReply reply;
   ClientContext context;
   std::chrono::time_point<std::chrono::system_clock> deadline =
@@ -117,10 +132,10 @@ int AFSClient::clientRead(const std::string& path, const int& size,
       stub_->Read(&context, request));
 
   while (reader->Read(&reply)) {
-    if (reply.buf().find("crash3") != std::string::npos) {
-      std::cout << "Killing client process in read()\n";
-      kill(getpid(), SIGABRT);
-    }
+    // if (reply.buf().find("crash3") != std::string::npos) {
+    //   std::cout << "Killing client process in read()\n";
+    //   kill(getpid(), SIGABRT);
+    // }
     std::cout << reply.buf() << std::endl;
     buf.append(reply.buf());
     if (reply.numbytes() < 0) {

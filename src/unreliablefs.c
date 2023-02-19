@@ -84,6 +84,8 @@ enum {
 static struct fuse_opt unreliablefs_opts[] = {
     UNRELIABLEFS_OPT("-seed=%u", seed, 0),
     UNRELIABLEFS_OPT("-basedir=%s", basedir, 0),
+    UNRELIABLEFS_OPT("-serverAddrPort=%s", AddrPort, 0),
+    UNRELIABLEFS_OPT("-cacheDir=%s", CacheDir, 0),
 
     FUSE_OPT_KEY("-d", KEY_DEBUG),
     FUSE_OPT_KEY("-V", KEY_VERSION),
@@ -107,7 +109,9 @@ static int unreliablefs_opt_proc(void *data, const char *arg, int key, struct fu
                     "    -f                     foreground operation\n\n"
                     "unreliablefs options:\n"
                     "    -seed=NUM              random seed\n"
-                    "    -basedir=STRING        directory to mount\n\n");
+                    "    -basedir=STRING        directory to mount\n"
+                    "    -serverAddrPort=STRING grpc server address and port\n"
+                    "    -cacheDir=STRING       grpc client cache directory\n\n");
             exit(1);
 
         case KEY_VERSION:
@@ -133,6 +137,10 @@ int main(int argc, char *argv[]) {
     memset(&conf, 0, sizeof(conf));
     conf.seed = time(0);
     conf.basedir = "/";
+    // default
+    conf.AddrPort = "localhost:50051"; 
+    conf.CacheDir = "/tmp/cache/";
+    //
     fuse_opt_parse(&args, &conf, unreliablefs_opts, unreliablefs_opt_proc);
     srand(conf.seed);
     fprintf(stdout, "random seed = %d\n", conf.seed);

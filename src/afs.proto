@@ -8,7 +8,7 @@ service CustomAFS {
     rpc GetAttr(Path) returns (StatInfo) {};
     rpc Read(ReadRequest) returns (stream ReadReply) {};
     rpc Write(stream WriteRequest) returns (WriteReply) {};
-    rpc Open(Path) returns (Response) {};
+    rpc Open(OpenRequest) returns (OpenResponse) {};
     
 
     // EXAMPLE API: keep this for debudding
@@ -39,10 +39,20 @@ message Datablock {
     bytes content = 1;
 }
 
+message OpenRequest {
+    string path = 1;
+    uint32  mode = 2;
+}
+
+message OpenResponse {
+    int32 err = 1;
+    int64 timestamp = 2;
+}
+
 message ReadRequest {
     string path = 1;
-    int32  size = 2;
-    int32  offset = 3;
+    // int32  size = 2;
+    // int32  offset = 3;
 }
 
 message ReadReply {

@@ -21,6 +21,10 @@ using grpc::ClientWriter;
 using grpc::Status;
 
 using afs::CustomAFS;
+using afs::MkdirRequest;
+using afs::MkdirResponse;
+using afs::OpenRequest;
+using afs::OpenResponse;
 using afs::Path;
 using afs::ReadReply;
 using afs::ReadRequest;
@@ -28,17 +32,15 @@ using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
 using afs::WriteRequest;
-using afs::MkdirRequest;
-using afs::MkdirResponse;
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply;
 using afs::HelloRequest;
 
-#define TIMEOUT 60 * 1000 // this is in ms
+#define TIMEOUT 60 * 1000  // this is in ms
 #define CHUNK_SIZE 1572864
 
 class AFSClient {
-public:
+ public:
   AFSClient(std::shared_ptr<Channel> channel);
 
   int clientMkdir(const std::string& path, mode_t mode, int& errornum);
@@ -47,11 +49,17 @@ public:
 
   int clientUnlink(const std::string& path);
 
-  int clientGetAttr(const std::string& path, struct stat *buf, int &errornum);
+  int clientGetAttr(const std::string& path, struct stat* buf, int& errornum);
 
-  int clientRead(const std::string& path, const int& size, const int& offset, int& numBytes, std::string& buf, long& timestamp);
+  int clientOpen(const std::string& path, const int& mode, long& timestamp);
 
-  int clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp);
+  int clientRead(
+      const std::string& path, /*const int& size, const int& offset,*/
+      int& numBytes, std::string& buf, long& timestamp);
+
+  int clientWrite(const std::string& path, const std::string& buf,
+                  const int& size, const int& offset, int& numBytes,
+                  long& timestamp);
 
   /** EXAMPLE: keep it to make sure things are working
    * Assembles the client's payload, sends it and presents the response back
@@ -59,6 +67,6 @@ public:
    */
   std::string SayHello(const std::string& user);
 
-private:
+ private:
   std::unique_ptr<CustomAFS::Stub> stub_;
 };

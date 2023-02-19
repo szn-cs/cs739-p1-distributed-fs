@@ -1,6 +1,6 @@
 
 #include "unreliablefs_ops.h"
-
+#include "unreliablefs.h"
 const char *fuse_op_name[] = {
     "getattr",
     "readlink",
@@ -49,7 +49,9 @@ const char *fuse_op_name[] = {
     "utimens",
 #endif /* HAVE_UTIMENSAT */
     "lstat"};
-
+// 
+extern struct unreliablefs_config conf;
+//
 extern int error_inject(const char *path, fuse_op operation);
 
 int unreliable_lstat(const char *path, struct stat *buf) {
@@ -214,7 +216,7 @@ int unreliable_read(const char *path, char *buf, size_t size, off_t offset, stru
         return ret;
     }
 
-    return cppWrapper_read(path, buf, size, offset, fi);
+    return cppWrapper_read(conf.AddrPort, conf.CacheDir, path, buf, size, offset, fi);
 }
 
 int unreliable_write(const char *path, const char *buf, size_t size,
