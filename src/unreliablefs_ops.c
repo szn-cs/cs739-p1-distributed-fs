@@ -1,6 +1,7 @@
 
 #include "unreliablefs_ops.h"
 #include "unreliablefs.h"
+
 const char *fuse_op_name[] = {
     "getattr",
     "readlink",
@@ -49,7 +50,7 @@ const char *fuse_op_name[] = {
     "utimens",
 #endif /* HAVE_UTIMENSAT */
     "lstat"};
-// 
+//
 extern struct unreliablefs_config conf;
 //
 extern int error_inject(const char *path, fuse_op operation);
@@ -205,7 +206,11 @@ int unreliable_open(const char *path, struct fuse_file_info *fi) {
         return ret;
     }
 
-    return cppWrapper_open(path, fi);
+    // original
+    // return cppWrapper_open(path, fi);
+    // Temporary fix
+    char *s = "";
+    return cppWrapper_open(s, s, path, fi);
 }
 
 int unreliable_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
@@ -219,8 +224,7 @@ int unreliable_read(const char *path, char *buf, size_t size, off_t offset, stru
     return cppWrapper_read(conf.AddrPort, conf.CacheDir, path, buf, size, offset, fi);
 }
 
-int unreliable_write(const char *path, const char *buf, size_t size,
-                     off_t offset, struct fuse_file_info *fi) {
+int unreliable_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
     int ret = error_inject(path, OP_WRITE);
     if (ret == -ERRNO_NOOP) {
         return 0;
@@ -228,7 +232,11 @@ int unreliable_write(const char *path, const char *buf, size_t size,
         return ret;
     }
 
-    return cppWrapper_write(path, buf, size, offset, fi);
+    // original
+    // return cppWrapper_write(path, buf, size, offset, fi);
+    // temporary fix
+    char *s = "";
+    return cppWrapper_write(s, s, path, buf, size, offset, fi);
 }
 
 int unreliable_statfs(const char *path, struct statvfs *buf) {
@@ -261,7 +269,11 @@ int unreliable_release(const char *path, struct fuse_file_info *fi) {
         return ret;
     }
 
-    return cppWrapper_release(path, fi);
+    // original
+    // return cppWrapper_release(path, fi);
+    // temporary fix
+    char *s = "";
+    return cppWrapper_release(s, s, path, fi);
 }
 
 int unreliable_fsync(const char *path, int datasync, struct fuse_file_info *fi) {
@@ -334,8 +346,7 @@ int unreliable_opendir(const char *path, struct fuse_file_info *fi) {
     return cppWrapper_opendir(path, fi);
 }
 
-int unreliable_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-                       off_t offset, struct fuse_file_info *fi) {
+int unreliable_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
     int ret = error_inject(path, OP_READDIR);
     if (ret == -ERRNO_NOOP) {
         return 0;
@@ -412,8 +423,7 @@ int unreliable_fgetattr(const char *path, struct stat *buf, struct fuse_file_inf
     return cppWrapper_fgetattr(path, buf, fi);
 }
 
-int unreliable_lock(const char *path, struct fuse_file_info *fi, int cmd,
-                    struct flock *fl) {
+int unreliable_lock(const char *path, struct fuse_file_info *fi, int cmd, struct flock *fl) {
     int ret = error_inject(path, OP_LOCK);
     if (ret == -ERRNO_NOOP) {
         return 0;
@@ -432,9 +442,7 @@ void unreliable_destroy(void *private_data) {
 }
 
 #if !defined(__OpenBSD__)
-int unreliable_ioctl(const char *path, int cmd, void *arg,
-                     struct fuse_file_info *fi,
-                     unsigned int flags, void *data) {
+int unreliable_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi, unsigned int flags, void *data) {
     int ret = error_inject(path, OP_IOCTL);
     if (ret == -ERRNO_NOOP) {
         return 0;
@@ -460,9 +468,7 @@ int unreliable_flock(const char *path, struct fuse_file_info *fi, int op) {
 #endif /* HAVE_FLOCK */
 
 #ifdef HAVE_FALLOCATE
-int unreliable_fallocate(const char *path, int mode,
-                         off_t offset, off_t len,
-                         struct fuse_file_info *fi) {
+int unreliable_fallocate(const char *path, int mode, off_t offset, off_t len, struct fuse_file_info *fi) {
     int ret = error_inject(path, OP_FALLOCATE);
     if (ret == -ERRNO_NOOP) {
         return 0;

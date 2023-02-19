@@ -14,6 +14,11 @@
 extern "C" {
 #endif
 
+int cppWrapper_initialize() {
+  std::cout << "cppWrapper_initialize() called;" << std::endl;
+  return 0;
+}
+
 std::unordered_map<std::string, std::string> get_local_cache(const std::string& CacheDir) {
   std::unordered_map<std::string, std::string> cache;
   // if no file for cache then create new file for keeping cache file.
@@ -224,12 +229,10 @@ int cppWrapper_open(char* addrport, char* CacheDir, const char* path, struct fus
 
   std::string local_cache_dir(CacheDir);
   std::string path_str(path);
-  std::unordered_map<std::string, std::string> cache =
-      get_local_cache(local_cache_dir);
+  std::unordered_map<std::string, std::string> cache = get_local_cache(local_cache_dir);
   std::string sha_path = get_hash_path(path_str);
   std::string local_cache_file = local_cache_dir + sha_path;
-  AFSClient client(
-      grpc::CreateChannel(addrport, grpc::InsecureChannelCredentials()));
+  AFSClient client(grpc::CreateChannel(addrport, grpc::InsecureChannelCredentials()));
   int ret;
   long timestamp;
 

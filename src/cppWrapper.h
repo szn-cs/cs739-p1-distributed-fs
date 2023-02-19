@@ -1,3 +1,6 @@
+#ifndef CPP_WRAPPER_IN_C_H
+#define CPP_WRAPPER_IN_C_H
+
 #include <dirent.h>
 #include <errno.h>
 #include <openssl/sha.h>
@@ -20,9 +23,6 @@
 #define ERRNO_NOOP -999
 
 #include <fuse.h>
-
-#ifndef CPP_WRAPPER_IN_C_H
-#define CPP_WRAPPER_IN_C_H
 
 #ifdef __cplusplus
 
