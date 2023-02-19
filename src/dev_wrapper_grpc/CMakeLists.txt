@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2)
 
 message(${CMAKE_CURRENT_SOURCE_DIR})
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../dependency/vcpkg/scripts/buildsystems/vcpkg.cmake"
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../dependency/vcpkg/scripts/buildsystems/vcpkg.cmake"
   CACHE STRING "Vcpkg toolchain file")
 
 project(AAA)

@@ -79,6 +79,7 @@ std::string get_hash_path(const std::string& path) {
 }
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
+  // TODO:
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) {
     return -errno;
@@ -105,6 +106,7 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
+  // TODO:
   int ret = readlink(path, buf, bufsiz);
   if (ret == -1) {
     return -errno;
@@ -115,6 +117,7 @@ int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
 }
 
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
+  // TODO:
   int ret = mknod(path, mode, dev);
   if (ret == -1) {
     return -errno;
@@ -141,6 +144,7 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
 }
 
 int cppWrapper_unlink(const char* path) {
+  // TODO:
   int ret = unlink(path);
   if (ret == -1) {
     return -errno;
@@ -150,6 +154,7 @@ int cppWrapper_unlink(const char* path) {
 }
 
 int cppWrapper_rmdir(const char* path) {
+  // TODO:
   int ret = rmdir(path);
   if (ret == -1) {
     return -errno;
@@ -159,6 +164,7 @@ int cppWrapper_rmdir(const char* path) {
 }
 
 int cppWrapper_symlink(const char* target, const char* linkpath) {
+  // TODO:
   int ret = symlink(target, linkpath);
   if (ret == -1) {
     return -errno;
@@ -168,6 +174,7 @@ int cppWrapper_symlink(const char* target, const char* linkpath) {
 }
 
 int cppWrapper_rename(const char* oldpath, const char* newpath) {
+  // TODO:
   int ret = rename(oldpath, newpath);
   if (ret == -1) {
     return -errno;
@@ -177,6 +184,7 @@ int cppWrapper_rename(const char* oldpath, const char* newpath) {
 }
 
 int cppWrapper_link(const char* oldpath, const char* newpath) {
+  // TODO:
   int ret = link(oldpath, newpath);
   if (ret < 0) {
     return -errno;
@@ -186,6 +194,7 @@ int cppWrapper_link(const char* oldpath, const char* newpath) {
 }
 
 int cppWrapper_chmod(const char* path, mode_t mode) {
+  // TODO:
   int ret = chmod(path, mode);
   if (ret < 0) {
     return -errno;
@@ -195,6 +204,7 @@ int cppWrapper_chmod(const char* path, mode_t mode) {
 }
 
 int cppWrapper_chown(const char* path, uid_t owner, gid_t group) {
+  // TODO:
   int ret = chown(path, owner, group);
   if (ret == -1) {
     return -errno;
@@ -351,6 +361,7 @@ int cppWrapper_write(char* addrport, char* CacheDir, const char* path,
 }
 
 int cppWrapper_statfs(const char* path, struct statvfs* buf) {
+  // TODO:
   int ret = statvfs(path, buf);
   if (ret == -1) {
     return -errno;
@@ -422,6 +433,7 @@ int cppWrapper_fsync(const char* path, int datasync,
 #ifdef HAVE_XATTR
 int cppWrapper_setxattr(const char* path, const char* name, const char* value,
                         size_t size, int flags) {
+  // TODO:
   int ret;
 #ifdef __APPLE__
   ret = setxattr(path, name, value, size, 0, flags);
@@ -437,6 +449,7 @@ int cppWrapper_setxattr(const char* path, const char* name, const char* value,
 
 int cppWrapper_getxattr(const char* path, const char* name, char* value,
                         size_t size) {
+  // TODO:
   int ret;
 #ifdef __APPLE__
   ret = getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
@@ -451,6 +464,7 @@ int cppWrapper_getxattr(const char* path, const char* name, char* value,
 }
 
 int cppWrapper_listxattr(const char* path, char* list, size_t size) {
+  // TODO:
   int ret;
 #ifdef __APPLE__
   ret = listxattr(path, list, size, XATTR_NOFOLLOW);
@@ -465,6 +479,7 @@ int cppWrapper_listxattr(const char* path, char* list, size_t size) {
 }
 
 int cppWrapper_removexattr(const char* path, const char* name) {
+  // TODO:
   int ret;
 #ifdef __APPLE__
   ret = removexattr(path, name, XATTR_NOFOLLOW);
@@ -480,6 +495,7 @@ int cppWrapper_removexattr(const char* path, const char* name) {
 #endif /* HAVE_XATTR */
 
 int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
+  // TODO:
   DIR* dir = opendir(path);
 
   if (!dir) {
@@ -492,6 +508,7 @@ int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler,
                        off_t offset, struct fuse_file_info* fi) {
+  // TODO:
   DIR* dp = opendir(path);
   if (dp == NULL) {
     return -errno;
@@ -514,6 +531,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler,
 }
 
 int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
+  // No need to modify
   DIR* dir = (DIR*)fi->fh;
 
   int ret = closedir(dir);
@@ -527,7 +545,7 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
 int cppWrapper_fsyncdir(const char* path, int datasync,
                         struct fuse_file_info* fi) {
   int ret;
-
+  // TODO:
   DIR* dir = opendir(path);
   if (!dir) {
     return -errno;
@@ -550,6 +568,7 @@ int cppWrapper_fsyncdir(const char* path, int datasync,
 }
 
 int cppWrapper_access(const char* path, int mode) {
+  // TODO:
   int ret = access(path, mode);
   if (ret == -1) {
     return -errno;
@@ -560,6 +579,7 @@ int cppWrapper_access(const char* path, int mode) {
 
 int cppWrapper_create(const char* path, mode_t mode,
                       struct fuse_file_info* fi) {
+  // TODO:
   int ret = open(path, fi->flags, mode);
   if (ret == -1) {
     return -errno;
@@ -626,6 +646,7 @@ int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op) {
 #ifdef HAVE_FALLOCATE
 int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len,
                          struct fuse_file_info* fi) {
+  // TODO:
   int ret;
   int fd;
   (void)fi;
@@ -660,6 +681,7 @@ int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len,
 #ifdef HAVE_UTIMENSAT
 int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
   /* don't use utime/utimes since they follow symlinks */
+  // TODO:
   int ret = utimensat(0, path, ts, AT_SYMLINK_NOFOLLOW);
   if (ret == -1) {
     return -errno;
@@ -668,55 +690,55 @@ int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
   return 0;
 }
 #endif /* HAVE_UTIMENSAT */
-int main() {
-  // std::unordered_map<std::string, std::string> get_local_cache(const
-  // std::string& path) int fsync_cache(std::string& path,
-  // std::unordered_map<std::string, std::string> cache) std::string
-  // hash_path(const std::string& path)
-  // std::string test_cache_path("./test_cache.txt");
-  // std::unordered_map<std::string, std::string> tmp_cache =
-  //     get_local_cache(test_cache_path);
-  // std::string test_path = "./test_pathh";
-  // std::string test_hash = get_hash_path(test_path);
-  // std::cout << test_path << " " << test_hash << std::endl;
-  // tmp_cache.insert(std::pair<std::string, std::string>(test_path,
-  // test_hash)); fsync_cache(test_cache_path, tmp_cache);
-  // std::string AddrPort_ = "localhost:50051";
-  // std::string CacheDir_ = "/tmp/cache/";
+// int main() {
+//   // std::unordered_map<std::string, std::string> get_local_cache(const
+//   // std::string& path) int fsync_cache(std::string& path,
+//   // std::unordered_map<std::string, std::string> cache) std::string
+//   // hash_path(const std::string& path)
+//   // std::string test_cache_path("./test_cache.txt");
+//   // std::unordered_map<std::string, std::string> tmp_cache =
+//   //     get_local_cache(test_cache_path);
+//   // std::string test_path = "./test_pathh";
+//   // std::string test_hash = get_hash_path(test_path);
+//   // std::cout << test_path << " " << test_hash << std::endl;
+//   // tmp_cache.insert(std::pair<std::string, std::string>(test_path,
+//   // test_hash)); fsync_cache(test_cache_path, tmp_cache);
+//   // std::string AddrPort_ = "localhost:50051";
+//   // std::string CacheDir_ = "/tmp/cache/";
 
-  //  1.) with fh (data in local cache)
-  //  2.) without fh
-  //                -> (data in/not in local cache)   -> wrapper_open()
+//   //  1.) with fh (data in local cache)
+//   //  2.) without fh
+//   //                -> (data in/not in local cache)   -> wrapper_open()
 
-  struct fuse_file_info t1;
-  struct fuse_file_info t2;
-  t1.flags = O_RDWR;
-  t2.flags = O_RDWR;
-  struct fuse_file_info* p1 = &t1;
-  struct fuse_file_info* p2 = &t2;
-  std::string buf = "I want to go home.\0";
-  char* pbuf = &buf[0];
-  // char buf1[20];
-  // buf1[0] = '\0';
-  // char buf2[20];
-  // buf2[0] = '\0';
-  // cppWrapper_open("localhost:50051", "/tmp/cache/", "test2.txt", p1);
-  // cppWrapper_read("localhost:50051", "/tmp/cache/", "test2.txt", buf1, 20, 5,
-  //                 p1);
-  // std::cout << "with fh " << buf1 << std::endl;
-  // cppWrapper_read("localhost:50051", "/tmp/cache/", "test1.txt", buf2, 20, 5,
-  //                 NULL);
-  // std::cout << "without fh " << buf2 << std::endl;
-  cppWrapper_open("localhost:50051", "/tmp/cache/", "test1.txt", p1);
+//   struct fuse_file_info t1;
+//   struct fuse_file_info t2;
+//   t1.flags = O_RDWR;
+//   t2.flags = O_RDWR;
+//   struct fuse_file_info* p1 = &t1;
+//   struct fuse_file_info* p2 = &t2;
+//   std::string buf = "I want to go home.\0";
+//   char* pbuf = &buf[0];
+//   // char buf1[20];
+//   // buf1[0] = '\0';
+//   // char buf2[20];
+//   // buf2[0] = '\0';
+//   // cppWrapper_open("localhost:50051", "/tmp/cache/", "test2.txt", p1);
+//   // cppWrapper_read("localhost:50051", "/tmp/cache/", "test2.txt", buf1, 20, 5,
+//   //                 p1);
+//   // std::cout << "with fh " << buf1 << std::endl;
+//   // cppWrapper_read("localhost:50051", "/tmp/cache/", "test1.txt", buf2, 20, 5,
+//   //                 NULL);
+//   // std::cout << "without fh " << buf2 << std::endl;
+//   cppWrapper_open("localhost:50051", "/tmp/cache/", "test1.txt", p1);
 
-  cppWrapper_write("localhost:50051", "/tmp/cache/", "test1.txt", pbuf,
-                   buf.size(), 0, p1);
+//   cppWrapper_write("localhost:50051", "/tmp/cache/", "test1.txt", pbuf,
+//                    buf.size(), 0, p1);
 
-  cppWrapper_write("localhost:50051", "/tmp/cache/", "test2.txt", pbuf,
-                   buf.size(), 0, NULL);
-  cppWrapper_release("localhost:50051", "/tmp/cache/", "test1.txt", p1);
-  return 0;
-}
+//   cppWrapper_write("localhost:50051", "/tmp/cache/", "test2.txt", pbuf,
+//                    buf.size(), 0, NULL);
+//   cppWrapper_release("localhost:50051", "/tmp/cache/", "test1.txt", p1);
+//   return 0;
+// }
 
 #ifdef __cplusplus
 }
