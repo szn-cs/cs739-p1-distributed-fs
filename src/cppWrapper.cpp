@@ -381,16 +381,14 @@ int cppWrapper_release(char* addrport, char* CacheDir, const char* path, struct 
   int numOfBytes;
   long timestamp;
   std::string path_str(path);
-  AFSClient client(
-      grpc::CreateChannel(addrport, grpc::InsecureChannelCredentials()));
+  AFSClient client(grpc::CreateChannel(addrport, grpc::InsecureChannelCredentials()));
   ret = close(fi->fh);
   if (ret == -1) {
     return -errno;
   }
 
   std::string local_cache_dir(CacheDir);
-  std::unordered_map<std::string, std::string> cache =
-      get_local_cache(local_cache_dir);
+  std::unordered_map<std::string, std::string> cache = get_local_cache(local_cache_dir);
   std::string sha_path = get_hash_path(path_str);
   std::string local_cache_file = local_cache_dir + sha_path;
   std::ifstream is;
