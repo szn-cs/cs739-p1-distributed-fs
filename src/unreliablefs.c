@@ -134,15 +134,12 @@ int is_dir(const char *path) {
 }
 
 int main(int argc, char *argv[]) {
-    // initialize using cppWrapper_initialize
-    cppWrapper_initialize();
-
     struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
     memset(&conf, 0, sizeof(conf));
     conf.seed = time(0);
     conf.basedir = "/";
     // default
-    conf.AddrPort = serverAddress;
+    strcpy(conf.AddrPort, serverAddress);
     conf.CacheDir = "/tmp/cache/";
     //
     fuse_opt_parse(&args, &conf, unreliablefs_opts, unreliablefs_opt_proc);
@@ -183,6 +180,9 @@ int main(int argc, char *argv[]) {
         perror("pthread_mutex_init");
         return EXIT_FAILURE;
     }
+
+    // initialize using cppWrapper_initialize
+    cppWrapper_initialize(conf.AddrPort, conf.CacheDir);
 
     fprintf(stdout, "starting FUSE filesystem unreliablefs\n");
     int ret = fuse_main(args.argc, args.argv, &unreliable_ops, NULL);

@@ -27,6 +27,7 @@
 #ifdef __cplusplus
 
 #include "./grpc-client.h"
+
 extern "C" {
 #endif
 
@@ -44,6 +45,8 @@ extern "C" {
 // 7. release(self, path, flags)
 // 9. truncate(self, path, size)
 // 10. utime(self, path, times)
+
+int cppWrapper_initialize(char* serverAddress, char* cacheDirectory);
 
 int cppWrapper_lstat(const char* path, struct stat* buf);
 int cppWrapper_getattr(const char* path, struct stat* buf);

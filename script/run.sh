@@ -13,13 +13,13 @@ fs_mount() {
   mkdir -p ./tmp/fs
 
   ## fix some issues probably with WSL2 setup
-  sudo ln -s /proc/self/mounts /etc/mtab
+  # sudo ln -s /proc/self/mounts /etc/mtab
   ## make sure it is unmounted
   fusermount -u ./tmp/fs
   # or use `umount ./tmp/fs`
 
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  ./target/release/unreliablefs ./tmp/fs -basedir=/tmp/fs -seed=1618680646 -d
+  ./target/release/unreliablefs ./tmp/fs -basedir=./tmp -seed=1618680646 -d
 
   ######## [terminal instance 2] ##########################################################
 

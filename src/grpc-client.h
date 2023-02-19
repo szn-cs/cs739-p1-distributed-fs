@@ -55,11 +55,11 @@ class AFSClient {
 
   int clientRead(
       const std::string& path, /*const int& size, const int& offset,*/
-      int& numBytes, std::string& buf, long& timestamp);
+      int& numBytes,
+      std::string& buf,
+      long& timestamp);
 
-  int clientWrite(const std::string& path, const std::string& buf,
-                  const int& size, const int& offset, int& numBytes,
-                  long& timestamp);
+  int clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp);
 
   /** EXAMPLE: keep it to make sure things are working
    * Assembles the client's payload, sends it and presents the response back
@@ -70,3 +70,6 @@ class AFSClient {
  private:
   std::unique_ptr<CustomAFS::Stub> stub_;
 };
+
+// global instance
+extern AFSClient grpcClientInstance;

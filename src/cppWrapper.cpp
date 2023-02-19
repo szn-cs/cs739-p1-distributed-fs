@@ -14,8 +14,13 @@
 extern "C" {
 #endif
 
-int cppWrapper_initialize() {
-  std::cout << "cppWrapper_initialize() called;" << std::endl;
+int cppWrapper_initialize(char* serverAddress, char* cacheDirectory) {
+  std::cout << "⚫ cppWrapper initialized" << std::endl;
+  std::cout << "⚫ cacheDirectory path: ${cacheDirectory}" << std::endl;
+  std::cout << "⚫ serverAddress path: ${serverAddress}" << std::endl;
+
+  grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials());
+
   return 0;
 }
 
@@ -35,8 +40,7 @@ std::unordered_map<std::string, std::string> get_local_cache(const std::string& 
     // txt;sha
     size_t pos = line.find(";");
     if (pos == std::string::npos) {
-      std::cout << "read cache file " << local_cache_path
-                << " error: cannot find separator ; " << std::endl;
+      std::cout << "read cache file " << local_cache_path << " error: cannot find separator ; " << std::endl;
       return cache;
     }
     std::string key = line.substr(0, pos);
