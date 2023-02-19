@@ -17,6 +17,7 @@ extern struct err_inj_q *config_init(const char *conf_path);
 extern void config_delete(struct err_inj_q *config);
 
 struct unreliablefs_config conf;
+const char *serverAddress = "0.0.0.0:50051";  // target address & port to send grpc requests to.
 
 static struct fuse_operations unreliable_ops = {
     .getattr = unreliable_getattr,
@@ -138,7 +139,7 @@ int main(int argc, char *argv[]) {
     conf.seed = time(0);
     conf.basedir = "/";
     // default
-    conf.AddrPort = "localhost:50051"; 
+    conf.AddrPort = serverAddress;
     conf.CacheDir = "/tmp/cache/";
     //
     fuse_opt_parse(&args, &conf, unreliablefs_opts, unreliablefs_opt_proc);

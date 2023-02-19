@@ -4,8 +4,7 @@
 AFSClient::AFSClient(std::shared_ptr<Channel> channel)
     : stub_(CustomAFS::NewStub(channel)) {}
 
-int AFSClient::clientMkdir(const std::string& path, mode_t mode,
-                           int& errornum) {
+int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
   MkdirRequest request;
   request.set_path(path);
   request.set_modet(mode);
@@ -62,8 +61,7 @@ int AFSClient::clientUnlink(const std::string& path) {
   }
 }
 
-int AFSClient::clientGetAttr(const std::string& path, struct stat* buf,
-                             int& errornum) {
+int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& errornum) {
   Path request;
   request.set_path(path);
   StatInfo reply;
@@ -97,8 +95,7 @@ int AFSClient::clientGetAttr(const std::string& path, struct stat* buf,
   }
 }
 
-int AFSClient::clientOpen(const std::string& path, const int& mode,
-                          long& timestamp) {
+int AFSClient::clientOpen(const std::string& path, const int& mode, long& timestamp) {
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
@@ -114,9 +111,7 @@ int AFSClient::clientOpen(const std::string& path, const int& mode,
   // return status.error_code();
 }
 
-int AFSClient::clientRead(const std::string& path,
-                          /*const int& size,
- const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
+int AFSClient::clientRead(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
   request.set_path(path);
@@ -155,9 +150,7 @@ int AFSClient::clientRead(const std::string& path,
   return status.error_code();
 }
 
-int AFSClient::clientWrite(const std::string& path, const std::string& buf,
-                           const int& size, const int& offset, int& numBytes,
-                           long& timestamp) {
+int AFSClient::clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
   std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;

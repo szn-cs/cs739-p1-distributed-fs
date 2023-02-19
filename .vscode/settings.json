@@ -148,6 +148,8 @@
 		"set": "cpp",
 		"unordered_set": "cpp",
 		"string.h": "c",
-		"unreliablefs_ops.h": "c"
+		"unreliablefs_ops.h": "c",
+		"fstream": "cpp",
+		"iomanip": "cpp"
 	}
 }

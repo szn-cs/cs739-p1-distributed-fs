@@ -1,9 +1,5 @@
-# create make files
-cmake -S . -B ./target/config
-
-## build through `cmake`
-cmake --build ./target/config --verbose --parallel
-# or use `make -w -C ./target/config/`
+# create make files & build through `cmake`  or use `make -w -C ./target/config/`
+cmake -S . -B ./target/config && cmake --build ./target/config --verbose --parallel
 
 ## move binaries from nested builds
 mkdir -p ./target/release

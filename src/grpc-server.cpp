@@ -60,6 +60,7 @@ using afs::HelloRequest;
 
 namespace fs = std::experimental::filesystem;
 #define CHUNK_SIZE 1572864
+const std::string server_address("0.0.0.0:50051");
 
 std::string root_dir = fs::current_path().generic_string() + "/tmp/fs-server/";
 fs::path path_root_dir(root_dir);
@@ -67,8 +68,7 @@ fs::path path_root_dir(root_dir);
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
  public:
-  Status Mkdir(ServerContext* context, const MkdirRequest* request,
-               MkdirResponse* response) override {
+  Status Mkdir(ServerContext* context, const MkdirRequest* request, MkdirResponse* response) override {
     std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = root_dir + request->path();
     mode_t mode = (mode_t)request->modet();
@@ -81,8 +81,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status Rmdir(ServerContext* context, const Path* request,
-               Response* response) override {
+  Status Rmdir(ServerContext* context, const Path* request, Response* response) override {
     std::cout << "trigger rmdir" << std::endl;
     std::string remove_dir = root_dir + request->path();
     fs::path path_rm_dir(remove_dir);
@@ -101,8 +100,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status Unlink(ServerContext* context, const Path* request,
-                Response* response) override {
+  Status Unlink(ServerContext* context, const Path* request, Response* response) override {
     std::cout << "trigger unlink" << std::endl;
     std::string remove_file = root_dir + request->path();
     fs::path path_rm_file(remove_file);
@@ -120,8 +118,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status GetAttr(ServerContext* context, const Path* request,
-                 StatInfo* response) override {
+  Status GetAttr(ServerContext* context, const Path* request, StatInfo* response) override {
     std::cout << "trigger getattr" << std::endl;
     std::string getattr_file = root_dir + request->path();
     fs::path path_getattr_file(getattr_file);
@@ -165,8 +162,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status Open(ServerContext* context, const OpenRequest* request,
-              OpenResponse* response) override {
+  Status Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) override {
     std::cout << "trigger server open" << std::endl;
     int rc;
     std::string path = root_dir + request->path();
@@ -186,8 +182,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status Read(ServerContext* context, const ReadRequest* request,
-              ServerWriter<ReadReply>* writer) override {
+  Status Read(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) override {
     std::cout << "trigger server read" << std::endl;
     int numOfBytes = 0;
     int res;
@@ -309,8 +304,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     */
   }
 
-  Status Write(ServerContext* context, ServerReader<WriteRequest>* reader,
-               WriteReply* reply) override {
+  Status Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) override {
     std::cout << "trigger server write" << std::endl;
     std::string path;
     WriteRequest request;
@@ -377,8 +371,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   }
 
   // EXAMPLE API
-  Status SayHello(ServerContext* context, const HelloRequest* request,
-                  HelloReply* reply) override {
+  Status SayHello(ServerContext* context, const HelloRequest* request, HelloReply* reply) override {
     std::string prefix("Hello ");
     reply->set_message(prefix + request->name());
     return Status::OK;
@@ -386,7 +379,6 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
 };
 
 void RunServer() {
-  std::string server_address("0.0.0.0:50051");
   AFSServerServiceImpl service;
 
   grpc::EnableDefaultHealthCheckService(true);
