@@ -40,39 +40,40 @@ int cppWrapper_initialize(char* serverAddress, char* cacheDirectory, char* argv[
   return 0;
 }
 
-static void removeTrailingCharacters(std::string& str, const char charToRemove) {
-  str.erase(str.find_last_not_of(charToRemove) + 1, std::string::npos);
-}
+// static void removeTrailingCharacters(std::string& str, const char charToRemove) {
+//   str.erase(str.find_last_not_of(charToRemove) + 1, std::string::npos);
+// }
 
-static void removeLeadingCharacters(std::string& str, const char charToRemove) {
-  str.erase(0, std::min(str.find_first_not_of(charToRemove), str.size() - 1));
-}
-std::filesystem::path constructRelativePath(std::string path) {
-  // construct a relative path
-  std::filesystem::path _path(path);
-  std::filesystem::path _fsMountPath(fsMountPath);
+// static void removeLeadingCharacters(std::string& str, const char charToRemove) {
+//   str.erase(0, std::min(str.find_first_not_of(charToRemove), str.size() - 1));
+// }
 
-  string relativePath = path;
+// std::filesystem::path constructRelativePath(std::string path) {
+//   // construct a relative path
+//   std::filesystem::path _path(path);
+//   std::filesystem::path _fsMountPath(fsMountPath);
 
-  // remove cacheDirectory from path
-  if (_path.is_absolute()) {
-    // path:    /home/user/x/y/z/cache/p/c/file.txt
-    // cache:   /home/user/x/y/z/cache
-    // ./p/c/file.txt
-    // relativePath = path.erase(0, fsMountPath.size());
-    _fs::path relativePath = _fs::relative(path, fsMountPath);
+//   _fs::path relativePath = path;
 
-    // trim slash
-    // removeTrailingCharacters(relativePath, std::filesystem::path::preferred_separator);
-    // removeLeadingCharacters(relativePath, std::filesystem::path::preferred_separator);
-    // relativePath.erase(std::remove(relativePath.begin(), relativePath.end(), std::filesystem::path::preferred_separator), relativePath.end());
-  }
+//   // remove cacheDirectory from path
+//   if (_path.is_absolute()) {
+//     // path:    /home/user/x/y/z/cache/p/c/file.txt
+//     // cache:   /home/user/x/y/z/cache
+//     // ./p/c/file.txt
+//     // relativePath = path.erase(0, fsMountPath.size());
+//     relativePath = ;
 
-  // causes infinite loop with unreliablefs
-  // _path = std::filesystem::relative(_path, _fsMountPath).generic_string();
+//     // trim slash
+//     // removeTrailingCharacters(relativePath, std::filesystem::path::preferred_separator);
+//     // removeLeadingCharacters(relativePath, std::filesystem::path::preferred_separator);
+//     // relativePath.erase(std::remove(relativePath.begin(), relativePath.end(), std::filesystem::path::preferred_separator), relativePath.end());
+//   }
 
-  return relativePath;
-}
+//   // causes infinite loop with unreliablefs
+//   // _path = std::filesystem::relative(_path, _fsMountPath).generic_string();
+
+//   return relativePath.string();
+// }
 
 // Cache logic ----------------------------------------------------------------------------
 
@@ -149,10 +150,16 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << "⚫ cppWrapper_getattr" << std::endl;
 
+  string p(path);
+
+  cout << "before: " << p << endl;
+  p = (_fs::relative(p, fsMountPath)).generic_string();
+  cout << "after: " << p << endl;
+
   try {
     int errornum;
     std::memset(buf, 0, sizeof(struct stat));
-    int ret = grpcClientInstance->clientGetAttr(constructRelativePath(path), buf, errornum);
+    int ret = grpcClientInstance->clientGetAttr(path, buf, errornum);
     if (ret == -1) return -errornum;
     return 0;
   } catch (...) {

@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.10.2)
 set(CMAKE_CXX_STANDARD 17)
 
+set(UNRELIABLEFS_SRC conf.c
+                     unreliablefs.c
+                     unreliablefs_errinj.c
+                     unreliablefs_ops.c 
+                     cppWrapper.cpp
+                     grpc-client.cpp
+                     )
 
 # Protobuf
 set(protobuf_MODULE_COMPATIBLE TRUE)
@@ -12,8 +19,6 @@ set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
 set(_REFLECTION gRPC::grpc++_reflection)
 
 # gRPC
-find_package(gRPC CONFIG REQUIRED)
-message(STATUS "Using gRPC ${gRPC_VERSION}")
 set(_GRPC_GRPCPP gRPC::grpc++)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
@@ -50,29 +55,21 @@ target_link_libraries(custom_hw_grpc_proto
   ${_GRPC_GRPCPP}
   ${_PROTOBUF_LIBPROTOBUF})
 
-
 include(CheckFunctionExists)
-
-set(UNRELIABLEFS_SRC conf.c
-                     unreliablefs.c
-                     unreliablefs_errinj.c
-                     unreliablefs_ops.c 
-                     cppWrapper.cpp
-                     grpc-client.cpp
-                     )
-
-find_package(FUSE 2.9 REQUIRED)
 
 add_definitions(${FUSE_DEFINITIONS})
 add_executable(${PROJECT_NAME} ${UNRELIABLEFS_SRC}
   ${hw_proto_srcs}
   ${hw_grpc_srcs})
-  target_link_libraries(${PROJECT_NAME}
+  
+target_link_libraries(${PROJECT_NAME}
   ${_REFLECTION}
   ${_GRPC_GRPCPP}
   ${_PROTOBUF_LIBPROTOBUF}
   stdc++fs)
-
+target_link_libraries(${PROJECT_NAME} gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${FUSE_LIBRARIES})
     
 add_executable(grpc-server grpc-server.cpp
     ${hw_proto_srcs}
@@ -83,11 +80,9 @@ add_executable(grpc-server grpc-server.cpp
     ${_PROTOBUF_LIBPROTOBUF}
     stdc++fs)
 
-
-
-
 target_include_directories(${PROJECT_NAME} PRIVATE ${FUSE_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} ${FUSE_LIBRARIES})
+include_directories(${BOOST_INCLUDE_DIRS})
+
 
 target_compile_options(${PROJECT_NAME} PUBLIC -D_FILE_OFFSET_BITS=64 -Wall -Wextra -Wno-unused-parameter)
 target_compile_options(${PROJECT_NAME} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11 -D_FILE_OFFSET_BITS=64>)

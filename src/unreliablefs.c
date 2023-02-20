@@ -101,13 +101,13 @@ static int unreliablefs_opt_proc(void *data, const char *arg, int key, struct fu
     switch (key) {
         case KEY_HELP:
             fprintf(stderr,
-                    "usage: unreliablefs mountpoint [options]\n\n"
+                    "usage: WiscFS unreliablefs mountpoint [options]\n\n"
                     "general options:\n"
                     "    -h   --help            print help\n"
                     "    -v   --version         print version\n"
                     "    -d                     enable debug output (implies -f)\n"
                     "    -f                     foreground operation\n\n"
-                    "unreliablefs options:\n"
+                    "WiscFS unreliablefs options:\n"
                     "    -seed=NUM              random seed\n"
                     "    -basedir=STRING        directory to mount\n"
                     "    -serverAddress=STRING grpc server address and port\n"
@@ -115,7 +115,7 @@ static int unreliablefs_opt_proc(void *data, const char *arg, int key, struct fu
             exit(1);
 
         case KEY_VERSION:
-            fprintf(stderr, "unreliablefs version %s\n", UNRELIABLEFS_VERSION);
+            fprintf(stderr, "WiscFS unreliablefs version %s\n", UNRELIABLEFS_VERSION);
             fuse_opt_add_arg(outargs, "--version");
             fuse_main(outargs->argc, outargs->argv, &unreliable_ops, NULL);
             exit(1);

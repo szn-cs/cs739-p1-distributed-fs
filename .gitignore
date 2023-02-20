@@ -79,3 +79,7 @@ build
 tags
 *.swp
 bin/ 
+
+
+# cpp vcpkg manager
+vcpkg_installed/

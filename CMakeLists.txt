@@ -16,17 +16,17 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/config/cmake;${CMAKE_MODULE_PATH}")
 
 
+find_package(FUSE 2.9 REQUIRED)
+# find vcpkg packages
 find_package(gRPC CONFIG REQUIRED)
-# # note: 7 additional targets are not displayed.
-# target_link_libraries(main PRIVATE gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
+message(STATUS "Using gRPC ${gRPC_VERSION}")
+find_package(Boost REQUIRED regex date_time system filesystem thread graph)
+message("boost lib: ${Boost_LIBRARIES}")
+message("boost inc:${Boost_INCLUDE_DIR}")
 
 # include(./config/PrintVariables.cmake) # log cmake variables
 # include(CTest)
 # enable_testing()
-
-
-# add_executable(${PROJECT_NAME} ./src/server/main.cpp)
-# include(${CMAKE_CURRENT_SOURCE_DIR}/src/server/CMakeLists.txt)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 # add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/) # server & client directory
@@ -80,4 +80,3 @@ add_custom_command(TARGET check-mandoc
                    COMMAND mandoc -T lint -W warning,stop ${MANUAL_PAGES}
                    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                    COMMENT "Run mandoc static analysis")
-
