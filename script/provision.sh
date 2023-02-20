@@ -10,7 +10,7 @@ git submodule update --init --remote
 ## provision system dependencies
 # - libfuse 3+
 
-dependencies="build-essential autoconf libtool pkg-config gcc cmake fuse3 libfuse3-dev libfuse-dev"
+dependencies="build-essential autoconf libtool pkg-config gcc cmake fuse3 libfuse3-dev libfuse-dev libboost-all-dev"
 # if any issues try: `libfuse3-dev libfuse3-3 fuse` or try searching for fuse3 libraries
 
 sudo apt update && sudo apt upgrade

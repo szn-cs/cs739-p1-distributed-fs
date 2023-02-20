@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
     }
 
     // initialize using cppWrapper_initialize
-    cppWrapper_initialize(conf.serverAddress, conf.cacheDirectory);
+    cppWrapper_initialize(conf.serverAddress, conf.cacheDirectory, args.argv);
 
     fprintf(stdout, "starting FUSE filesystem unreliablefs\n");
     int ret = fuse_main(args.argc, args.argv, &unreliable_ops, NULL);

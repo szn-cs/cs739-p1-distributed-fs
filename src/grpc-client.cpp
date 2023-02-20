@@ -63,6 +63,7 @@ int AFSClient::clientUnlink(const std::string& path) {
 
 int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& errornum) {
   cout << "⚫ clientGetAttr called " << endl;
+  std::cout << "@clientGetAttr constructed path:" << path << std::endl;
 
   Path request;
   request.set_path(path);

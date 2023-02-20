@@ -62,14 +62,14 @@ using namespace std;
 
 namespace fs = std::filesystem;
 #define CHUNK_SIZE 1572864
-static std::string root_dir;
+static std::string rootDirectory;
 
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
  public:
   Status Mkdir(ServerContext* context, const MkdirRequest* request, MkdirResponse* response) override {
     std::cout << "trigger mkdir" << std::endl;
-    std::string new_dir_path = root_dir + request->path();
+    std::string new_dir_path = rootDirectory + request->path();
     mode_t mode = (mode_t)request->modet();
     fs::path path_new_dir(new_dir_path);
     int ret = mkdir(path_new_dir.c_str(), mode);
@@ -82,7 +82,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
 
   Status Rmdir(ServerContext* context, const Path* request, Response* response) override {
     std::cout << "trigger rmdir" << std::endl;
-    std::string remove_dir = root_dir + request->path();
+    std::string remove_dir = rootDirectory + request->path();
     fs::path path_rm_dir(remove_dir);
 
     response->set_status(1);
@@ -101,7 +101,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
 
   Status Unlink(ServerContext* context, const Path* request, Response* response) override {
     std::cout << "trigger unlink" << std::endl;
-    std::string remove_file = root_dir + request->path();
+    std::string remove_file = rootDirectory + request->path();
     fs::path path_rm_file(remove_file);
 
     response->set_status(1);
@@ -120,7 +120,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   Status GetAttr(ServerContext* context, const Path* request, StatInfo* response) override {
     cout << "⚫ GetAttr called " << endl;
 
-    std::string getattr_file = root_dir + request->path();
+    std::string getattr_file = rootDirectory + request->path();
     fs::path path_getattr_file(getattr_file);
 
     cout << "path received for server: " << path_getattr_file << endl;
@@ -169,7 +169,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   Status Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) override {
     std::cout << "trigger server open" << std::endl;
     int rc;
-    std::string path = root_dir + request->path();
+    std::string path = rootDirectory + request->path();
 
     // rc = creat(path.c_str(), request->mode());
 
@@ -193,7 +193,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     struct timespec spec;
     ReadReply* reply = new ReadReply();
 
-    std::string path = root_dir + request->path();
+    std::string path = rootDirectory + request->path();
 
     std::cout << "ReadFileStream: " << path << std::endl;
 
@@ -312,13 +312,13 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     std::cout << "trigger server write" << std::endl;
     std::string path;
     WriteRequest request;
-    std::string tempFilePath = root_dir;
+    std::string tempFilePath = rootDirectory;
     int fd = -1;
     int res, size, offset, numOfBytes = 0;
     reply->set_numbytes(numOfBytes);
 
     while (reader->Read(&request)) {
-      path = root_dir + request.path();
+      path = rootDirectory + request.path();
       size = request.size();
       offset = request.offset();
       std::string buf = request.buf();
@@ -404,18 +404,21 @@ void RunServer(std::string address) {
 
 int main(int argc, char** argv) {
   struct stat info;
+
+  // set defaults
   const std::string address("0.0.0.0:50051");
+  rootDirectory = fs::current_path().generic_string() + "/fs_server/";
 
-  //  TODO:
-  root_dir = fs::current_path().generic_string() + "/tmp/fs-server/";
-  fs::path path_root_dir(root_dir);
+  // set configs from arguments
+  if (argc == 2)
+    rootDirectory = argv[1];
 
-  if (!fs::exists(path_root_dir)) {
-    if (!fs::create_directories(path_root_dir)) {
-      perror("Failed to initialize the root directory.");
-    }
-  }
-  std::cout << "success make the root directory: " << path_root_dir << std::endl;
+  fs::path _rootDirectory(rootDirectory);
+  if (!fs::exists(_rootDirectory))
+    if (!fs::create_directories(_rootDirectory))
+      perror("Failed to create the root directory.");
+
+  std::cout << "Created root directory at: " << fs::absolute(_rootDirectory) << std::endl;
   RunServer(address);
 
   return 0;

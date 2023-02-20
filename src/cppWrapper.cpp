@@ -12,26 +12,66 @@
 
 #ifdef __cplusplus
 
+#include <algorithm>
+#include <boost/filesystem.hpp>
 #include <filesystem>
 #include <iostream>
 
+namespace _fs = boost::filesystem;
 using namespace std;
 
 extern "C" {
 #endif
 
 static AFSClient* grpcClientInstance;
-std::string cacheDirectory;
+static std::string cacheDirectory;
+static std::string fsMountPath;
 
-int cppWrapper_initialize(char* serverAddress, char* cacheDirectory) {
+int cppWrapper_initialize(char* serverAddress, char* cacheDirectory, char* argv[]) {
   std::cout << "⚫ cppWrapper initialized" << std::endl;
   std::cout << "⚫ cacheDirectory path: ${cacheDirectory}" << std::endl;
   std::cout << "⚫ serverAddress path: ${serverAddress}" << std::endl;
+  std::cout << "@cppWrapper_initialize fsMountPath: " << argv[1] << std::endl;
 
   grpcClientInstance = new AFSClient(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
   cacheDirectory = cacheDirectory;
+  fsMountPath = argv[1];
 
   return 0;
+}
+
+static void removeTrailingCharacters(std::string& str, const char charToRemove) {
+  str.erase(str.find_last_not_of(charToRemove) + 1, std::string::npos);
+}
+
+static void removeLeadingCharacters(std::string& str, const char charToRemove) {
+  str.erase(0, std::min(str.find_first_not_of(charToRemove), str.size() - 1));
+}
+std::filesystem::path constructRelativePath(std::string path) {
+  // construct a relative path
+  std::filesystem::path _path(path);
+  std::filesystem::path _fsMountPath(fsMountPath);
+
+  string relativePath = path;
+
+  // remove cacheDirectory from path
+  if (_path.is_absolute()) {
+    // path:    /home/user/x/y/z/cache/p/c/file.txt
+    // cache:   /home/user/x/y/z/cache
+    // ./p/c/file.txt
+    // relativePath = path.erase(0, fsMountPath.size());
+    _fs::path relativePath = _fs::relative(path, fsMountPath);
+
+    // trim slash
+    // removeTrailingCharacters(relativePath, std::filesystem::path::preferred_separator);
+    // removeLeadingCharacters(relativePath, std::filesystem::path::preferred_separator);
+    // relativePath.erase(std::remove(relativePath.begin(), relativePath.end(), std::filesystem::path::preferred_separator), relativePath.end());
+  }
+
+  // causes infinite loop with unreliablefs
+  // _path = std::filesystem::relative(_path, _fsMountPath).generic_string();
+
+  return relativePath;
 }
 
 // Cache logic ----------------------------------------------------------------------------
@@ -109,16 +149,10 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << "⚫ cppWrapper_getattr" << std::endl;
 
-  // construct a relative path
-  std::filesystem::path _path(path);
-  // remove cacheDirectory from path
-  if (_path.is_absolute())
-    _path = std::filesystem::relative(_path, cacheDirectory).generic_string();
-
   try {
     int errornum;
     std::memset(buf, 0, sizeof(struct stat));
-    int ret = grpcClientInstance->clientGetAttr(_path, buf, errornum);
+    int ret = grpcClientInstance->clientGetAttr(constructRelativePath(path), buf, errornum);
     if (ret == -1) return -errornum;
     return 0;
   } catch (...) {
