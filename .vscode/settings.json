@@ -156,6 +156,7 @@
 		"errno.h": "c",
 		"file.h": "c",
 		"stat.h": "c",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"sha.h": "c"
 	}
 }

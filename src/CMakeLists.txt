@@ -67,8 +67,8 @@ target_link_libraries(${PROJECT_NAME}
   ${_GRPC_GRPCPP}
   ${_PROTOBUF_LIBPROTOBUF}
   stdc++fs)
-target_link_libraries(${PROJECT_NAME} gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+# target_link_libraries(${PROJECT_NAME} gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
+# target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${FUSE_LIBRARIES})
     
 add_executable(grpc-server grpc-server.cpp

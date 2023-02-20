@@ -12,70 +12,31 @@
 
 #ifdef __cplusplus
 
-#include <algorithm>
-#include <boost/filesystem.hpp>
-#include <filesystem>
-#include <iostream>
-
-// namespace _fs = boost::filesystem;
 using namespace std;
+
+static AFSClient* grpcClientInstance;
+static std::string cacheDirectory;
+static std::string fsMountPath;
+static std::string fsRootPath;
+
+#include "./utility.cpp"
 
 extern "C" {
 #endif
 
-static AFSClient* grpcClientInstance;
-static std::string cacheDirectory;
-static std::string baseDir;
-
-int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* _baseDir) {
-  std::cout << "⚫ cppWrapper initialized" << std::endl;
-  std::cout << "⚫ cacheDirectory path: ${cacheDirectory}" << std::endl;
-  std::cout << "⚫ serverAddress path: ${serverAddress}" << std::endl;
-  // std::cout << "@cppWrapper_initialize fsMountPath: " << argv[1] << std::endl;
-
+int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
   grpcClientInstance = new AFSClient(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
   cacheDirectory = _cacheDirectory;
-  std::string tmp(_baseDir);
-  baseDir = tmp + "/";
+  fsMountPath = argv[1];
+  fsRootPath = _fsRootPath;
+
+  std::cout << "⚫ cppWrapper initialized" << std::endl;
+  std::cout << "⚫ cacheDirectory path: " << cacheDirectory << std::endl;
+  std::cout << "⚫ serverAddress path: " << serverAddress << std::endl;
+  std::cout << "@cppWrapper_initialize fsMountPath: " << fsMountPath << std::endl;
+  std::cout << "@cppWrapper_initialize fsRootPath: " << fsRootPath << endl;
+
   return 0;
-}
-
-static void removeTrailingCharacters(std::string& str, const char charToRemove) {
-  str.erase(str.find_last_not_of(charToRemove) + 1, std::string::npos);
-}
-
-static void removeLeadingCharacters(std::string& str, const char charToRemove) {
-  str.erase(0, std::min(str.find_first_not_of(charToRemove), str.size() - 1));
-}
-std::filesystem::path constructRelativePath(std::string path) {
-  // construct a relative path
-  std::cout << "⚫ constructRelativePath: " << path << std::endl;
-  std::filesystem::path _path(path);
-  std::filesystem::path _baseDir(baseDir);
-  std::cout << "baseDir: " << baseDir << std::endl;
-  string relativePath = path;
-  // base_dir = [/tmp/base] /[absolute]
-  // remove cacheDirectory from path
-  if (_path.is_absolute()) {
-    // path:    /home/user/x/y/z/cache/p/c/file.txt
-    // cache:   /home/user/x/y/z/cache
-    // ./p/c/file.txt
-    std::cout << "relativePath before: " << relativePath << std::endl;
-    relativePath.erase(0, baseDir.size());
-    std::cout << "relativePath after: " << relativePath << std::endl;
-    // filesystem::path relativePath = filesystem::relative(path, fsMountPath);
-
-    // trim slash
-    removeTrailingCharacters(relativePath, std::filesystem::path::preferred_separator);
-    removeLeadingCharacters(relativePath, std::filesystem::path::preferred_separator);
-    std::cout << "relativePath after delete: " << relativePath << std::endl;
-    // relativePath.erase(std::remove(relativePath.begin(), relativePath.end(), std::filesystem::path::preferred_separator), relativePath.end());
-  }
-
-  // causes infinite loop with unreliablefs
-  // _path = std::filesystem::relative(_path, _fsMountPath).generic_string();
-
-  return relativePath;
 }
 
 // Cache logic ----------------------------------------------------------------------------
@@ -143,7 +104,7 @@ std::string get_hash_path(const std::string& path) {
 // ----------------------------------------------------------------------------
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
-  std::cout << "👍 cppWrapper_lstat: path: " << path << std::endl;
+  std::cout << "👍 cppWrapper_lstat: path = " << path << std::endl;
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) return -errno;
 
@@ -151,7 +112,9 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
-  std::cout << "👍 cppWrapper_getattr: path: " << path << std::endl;
+  std::cout << "👍 cppWrapper_getattr" << std::endl;
+  path = constructRelativePath(path).c_str();
+
   try {
     int errornum;
     std::memset(buf, 0, sizeof(struct stat));

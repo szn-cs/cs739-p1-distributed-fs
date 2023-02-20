@@ -20,9 +20,9 @@ find_package(FUSE 2.9 REQUIRED)
 # find vcpkg packages
 find_package(gRPC CONFIG REQUIRED)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
-find_package(Boost REQUIRED regex date_time system filesystem thread graph)
-message("boost lib: ${Boost_LIBRARIES}")
-message("boost inc:${Boost_INCLUDE_DIR}")
+# find_package(Boost REQUIRED regex date_time system filesystem thread graph)
+# message("boost lib: ${Boost_LIBRARIES}")
+# message("boost inc:${Boost_INCLUDE_DIR}")
 
 # include(./config/PrintVariables.cmake) # log cmake variables
 # include(CTest)

@@ -15,12 +15,15 @@ fs_mount() {
   ## fix some issues probably with WSL2 setup
   # sudo ln -s /proc/self/mounts /etc/mtab
   ## make sure it is unmounted
-  fusermount -u ./tmp/fs
+  fusermount -uz ./tmp/fsMountpoint && fusermount -uz ./tmp/fsRoot
+
   # or use `umount ./tmp/fs`
-  echo "">> xxx.txt
+  pushd ./tmp/fsMountpoint
+  echo " " >>file.txt
+  popd
 
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  ./target/release/unreliablefs $(pwd)/tmp/fs -basedir=/tmp/base -seed=1618680646 -d
+  ./target/release/unreliablefs $(pwd)/tmp/fsMountpoint -basedir=/tmp/fsRoot -seed=1618680646 -d
 
   ######## [terminal instance 2] ##########################################################
 
@@ -36,9 +39,9 @@ fs_mount() {
   ## use existing config file instead
   cat ./config/unreliablefs.conf ./tmp/fs/unreliablefs.conf
 
-  ls -la ./tmp/fs
+  ls -la ./tmp/fsMountpoint
 
-  umount ./tmp/fs
+  umount ./tmp/fsMountpoint
 }
 
 example_grpc() {
@@ -59,4 +62,9 @@ server() {
 client() {
   ./target/release/client
   echo 0
+}
+
+remote() {
+  scp -rC ./target/release/* sq089ahy@c220g5-120114.wisc.cloudlab.us:~/target/release/
+  ssh sq089ahy@c220g5-120114.wisc.cloudlab.us
 }

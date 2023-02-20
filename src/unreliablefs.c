@@ -161,9 +161,9 @@ int main(int argc, char *argv[]) {
 
     // default arguments
     conf.seed = time(0);
-    conf.basedir = "/";
     conf.serverAddress = "0.0.0.0:50051";  // target address & port to send grpc requests to.
-    conf.cacheDirectory = "/tmp/cache/";
+    conf.basedir = "/tmp/fs_root";         // root filesystem folder to which the mountpoint would be directed
+    conf.cacheDirectory = "/tmp/fs_cache/";
 
     // parse arguments
     fuse_opt_parse(&args, &conf, unreliablefs_opts, unreliablefs_opt_proc);
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
     }
 
     // initialize using cppWrapper_initialize
-    cppWrapper_initialize(conf.serverAddress, conf.cacheDirectory, conf.basedir);
+    cppWrapper_initialize(conf.serverAddress, conf.cacheDirectory, args.argv, conf.basedir);
 
     fprintf(stdout, "starting FUSE filesystem unreliablefs\n");
     int ret = fuse_main(args.argc, args.argv, &unreliable_ops, NULL);

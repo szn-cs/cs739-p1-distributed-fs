@@ -16,6 +16,14 @@ test() {
   gcc -Wall ./test/testSystemCall.c -o ./target/testSystemCall
 }
 
+# original implementation build
+originalUnreliablefs() {
+  pushd ./dependency/unreliablefs
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --parallel
+  ls ./build/unreliable/unreliablefs
+  popd
+}
+
 ## clean
 # cmake --build ./target/config --target clean
 
