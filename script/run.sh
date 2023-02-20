@@ -17,9 +17,10 @@ fs_mount() {
   ## make sure it is unmounted
   fusermount -u ./tmp/fs
   # or use `umount ./tmp/fs`
+  echo "">> xxx.txt
 
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  ./target/release/unreliablefs $(pwd)/tmp/fs -basedir=$(pwd)/tmp/base -seed=1618680646 -d
+  ./target/release/unreliablefs $(pwd)/tmp/fs -basedir=/tmp/base -seed=1618680646 -d
 
   ######## [terminal instance 2] ##########################################################
 
