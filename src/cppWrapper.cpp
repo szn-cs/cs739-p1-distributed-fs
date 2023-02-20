@@ -88,7 +88,10 @@ int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
 }
 
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
-  std::cout << "👍 cppWrapper_mknod: path: " << path << std::endl;
+  std::cout << termcolor::yellow << "cppWrapper_mknod" << termcolor::reset << std::endl;
+
+  path = Utility::constructRelativePath(path).c_str();
+
   int ret = mknod(path, mode, dev);
   if (ret == -1) {
     return -errno;
