@@ -15,8 +15,8 @@ typedef struct unreliablefs_config {
     unsigned int seed;
     unsigned int debug;
     pthread_mutex_t mutex;
-    char *AddrPort;
-    char *CacheDir;
+    char *serverAddress;
+    char *cacheDirectory;
 } unreliablefs_config;
 
 #endif /* UNRELIABLEFS_HH */

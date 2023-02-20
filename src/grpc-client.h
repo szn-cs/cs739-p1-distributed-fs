@@ -32,9 +32,9 @@ using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
 using afs::WriteRequest;
+
 // EXAMPLE API keep it to amke sure thigns are working
-using afs::HelloReply;
-using afs::HelloRequest;
+using afs::HelloReply, afs::HelloRequest;
 
 #define TIMEOUT 60 * 1000  // this is in ms
 #define CHUNK_SIZE 1572864
@@ -44,32 +44,16 @@ class AFSClient {
   AFSClient(std::shared_ptr<Channel> channel);
 
   int clientMkdir(const std::string& path, mode_t mode, int& errornum);
-
   int clientRmdir(const std::string& path);
-
   int clientUnlink(const std::string& path);
-
   int clientGetAttr(const std::string& path, struct stat* buf, int& errornum);
-
   int clientOpen(const std::string& path, const int& mode, long& timestamp);
-
-  int clientRead(
-      const std::string& path, /*const int& size, const int& offset,*/
-      int& numBytes,
-      std::string& buf,
-      long& timestamp);
-
+  int clientRead(const std::string& path, /*const int& size, const int& offset,*/ int& numBytes, std::string& buf, long& timestamp);
   int clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp);
 
-  /** EXAMPLE: keep it to make sure things are working
-   * Assembles the client's payload, sends it and presents the response back
-   * from the server.
-   */
+  /** EXAMPLE: keep it to make sure things are working. Assembles the client's payload, sends it and presents the response back from the server. */
   std::string SayHello(const std::string& user);
 
  private:
   std::unique_ptr<CustomAFS::Stub> stub_;
 };
-
-// global instance
-extern AFSClient grpcClientInstance;

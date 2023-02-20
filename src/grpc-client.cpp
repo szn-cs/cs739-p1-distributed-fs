@@ -1,8 +1,8 @@
 
 #include "./grpc-client.h"
+using namespace std;
 
-AFSClient::AFSClient(std::shared_ptr<Channel> channel)
-    : stub_(CustomAFS::NewStub(channel)) {}
+AFSClient::AFSClient(std::shared_ptr<Channel> channel) : stub_(CustomAFS::NewStub(channel)) {}
 
 int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
   MkdirRequest request;
@@ -62,37 +62,42 @@ int AFSClient::clientUnlink(const std::string& path) {
 }
 
 int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& errornum) {
+  cout << "⚫ clientGetAttr called " << endl;
+
   Path request;
   request.set_path(path);
+
   StatInfo reply;
   ClientContext context;
 
   Status status = stub_->GetAttr(&context, request, &reply);
 
-  if (status.ok()) {
-    if (reply.status() != 0) {
-      errornum = reply.errornum();
-    } else {
-      buf->st_dev = reply.stdev();
-      buf->st_ino = reply.stino();
-      buf->st_mode = reply.stmode();
-      buf->st_nlink = reply.stnlink();
-      buf->st_uid = reply.stuid();
-      buf->st_gid = reply.stgid();
-      buf->st_rdev = reply.strdev();
-      buf->st_size = reply.stsize();
-      buf->st_blksize = reply.stblksize();
-      buf->st_blocks = reply.stblocks();
-      buf->st_atime = reply.statime();
-      buf->st_mtime = reply.stmtime();
-      buf->st_ctime = reply.stctime();
-    }
-    return reply.status();
-  } else {
-    std::cout << status.error_code() << ": " << status.error_message()
-              << std::endl;
+  if (!status.ok()) {
+    std::cout << "⚫" << status.error_code() << ": " << status.error_message() << std::endl;
     return -1;
   }
+
+  if (reply.status() != 0) {
+    errornum = reply.errornum();
+    std::cout << "⚫ replay.status != 0 with errornum:" << errornum << std::endl;
+    return -1;
+  }
+
+  buf->st_dev = reply.stdev();
+  buf->st_ino = reply.stino();
+  buf->st_mode = reply.stmode();
+  buf->st_nlink = reply.stnlink();
+  buf->st_uid = reply.stuid();
+  buf->st_gid = reply.stgid();
+  buf->st_rdev = reply.strdev();
+  buf->st_size = reply.stsize();
+  buf->st_blksize = reply.stblksize();
+  buf->st_blocks = reply.stblocks();
+  buf->st_atime = reply.statime();
+  buf->st_mtime = reply.stmtime();
+  buf->st_ctime = reply.stctime();
+
+  return reply.status();
 }
 
 int AFSClient::clientOpen(const std::string& path, const int& mode, long& timestamp) {

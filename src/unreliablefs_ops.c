@@ -206,11 +206,7 @@ int unreliable_open(const char *path, struct fuse_file_info *fi) {
         return ret;
     }
 
-    // original
-    // return cppWrapper_open(path, fi);
-    // Temporary fix
-    char *s = "";
-    return cppWrapper_open(s, s, path, fi);
+    return cppWrapper_open(path, fi);
 }
 
 int unreliable_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
@@ -221,7 +217,7 @@ int unreliable_read(const char *path, char *buf, size_t size, off_t offset, stru
         return ret;
     }
 
-    return cppWrapper_read(conf.AddrPort, conf.CacheDir, path, buf, size, offset, fi);
+    return cppWrapper_read(path, buf, size, offset, fi);
 }
 
 int unreliable_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
@@ -232,11 +228,7 @@ int unreliable_write(const char *path, const char *buf, size_t size, off_t offse
         return ret;
     }
 
-    // original
-    // return cppWrapper_write(path, buf, size, offset, fi);
-    // temporary fix
-    char *s = "";
-    return cppWrapper_write(s, s, path, buf, size, offset, fi);
+    return cppWrapper_write(path, buf, size, offset, fi);
 }
 
 int unreliable_statfs(const char *path, struct statvfs *buf) {
@@ -269,11 +261,7 @@ int unreliable_release(const char *path, struct fuse_file_info *fi) {
         return ret;
     }
 
-    // original
-    // return cppWrapper_release(path, fi);
-    // temporary fix
-    char *s = "";
-    return cppWrapper_release(s, s, path, fi);
+    return cppWrapper_release(path, fi);
 }
 
 int unreliable_fsync(const char *path, int datasync, struct fuse_file_info *fi) {

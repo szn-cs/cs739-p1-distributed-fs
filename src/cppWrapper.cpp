@@ -11,20 +11,32 @@
 #include <string>
 
 #ifdef __cplusplus
+
+#include <filesystem>
+#include <iostream>
+
+using namespace std;
+
 extern "C" {
 #endif
+
+static AFSClient* grpcClientInstance;
+std::string cacheDirectory;
 
 int cppWrapper_initialize(char* serverAddress, char* cacheDirectory) {
   std::cout << "⚫ cppWrapper initialized" << std::endl;
   std::cout << "⚫ cacheDirectory path: ${cacheDirectory}" << std::endl;
   std::cout << "⚫ serverAddress path: ${serverAddress}" << std::endl;
 
-  grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials());
+  grpcClientInstance = new AFSClient(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
+  cacheDirectory = cacheDirectory;
 
   return 0;
 }
 
-std::unordered_map<std::string, std::string> get_local_cache(const std::string& CacheDir) {
+// Cache logic ----------------------------------------------------------------------------
+
+std::unordered_map<std::string, std::string> get_local_cache(const std::string& cacheDirectory) {
   std::unordered_map<std::string, std::string> cache;
   // if no file for cache then create new file for keeping cache file.
   // after the file exists, read each line and add key value pair into cache in
@@ -32,7 +44,7 @@ std::unordered_map<std::string, std::string> get_local_cache(const std::string& 
   // File format [key;value\n]:
   //            /temp/path/to/file;ijio1290ej9fjio
   //            /temp/path/to/file2;ijio1290ej9fjio
-  std::string local_cache_path = CacheDir + "cache_file.txt";
+  std::string local_cache_path = cacheDirectory + "cache_file.txt";
 
   std::ifstream cache_file(local_cache_path);
   std::string line;
@@ -50,9 +62,9 @@ std::unordered_map<std::string, std::string> get_local_cache(const std::string& 
   return cache;
 }
 
-int fsync_cache(std::string& CacheDir, std::unordered_map<std::string, std::string> cache) {
+int fsync_cache(std::string& cacheDirectory, std::unordered_map<std::string, std::string> cache) {
   // update cache into local cache file.
-  std::string local_cache_path = CacheDir + "cache_file.txt";
+  std::string local_cache_path = cacheDirectory + "cache_file.txt";
   std::string tmp_local_cache_path = local_cache_path + ".TMP";
   std::ofstream tmp_cache_file(tmp_local_cache_path);
   if (tmp_cache_file.is_open()) {
@@ -84,31 +96,38 @@ std::string get_hash_path(const std::string& path) {
   return ss.str();
 }
 
+// ----------------------------------------------------------------------------
+
 int cppWrapper_lstat(const char* path, struct stat* buf) {
   // TODO:
   memset(buf, 0, sizeof(struct stat));
-  if (lstat(path, buf) == -1) {
-    return -errno;
-  }
+  if (lstat(path, buf) == -1) return -errno;
+
   return 0;
 }
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << "⚫ cppWrapper_getattr" << std::endl;
 
-  std::string target_str = "localhost:50051";
+  // construct a relative path
+  std::filesystem::path _path(path);
+  // remove cacheDirectory from path
+  if (_path.is_absolute())
+    _path = std::filesystem::relative(_path, cacheDirectory).generic_string();
 
-  AFSClient client(
-      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-
-  const std::string _path(path);
-  int errornum;
-  std::memset(buf, 0, sizeof(struct stat));
-  int ret = client.clientGetAttr(_path, buf, errornum);
-  if (ret == -1) {
-    return -errornum;
+  try {
+    int errornum;
+    std::memset(buf, 0, sizeof(struct stat));
+    int ret = grpcClientInstance->clientGetAttr(_path, buf, errornum);
+    if (ret == -1) return -errornum;
+    return 0;
+  } catch (...) {
+    cout << "⚫ fallback to original implementation" << endl;
+    // original:
+    memset(buf, 0, sizeof(struct stat));
+    if (lstat(path, buf) == -1) return -errno;
+    return 0;
   }
-  return 0;
 }
 
 int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
@@ -135,14 +154,9 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
 int cppWrapper_mkdir(const char* path, mode_t mode) {
   std::cout << "⚫ cppWrapper_mkdir" << std::endl;
 
-  std::string target_str = "localhost:50051";
-
-  AFSClient client(
-      grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-
   const std::string _path(path);
   int errornum;
-  int ret = client.clientMkdir(_path, mode, errornum);
+  int ret = grpcClientInstance->clientMkdir(_path, mode, errornum);
   if (ret == -1) {
     return -errornum;
   }
@@ -228,50 +242,46 @@ int cppWrapper_truncate(const char* path, off_t length) {
   return 0;
 }
 
-int cppWrapper_open(char* addrport, char* CacheDir, const char* path, struct fuse_file_info* fi) {
+int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << "👍cppWrapper_open" << std::endl;
 
-  std::string local_cache_dir(CacheDir);
-  std::string path_str(path);
+  std::string local_cache_dir(cacheDirectory);
   std::unordered_map<std::string, std::string> cache = get_local_cache(local_cache_dir);
+  std::string path_str(path);
   std::string sha_path = get_hash_path(path_str);
   std::string local_cache_file = local_cache_dir + sha_path;
-  AFSClient client(grpc::CreateChannel(addrport, grpc::InsecureChannelCredentials()));
+
   int ret;
   long timestamp;
 
   if (cache.find(path_str) == cache.end()) {
     // path not exist in the cache
-    ret = client.clientOpen(path_str, O_RDWR | O_CREAT, timestamp);
-    if (ret != 0) {
-      return ret;
-    }
+    ret = grpcClientInstance->clientOpen(path_str, O_RDWR | O_CREAT, timestamp);
+    if (ret != 0) return ret;
     int numBytes;
     std::string buf;
-    ret = client.clientRead(path, numBytes, buf, timestamp);
-    if (ret != 0) {
-      return ret;
-    }
+    ret = grpcClientInstance->clientRead(path, numBytes, buf, timestamp);
+    if (ret != 0) return ret;
+
     fsync_file(local_cache_file, buf);
     cache.insert(std::pair<std::string, std::string>(path_str, sha_path));
     fsync_cache(local_cache_dir, cache);
   }
   // path exist, then check version, fetch updated data
-  // client.clientGetAttr()
+  // grpcClientInstance->clientGetAttr()
   //
   // open local cache file
   ret = open(local_cache_file.c_str(), fi->flags);
-  if (ret == -1) {
-    return -errno;
-  }
+  if (ret == -1) return -errno;
+
   fi->fh = ret;
 
   return 0;
 }
 
-int cppWrapper_read(char* addrport, char* CacheDir, const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << "👍cppWrapper_read" << std::endl;
-  std::string local_cache_dir(CacheDir);
+  std::string local_cache_dir(cacheDirectory);
   std::string path_str(path);
   int ret, fd;
   int free_mark = 0;
@@ -279,7 +289,7 @@ int cppWrapper_read(char* addrport, char* CacheDir, const char* path, char* buf,
   if (fi == NULL) {
     fi = new fuse_file_info();
     fi->flags = O_RDONLY;
-    fd = cppWrapper_open(addrport, CacheDir, path, fi);
+    fd = cppWrapper_open(path, fi);
     free_mark = 1;
   } else {
     fd = fi->fh;
@@ -303,9 +313,9 @@ int cppWrapper_read(char* addrport, char* CacheDir, const char* path, char* buf,
   return 0;
 }
 
-int cppWrapper_write(char* addrport, char* CacheDir, const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << "👍cppWrapper_write" << std::endl;
-  std::string local_cache_dir(CacheDir);
+  std::string local_cache_dir(cacheDirectory);
   std::string path_str(path);
   int ret, fd;
   int free_mark = 0;
@@ -313,7 +323,7 @@ int cppWrapper_write(char* addrport, char* CacheDir, const char* path, const cha
   if (fi == NULL) {
     fi = new fuse_file_info();
     fi->flags = O_WRONLY;
-    fd = cppWrapper_open(addrport, CacheDir, path, fi);
+    fd = cppWrapper_open(path, fi);
     free_mark = 1;
   } else {
     fd = fi->fh;
@@ -379,19 +389,19 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   return 0;
 }
 
-int cppWrapper_release(char* addrport, char* CacheDir, const char* path, struct fuse_file_info* fi) {
+int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   std::cout << "👍cppWrapper_release" << std::endl;
   int ret;
   int numOfBytes;
   long timestamp;
   std::string path_str(path);
-  AFSClient client(grpc::CreateChannel(addrport, grpc::InsecureChannelCredentials()));
+
   ret = close(fi->fh);
   if (ret == -1) {
     return -errno;
   }
 
-  std::string local_cache_dir(CacheDir);
+  std::string local_cache_dir(cacheDirectory);
   std::unordered_map<std::string, std::string> cache = get_local_cache(local_cache_dir);
   std::string sha_path = get_hash_path(path_str);
   std::string local_cache_file = local_cache_dir + sha_path;
@@ -403,7 +413,7 @@ int cppWrapper_release(char* addrport, char* CacheDir, const char* path, struct 
   if (length != 0) {
     std::string buf(length, '\0');
     is.read(&buf[0], length);
-    ret = client.clientWrite(path_str, buf, length, 0, numOfBytes, timestamp);
+    ret = grpcClientInstance->clientWrite(path_str, buf, length, 0, numOfBytes, timestamp);
   }
   is.close();
   return 0;
@@ -675,57 +685,60 @@ int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
   return 0;
 }
 #endif /* HAVE_UTIMENSAT */
-// int main() {
-//   // std::unordered_map<std::string, std::string> get_local_cache(const
-//   // std::string& path) int fsync_cache(std::string& path,
-//   // std::unordered_map<std::string, std::string> cache) std::string
-//   // hash_path(const std::string& path)
-//   // std::string test_cache_path("./test_cache.txt");
-//   // std::unordered_map<std::string, std::string> tmp_cache =
-//   //     get_local_cache(test_cache_path);
-//   // std::string test_path = "./test_pathh";
-//   // std::string test_hash = get_hash_path(test_path);
-//   // std::cout << test_path << " " << test_hash << std::endl;
-//   // tmp_cache.insert(std::pair<std::string, std::string>(test_path,
-//   // test_hash)); fsync_cache(test_cache_path, tmp_cache);
-//   // std::string AddrPort_ = "localhost:50051";
-//   // std::string CacheDir_ = "/tmp/cache/";
 
-//   //  1.) with fh (data in local cache)
-//   //  2.) without fh
-//   //                -> (data in/not in local cache)   -> wrapper_open()
+/** // testing:
+  int main() {
+    // std::unordered_map<std::string, std::string> get_local_cache(const
+    // std::string& path) int fsync_cache(std::string& path,
+    // std::unordered_map<std::string, std::string> cache) std::string
+    // hash_path(const std::string& path)
+    // std::string test_cache_path("./test_cache.txt");
+    // std::unordered_map<std::string, std::string> tmp_cache =
+    //     get_local_cache(test_cache_path);
+    // std::string test_path = "./test_pathh";
+    // std::string test_hash = get_hash_path(test_path);
+    // std::cout << test_path << " " << test_hash << std::endl;
+    // tmp_cache.insert(std::pair<std::string, std::string>(test_path,
+    // test_hash)); fsync_cache(test_cache_path, tmp_cache);
+    // std::string AddrPort_ = "localhost:50051";
+    // std::string cacheDirectory_ = "/tmp/cache/";
 
-//   struct fuse_file_info t1;
-//   struct fuse_file_info t2;
-//   t1.flags = O_RDWR;
-//   t2.flags = O_RDWR;
-//   struct fuse_file_info* p1 = &t1;
-//   struct fuse_file_info* p2 = &t2;
-//   std::string buf = "I want to go home.\0";
-//   char* pbuf = &buf[0];
-//   // char buf1[20];
-//   // buf1[0] = '\0';
-//   // char buf2[20];
-//   // buf2[0] = '\0';
-//   // cppWrapper_open("localhost:50051", "/tmp/cache/", "test2.txt", p1);
-//   // cppWrapper_read("localhost:50051", "/tmp/cache/", "test2.txt", buf1, 20,
-//   5,
-//   //                 p1);
-//   // std::cout << "with fh " << buf1 << std::endl;
-//   // cppWrapper_read("localhost:50051", "/tmp/cache/", "test1.txt", buf2, 20,
-//   5,
-//   //                 NULL);
-//   // std::cout << "without fh " << buf2 << std::endl;
-//   cppWrapper_open("localhost:50051", "/tmp/cache/", "test1.txt", p1);
+    //  1.) with fh (data in local cache)
+    //  2.) without fh
+    //                -> (data in/not in local cache)   -> wrapper_open()
 
-//   cppWrapper_write("localhost:50051", "/tmp/cache/", "test1.txt", pbuf,
-//                    buf.size(), 0, p1);
+    struct fuse_file_info t1;
+    struct fuse_file_info t2;
+    t1.flags = O_RDWR;
+    t2.flags = O_RDWR;
+    struct fuse_file_info* p1 = &t1;
+    struct fuse_file_info* p2 = &t2;
+    std::string buf = "I want to go home.\0";
+    char* pbuf = &buf[0];
+    // char buf1[20];
+    // buf1[0] = '\0';
+    // char buf2[20];
+    // buf2[0] = '\0';
+    // cppWrapper_open("localhost:50051", "/tmp/cache/", "test2.txt", p1);
+    // cppWrapper_read("localhost:50051", "/tmp/cache/", "test2.txt", buf1, 20,
+    5,
+    //                 p1);
+    // std::cout << "with fh " << buf1 << std::endl;
+    // cppWrapper_read("localhost:50051", "/tmp/cache/", "test1.txt", buf2, 20,
+    5,
+    //                 NULL);
+    // std::cout << "without fh " << buf2 << std::endl;
+    cppWrapper_open("localhost:50051", "/tmp/cache/", "test1.txt", p1);
 
-//   cppWrapper_write("localhost:50051", "/tmp/cache/", "test2.txt", pbuf,
-//                    buf.size(), 0, NULL);
-//   cppWrapper_release("localhost:50051", "/tmp/cache/", "test1.txt", p1);
-//   return 0;
-// }
+    cppWrapper_write("localhost:50051", "/tmp/cache/", "test1.txt", pbuf,
+                    buf.size(), 0, p1);
+
+    cppWrapper_write("localhost:50051", "/tmp/cache/", "test2.txt", pbuf,
+                    buf.size(), 0, NULL);
+    cppWrapper_release("localhost:50051", "/tmp/cache/", "test1.txt", p1);
+    return 0;
+  }
+*/
 
 #ifdef __cplusplus
 }

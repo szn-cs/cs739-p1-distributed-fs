@@ -152,6 +152,10 @@
 		"fstream": "cpp",
 		"iomanip": "cpp",
 		"unreliablefs.h": "c",
-		"cppwrapper.h": "c"
+		"cppwrapper.h": "c",
+		"errno.h": "c",
+		"file.h": "c",
+		"stat.h": "c",
+		"filesystem": "cpp"
 	}
 }

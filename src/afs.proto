@@ -1,6 +1,17 @@
 syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
+
+// AFSv1 Protocol Highlights
+// TestAuth        Test whether a file has changed
+//                 (used to validate cached entries)
+// GetFileStat     Get the stat info for a file
+// Fetch           Fetch the contents of file
+// Store           Store this file on the server      
+// SetFileStat     Set the stat info for a file
+// ListDir         List the contents of a directory
+
+
 service CustomAFS {
     rpc Mkdir(MkdirRequest) returns (MkdirResponse) {};
     rpc Unlink(Path) returns (Response) {};

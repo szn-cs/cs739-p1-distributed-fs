@@ -1,6 +1,6 @@
-# create make files & build through `cmake`  or use `make -w -C ./target/config/`
+# create make files &
+# build through `cmake`  or use `make -w -C ./target/config/`
 cmake -S . -B ./target/config && cmake --build ./target/config --verbose --parallel
-
 ## move binaries from nested builds
 mkdir -p ./target/release
 cp ./target/config/src/unreliablefs ./target/release/unreliablefs
@@ -10,6 +10,10 @@ cp ./target/config/src/grpc-server ./target/release/grpc-server
 example() {
   mkdir -p ./target/release/example-grpc
   cp ./target/config/dependency/grpc/examples/cpp/helloworld/greeter* ./target/release/example-grpc
+}
+
+test() {
+  gcc -Wall ./test/testSystemCall.c -o ./target/testSystemCall
 }
 
 ## clean

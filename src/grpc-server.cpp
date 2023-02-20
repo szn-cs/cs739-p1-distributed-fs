@@ -58,12 +58,11 @@ using afs::WriteRequest;
 using afs::HelloReply;
 using afs::HelloRequest;
 
+using namespace std;
+
 namespace fs = std::experimental::filesystem;
 #define CHUNK_SIZE 1572864
-const std::string server_address("0.0.0.0:50051");
-
-std::string root_dir = fs::current_path().generic_string() + "/tmp/fs-server/";
-fs::path path_root_dir(root_dir);
+static std::string root_dir;
 
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
@@ -119,14 +118,17 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   }
 
   Status GetAttr(ServerContext* context, const Path* request, StatInfo* response) override {
-    std::cout << "trigger getattr" << std::endl;
+    cout << "⚫ GetAttr called " << endl;
+
     std::string getattr_file = root_dir + request->path();
     fs::path path_getattr_file(getattr_file);
 
-    response->set_status(-1);
+    cout << "path received for server: " << path_getattr_file << endl;
 
     struct stat sfile;
     if (lstat(getattr_file.c_str(), &sfile) != -1) {
+      cout << "⚫ lstat found" << path_getattr_file << endl;
+
       response->set_status(0);
       response->set_stdev(sfile.st_dev);
       response->set_stino(sfile.st_ino);
@@ -155,6 +157,8 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
       // std::cout << sfile.st_mtime << std::endl;
       // std::cout << sfile.st_ctime << std::endl;
     } else {
+      cout << "⚫ lstat not found: " << path_getattr_file << endl;
+
       response->set_status(-1);
       response->set_errornum(errno);
     }
@@ -378,20 +382,20 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   }
 };
 
-void RunServer() {
+void RunServer(std::string address) {
   AFSServerServiceImpl service;
 
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
   ServerBuilder builder;
   // Listen on the given address without any authentication mechanism.
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(address, grpc::InsecureServerCredentials());
   // Register "service" as the instance through which we'll communicate with
   // clients. In this case it corresponds to an *synchronous* service.
   builder.RegisterService(&service);
   // Finally assemble the server.
   std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
+  std::cout << "Server listening on " << address << std::endl;
 
   // Wait for the server to shutdown. Note that some other thread must be
   // responsible for shutting down the server for this call to ever return.
@@ -400,14 +404,19 @@ void RunServer() {
 
 int main(int argc, char** argv) {
   struct stat info;
+  const std::string address("0.0.0.0:50051");
+
+  //  TODO:
+  root_dir = fs::current_path().generic_string() + "/tmp/fs-server/";
+  fs::path path_root_dir(root_dir);
 
   if (!fs::exists(path_root_dir)) {
     if (!fs::create_directories(path_root_dir)) {
       perror("Failed to initialize the root directory.");
     }
   }
-  std::cout << "success make the root directory." << std::endl;
-  RunServer();
+  std::cout << "success make the root directory: " << path_root_dir << std::endl;
+  RunServer(address);
 
   return 0;
 }
