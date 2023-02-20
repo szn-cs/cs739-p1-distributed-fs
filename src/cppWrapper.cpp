@@ -17,7 +17,7 @@
 #include <filesystem>
 #include <iostream>
 
-namespace _fs = boost::filesystem;
+// namespace _fs = boost::filesystem;
 using namespace std;
 
 extern "C" {
@@ -25,55 +25,58 @@ extern "C" {
 
 static AFSClient* grpcClientInstance;
 static std::string cacheDirectory;
-static std::string fsMountPath;
+static std::string baseDir;
 
-int cppWrapper_initialize(char* serverAddress, char* cacheDirectory, char* argv[]) {
+int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* _baseDir) {
   std::cout << "⚫ cppWrapper initialized" << std::endl;
   std::cout << "⚫ cacheDirectory path: ${cacheDirectory}" << std::endl;
   std::cout << "⚫ serverAddress path: ${serverAddress}" << std::endl;
-  std::cout << "@cppWrapper_initialize fsMountPath: " << argv[1] << std::endl;
+  // std::cout << "@cppWrapper_initialize fsMountPath: " << argv[1] << std::endl;
 
   grpcClientInstance = new AFSClient(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
-  cacheDirectory = cacheDirectory;
-  fsMountPath = argv[1];
-
+  cacheDirectory = _cacheDirectory;
+  std::string tmp(_baseDir);
+  baseDir = tmp + "/";
   return 0;
 }
 
-// static void removeTrailingCharacters(std::string& str, const char charToRemove) {
-//   str.erase(str.find_last_not_of(charToRemove) + 1, std::string::npos);
-// }
+static void removeTrailingCharacters(std::string& str, const char charToRemove) {
+  str.erase(str.find_last_not_of(charToRemove) + 1, std::string::npos);
+}
 
-// static void removeLeadingCharacters(std::string& str, const char charToRemove) {
-//   str.erase(0, std::min(str.find_first_not_of(charToRemove), str.size() - 1));
-// }
+static void removeLeadingCharacters(std::string& str, const char charToRemove) {
+  str.erase(0, std::min(str.find_first_not_of(charToRemove), str.size() - 1));
+}
+std::filesystem::path constructRelativePath(std::string path) {
+  // construct a relative path
+  std::cout << "⚫ constructRelativePath: " << path << std::endl;
+  std::filesystem::path _path(path);
+  std::filesystem::path _baseDir(baseDir);
+  std::cout << "baseDir: " << baseDir << std::endl;
+  string relativePath = path;
+  // base_dir = [/tmp/base] /[absolute]
+  // remove cacheDirectory from path
+  if (_path.is_absolute()) {
+    // path:    /home/user/x/y/z/cache/p/c/file.txt
+    // cache:   /home/user/x/y/z/cache
+    // ./p/c/file.txt
+    std::cout << "relativePath before: " << relativePath << std::endl;
+    relativePath.erase(0, baseDir.size());
+    std::cout << "relativePath after: " << relativePath << std::endl;
+    // filesystem::path relativePath = filesystem::relative(path, fsMountPath);
 
-// std::filesystem::path constructRelativePath(std::string path) {
-//   // construct a relative path
-//   std::filesystem::path _path(path);
-//   std::filesystem::path _fsMountPath(fsMountPath);
+    // trim slash
+    removeTrailingCharacters(relativePath, std::filesystem::path::preferred_separator);
+    removeLeadingCharacters(relativePath, std::filesystem::path::preferred_separator);
+    std::cout << "relativePath after delete: " << relativePath << std::endl;
+    // relativePath.erase(std::remove(relativePath.begin(), relativePath.end(), std::filesystem::path::preferred_separator), relativePath.end());
+  }
 
-//   _fs::path relativePath = path;
+  // causes infinite loop with unreliablefs
+  // _path = std::filesystem::relative(_path, _fsMountPath).generic_string();
 
-//   // remove cacheDirectory from path
-//   if (_path.is_absolute()) {
-//     // path:    /home/user/x/y/z/cache/p/c/file.txt
-//     // cache:   /home/user/x/y/z/cache
-//     // ./p/c/file.txt
-//     // relativePath = path.erase(0, fsMountPath.size());
-//     relativePath = ;
-
-//     // trim slash
-//     // removeTrailingCharacters(relativePath, std::filesystem::path::preferred_separator);
-//     // removeLeadingCharacters(relativePath, std::filesystem::path::preferred_separator);
-//     // relativePath.erase(std::remove(relativePath.begin(), relativePath.end(), std::filesystem::path::preferred_separator), relativePath.end());
-//   }
-
-//   // causes infinite loop with unreliablefs
-//   // _path = std::filesystem::relative(_path, _fsMountPath).generic_string();
-
-//   return relativePath.string();
-// }
+  return relativePath;
+}
 
 // Cache logic ----------------------------------------------------------------------------
 
@@ -140,7 +143,7 @@ std::string get_hash_path(const std::string& path) {
 // ----------------------------------------------------------------------------
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
-  // TODO:
+  std::cout << "👍 cppWrapper_lstat: path: " << path << std::endl;
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) return -errno;
 
@@ -148,14 +151,7 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
-  std::cout << "⚫ cppWrapper_getattr" << std::endl;
-
-  string p(path);
-
-  cout << "before: " << p << endl;
-  p = (_fs::relative(p, fsMountPath)).generic_string();
-  cout << "after: " << p << endl;
-
+  std::cout << "👍 cppWrapper_getattr: path: " << path << std::endl;
   try {
     int errornum;
     std::memset(buf, 0, sizeof(struct stat));
@@ -172,7 +168,7 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
-  // TODO:
+  std::cout << "👍 cppWrapper_readlink: path: " << path << std::endl;
   int ret = readlink(path, buf, bufsiz);
   if (ret == -1) {
     return -errno;
@@ -183,7 +179,7 @@ int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
 }
 
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
-  // TODO:
+  std::cout << "👍 cppWrapper_mknod: path: " << path << std::endl;
   int ret = mknod(path, mode, dev);
   if (ret == -1) {
     return -errno;
@@ -193,7 +189,7 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
 }
 
 int cppWrapper_mkdir(const char* path, mode_t mode) {
-  std::cout << "⚫ cppWrapper_mkdir" << std::endl;
+  std::cout << "👍 cppWrapper_mkdir" << std::endl;
 
   const std::string _path(path);
   int errornum;
@@ -205,7 +201,7 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
 }
 
 int cppWrapper_unlink(const char* path) {
-  // TODO:
+  std::cout << "👍 cppWrapper_unlink: path: " << path << std::endl;
   int ret = unlink(path);
   if (ret == -1) {
     return -errno;
@@ -215,7 +211,7 @@ int cppWrapper_unlink(const char* path) {
 }
 
 int cppWrapper_rmdir(const char* path) {
-  // TODO:
+  std::cout << "👍 cppWrapper_rmdir: path: " << path << std::endl;
   int ret = rmdir(path);
   if (ret == -1) {
     return -errno;
@@ -225,7 +221,7 @@ int cppWrapper_rmdir(const char* path) {
 }
 
 int cppWrapper_symlink(const char* target, const char* linkpath) {
-  // TODO:
+  std::cout << "👍 cppWrapper_symlink:" << std::endl;
   int ret = symlink(target, linkpath);
   if (ret == -1) {
     return -errno;
@@ -236,6 +232,7 @@ int cppWrapper_symlink(const char* target, const char* linkpath) {
 
 int cppWrapper_rename(const char* oldpath, const char* newpath) {
   // TODO:
+  std::cout << "👍cppWrapper_rename " << std::endl;
   int ret = rename(oldpath, newpath);
   if (ret == -1) {
     return -errno;
@@ -245,7 +242,7 @@ int cppWrapper_rename(const char* oldpath, const char* newpath) {
 }
 
 int cppWrapper_link(const char* oldpath, const char* newpath) {
-  // TODO:
+  std::cout << "👍 cppWrapper_symlink: " << std::endl;
   int ret = link(oldpath, newpath);
   if (ret < 0) {
     return -errno;
@@ -255,7 +252,7 @@ int cppWrapper_link(const char* oldpath, const char* newpath) {
 }
 
 int cppWrapper_chmod(const char* path, mode_t mode) {
-  // TODO:
+  std::cout << "👍 cppWrapper_chmod: " << std::endl;
   int ret = chmod(path, mode);
   if (ret < 0) {
     return -errno;
@@ -266,6 +263,7 @@ int cppWrapper_chmod(const char* path, mode_t mode) {
 
 int cppWrapper_chown(const char* path, uid_t owner, gid_t group) {
   // TODO:
+  std::cout << "👍cppWrapper_chown " << path << std::endl;
   int ret = chown(path, owner, group);
   if (ret == -1) {
     return -errno;
@@ -412,7 +410,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
 }
 
 int cppWrapper_statfs(const char* path, struct statvfs* buf) {
-  // TODO:
+  std::cout << "👍 cppWrapper_statfs: " << std::endl;
   int ret = statvfs(path, buf);
   if (ret == -1) {
     return -errno;
@@ -422,6 +420,7 @@ int cppWrapper_statfs(const char* path, struct statvfs* buf) {
 }
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
+  std::cout << "👍 cppWrapper_flush: " << std::endl;
   int ret = close(dup(fi->fh));
   if (ret == -1) {
     return -errno;
@@ -461,6 +460,7 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
+  std::cout << "👍cppWrapper_fsync" << std::endl;
   int ret;
   if (datasync) {
     ret = fdatasync(fi->fh);
@@ -480,6 +480,7 @@ int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) 
 #ifdef HAVE_XATTR
 int cppWrapper_setxattr(const char* path, const char* name, const char* value, size_t size, int flags) {
   // TODO:
+  std::cout << "👍cppWrapper_setxattr" << std::endl;
   int ret;
 #ifdef __APPLE__
   ret = setxattr(path, name, value, size, 0, flags);
@@ -494,7 +495,7 @@ int cppWrapper_setxattr(const char* path, const char* name, const char* value, s
 }
 
 int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t size) {
-  // TODO:
+  std::cout << "👍cppWrapper_getxattr" << std::endl;
   int ret;
 #ifdef __APPLE__
   ret = getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
@@ -509,7 +510,7 @@ int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t 
 }
 
 int cppWrapper_listxattr(const char* path, char* list, size_t size) {
-  // TODO:
+  std::cout << "👍cppWrapper_listxattr" << std::endl;
   int ret;
 #ifdef __APPLE__
   ret = listxattr(path, list, size, XATTR_NOFOLLOW);
@@ -525,6 +526,7 @@ int cppWrapper_listxattr(const char* path, char* list, size_t size) {
 
 int cppWrapper_removexattr(const char* path, const char* name) {
   // TODO:
+  std::cout << "👍cppWrapper_removexattr" << std::endl;
   int ret;
 #ifdef __APPLE__
   ret = removexattr(path, name, XATTR_NOFOLLOW);
@@ -540,7 +542,8 @@ int cppWrapper_removexattr(const char* path, const char* name) {
 #endif /* HAVE_XATTR */
 
 int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
-  // TODO:
+  std::cout << "👍cppWrapper_opendir" << std::endl;
+  std::cout << path << std::endl;
   DIR* dir = opendir(path);
 
   if (!dir) {
@@ -552,7 +555,7 @@ int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
-  // TODO:
+  std::cout << "👍cppWrapper_readdir read " << path << std::endl;
   DIR* dp = opendir(path);
   if (dp == NULL) {
     return -errno;
@@ -575,7 +578,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
 }
 
 int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
-  // No need to modify
+  std::cout << "👍cppWrapper_releasedir" << std::endl;
   DIR* dir = (DIR*)fi->fh;
 
   int ret = closedir(dir);
@@ -587,6 +590,7 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* fi) {
+  std::cout << "👍cppWrapper_fsyncdir" << std::endl;
   int ret;
   // TODO:
   DIR* dir = opendir(path);
@@ -611,7 +615,7 @@ int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* f
 }
 
 int cppWrapper_access(const char* path, int mode) {
-  // TODO:
+  std::cout << "👍cppWrapper_access" << std::endl;
   int ret = access(path, mode);
   if (ret == -1) {
     return -errno;
@@ -621,7 +625,8 @@ int cppWrapper_access(const char* path, int mode) {
 }
 
 int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
-  // TODO:
+  std::cout << "👍cppWrapper_create" << std::endl;
+
   int ret = open(path, fi->flags, mode);
   if (ret == -1) {
     return -errno;
@@ -632,6 +637,7 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
 }
 
 int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* fi) {
+  std::cout << "👍cppWrapper_ftruncate" << std::endl;
   int ret = truncate(path, length);
   if (ret == -1) {
     return -errno;
@@ -641,6 +647,7 @@ int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* 
 }
 
 int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_info* fi) {
+  std::cout << "👍cppWrapper_fgetattr path: " << path << std::endl;
   int ret = fstat((int)fi->fh, buf);
   if (ret == -1) {
     return -errno;
@@ -650,6 +657,7 @@ int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_inf
 }
 
 int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd, struct flock* fl) {
+  std::cout << "👍cppWrapper_lock" << std::endl;
   int ret = fcntl((int)fi->fh, cmd, fl);
   if (ret == -1) {
     return -errno;
@@ -716,6 +724,7 @@ int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len, st
 
 #ifdef HAVE_UTIMENSAT
 int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
+  std::cout << "👍cppWrapper_utimens" << std::endl;
   /* don't use utime/utimes since they follow symlinks */
   // TODO:
   int ret = utimensat(0, path, ts, AT_SYMLINK_NOFOLLOW);
