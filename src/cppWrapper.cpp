@@ -19,7 +19,8 @@ static std::string cacheDirectory;
 static std::string fsMountPath;
 static std::string fsRootPath;
 
-#include "./utility.cpp"
+#include "./Cache.cpp"
+#include "./Utility.cpp"
 
 extern "C" {
 #endif
@@ -39,68 +40,6 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
   return 0;
 }
 
-// Cache logic ----------------------------------------------------------------------------
-
-std::unordered_map<std::string, std::string> get_local_cache(const std::string& cacheDirectory) {
-  std::unordered_map<std::string, std::string> cache;
-  // if no file for cache then create new file for keeping cache file.
-  // after the file exists, read each line and add key value pair into cache in
-  // memory.
-  // File format [key;value\n]:
-  //            /temp/path/to/file;ijio1290ej9fjio
-  //            /temp/path/to/file2;ijio1290ej9fjio
-  std::string local_cache_path = cacheDirectory + "cache_file.txt";
-
-  std::ifstream cache_file(local_cache_path);
-  std::string line;
-  while (std::getline(cache_file, line)) {
-    // txt;sha
-    size_t pos = line.find(";");
-    if (pos == std::string::npos) {
-      std::cout << "read cache file " << local_cache_path << " error: cannot find separator ; " << std::endl;
-      return cache;
-    }
-    std::string key = line.substr(0, pos);
-    std::string val = line.substr(pos + 1, line.size() - pos);
-    cache[key] = val;
-  }
-  return cache;
-}
-
-int fsync_cache(std::string& cacheDirectory, std::unordered_map<std::string, std::string> cache) {
-  // update cache into local cache file.
-  std::string local_cache_path = cacheDirectory + "cache_file.txt";
-  std::string tmp_local_cache_path = local_cache_path + ".TMP";
-  std::ofstream tmp_cache_file(tmp_local_cache_path);
-  if (tmp_cache_file.is_open()) {
-    for (auto i = cache.begin(); i != cache.end(); i++) {
-      tmp_cache_file << i->first << ";" << i->second << std::endl;
-    }
-  }
-  rename(tmp_local_cache_path.c_str(), local_cache_path.c_str());
-  return 0;
-}
-
-int fsync_file(std::string& FilePath, std::string& buf) {
-  std::string tmp_local_file_path = FilePath + ".TMP";
-  std::ofstream tmp_file(tmp_local_file_path);
-  if (tmp_file.is_open()) {
-    tmp_file << buf << std::endl;
-  }
-  rename(tmp_local_file_path.c_str(), FilePath.c_str());
-  return 0;
-}
-
-std::string get_hash_path(const std::string& path) {
-  unsigned char md_buf[SHA256_DIGEST_LENGTH];  // 32
-  SHA256(reinterpret_cast<const unsigned char*>(path.c_str()), path.size(), md_buf);
-  std::stringstream ss;
-  for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-    ss << std::hex << std::setw(2) << std::setfill('0') << (int)md_buf[i];
-  }
-  return ss.str();
-}
-
 // ----------------------------------------------------------------------------
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
@@ -113,7 +52,7 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << "👍 cppWrapper_getattr" << std::endl;
-  path = constructRelativePath(path).c_str();
+  path = Utility::constructRelativePath(path).c_str();
 
   try {
     int errornum;
@@ -248,9 +187,9 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << "👍cppWrapper_open" << std::endl;
 
   std::string local_cache_dir(cacheDirectory);
-  std::unordered_map<std::string, std::string> cache = get_local_cache(local_cache_dir);
+  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(local_cache_dir);
   std::string path_str(path);
-  std::string sha_path = get_hash_path(path_str);
+  std::string sha_path = Cache::get_hash_path(path_str);
   std::string local_cache_file = local_cache_dir + sha_path;
 
   int ret;
@@ -265,9 +204,9 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
     ret = grpcClientInstance->clientRead(path, numBytes, buf, timestamp);
     if (ret != 0) return ret;
 
-    fsync_file(local_cache_file, buf);
+    Cache::fsync_file(local_cache_file, buf);
     cache.insert(std::pair<std::string, std::string>(path_str, sha_path));
-    fsync_cache(local_cache_dir, cache);
+    Cache::fsync_cache(local_cache_dir, cache);
   }
   // path exist, then check version, fetch updated data
   // grpcClientInstance->clientGetAttr()
@@ -405,8 +344,8 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   }
 
   std::string local_cache_dir(cacheDirectory);
-  std::unordered_map<std::string, std::string> cache = get_local_cache(local_cache_dir);
-  std::string sha_path = get_hash_path(path_str);
+  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(local_cache_dir);
+  std::string sha_path = Cache::get_hash_path(path_str);
   std::string local_cache_file = local_cache_dir + sha_path;
   std::ifstream is;
   is.open(local_cache_file, std::ios::binary | std::ios::ate);
@@ -701,18 +640,18 @@ int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
 
 /** // testing:
   int main() {
-    // std::unordered_map<std::string, std::string> get_local_cache(const
-    // std::string& path) int fsync_cache(std::string& path,
+    // std::unordered_map<std::string, std::string> Cache::get_local_cache(const
+    // std::string& path) int Cache::fsync_cache(std::string& path,
     // std::unordered_map<std::string, std::string> cache) std::string
     // hash_path(const std::string& path)
     // std::string test_cache_path("./test_cache.txt");
     // std::unordered_map<std::string, std::string> tmp_cache =
-    //     get_local_cache(test_cache_path);
+    //     Cache::get_local_cache(test_cache_path);
     // std::string test_path = "./test_pathh";
-    // std::string test_hash = get_hash_path(test_path);
+    // std::string test_hash = Cache::get_hash_path(test_path);
     // std::cout << test_path << " " << test_hash << std::endl;
     // tmp_cache.insert(std::pair<std::string, std::string>(test_path,
-    // test_hash)); fsync_cache(test_cache_path, tmp_cache);
+    // test_hash)); Cache::fsync_cache(test_cache_path, tmp_cache);
     // std::string AddrPort_ = "localhost:50051";
     // std::string cacheDirectory_ = "/tmp/cache/";
 
