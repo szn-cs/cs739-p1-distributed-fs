@@ -407,7 +407,7 @@ int main(int argc, char** argv) {
 
   // set defaults
   const std::string address("0.0.0.0:50051");
-  rootDirectory = fs::current_path().generic_string() + "/fs_server/";
+  rootDirectory = fs::current_path().generic_string() + "/fsServer/";
 
   // set configs from arguments
   if (argc == 2)
