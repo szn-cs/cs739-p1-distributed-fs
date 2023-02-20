@@ -25,7 +25,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -60,7 +60,7 @@ using afs::HelloRequest;
 
 using namespace std;
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 #define CHUNK_SIZE 1572864
 static std::string root_dir;
 
