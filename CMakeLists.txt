@@ -23,6 +23,7 @@ message(STATUS "Using gRPC ${gRPC_VERSION}")
 # find_package(Boost REQUIRED regex date_time system filesystem thread graph)
 # message("boost lib: ${Boost_LIBRARIES}")
 # message("boost inc:${Boost_INCLUDE_DIR}")
+find_path(TERMCOLOR_INCLUDE_DIRS "termcolor/termcolor.hpp")
 
 # include(./config/PrintVariables.cmake) # log cmake variables
 # include(CTest)

@@ -70,7 +70,8 @@ target_link_libraries(${PROJECT_NAME}
 # target_link_libraries(${PROJECT_NAME} gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
 # target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${FUSE_LIBRARIES})
-    
+
+
 add_executable(grpc-server grpc-server.cpp
     ${hw_proto_srcs}
     ${hw_grpc_srcs})
@@ -81,7 +82,8 @@ add_executable(grpc-server grpc-server.cpp
     stdc++fs)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${FUSE_INCLUDE_DIRS})
-include_directories(${BOOST_INCLUDE_DIRS})
+# include_directories(${BOOST_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${TERMCOLOR_INCLUDE_DIRS})
 
 
 target_compile_options(${PROJECT_NAME} PUBLIC -D_FILE_OFFSET_BITS=64 -Wall -Wextra -Wno-unused-parameter)
