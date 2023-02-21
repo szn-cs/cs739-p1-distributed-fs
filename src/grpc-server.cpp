@@ -45,24 +45,9 @@ using grpc::ServerReader;
 using grpc::ServerWriter;
 using grpc::Status;
 
-using afs::AFS;
-using afs::MkdirRequest;
-using afs::MkdirResponse;
-using afs::OpenRequest;
-using afs::OpenResponse;
-using afs::Path;
-using afs::ReadDirResponse;
-using afs::ReadReply;
-using afs::ReadRequest;
-using afs::Response;
-using afs::StatInfo;
-using afs::WriteReply;
-using afs::WriteRequest;
-// EXAMPLE
-using afs::HelloReply;
-using afs::HelloRequest;
-
+using namespace afs;
 using namespace std;
+using afs::AFS;
 
 namespace fs = std::filesystem;
 #define CHUNK_SIZE 1572864
@@ -71,7 +56,7 @@ static std::string rootDirectory;
 // Logic and data behind the server's behavior.
 class AFS_Server final : public AFS::Service {
  public:
-  Status Redir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override {
+  Status ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override {
     std::cout << "trigger redir" << std::endl;
 
     string path = Utility::concatenatePath(rootDirectory, request->path());
@@ -113,7 +98,7 @@ class AFS_Server final : public AFS::Service {
     return Status::OK;
   }
 
-  Status Mkdir(ServerContext* context, const MkdirRequest* request, MkdirResponse* response) override {
+  Status MkDir(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) override {
     std::cout << "trigger mkdir" << std::endl;
 
     string path = Utility::concatenatePath(rootDirectory, request->path());
@@ -128,7 +113,7 @@ class AFS_Server final : public AFS::Service {
     return Status::OK;
   }
 
-  Status Rmdir(ServerContext* context, const Path* request, Response* response) override {
+  Status RmDir(ServerContext* context, const Path* request, Response* response) override {
     std::cout << "trigger rmdir" << std::endl;
 
     string path = Utility::concatenatePath(rootDirectory, request->path());

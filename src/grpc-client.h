@@ -21,8 +21,8 @@ using grpc::ClientWriter;
 using grpc::Status;
 
 using afs::AFS;
-using afs::MkdirRequest;
-using afs::MkdirResponse;
+using afs::MkDirRequest;
+using afs::MkDirResponse;
 using afs::OpenRequest;
 using afs::OpenResponse;
 using afs::Path;

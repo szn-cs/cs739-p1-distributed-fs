@@ -12,7 +12,7 @@ int AFS_Client::ReadDirectory(const std::string& path, int& errornum, std::vecto
   afs::ReadDirResponse response;
   ClientContext context;
   request.set_path(path);
-  std::unique_ptr<ClientReader<afs::ReadDirResponse>> reader(stub_->Redir(&context, request));
+  std::unique_ptr<ClientReader<afs::ReadDirResponse>> reader(stub_->ReadDir(&context, request));
 
   while (reader->Read(&response)) {
     results.push_back(response.buf());
@@ -25,7 +25,7 @@ int AFS_Client::ReadDirectory(const std::string& path, int& errornum, std::vecto
 
   return status.ok() ? 0 : status.error_code();
   /*
-  Status status = stub_->Redir(&context, request, &response);
+  Status status = stub_->ReadDir(&context, request, &response);
   if (status.ok()) {
     // -----------------after receive repeated de from grpc server, store them into result_ptr
     for (int i = 0; i < response.buf_size(); ++i) {
@@ -42,13 +42,13 @@ int AFS_Client::ReadDirectory(const std::string& path, int& errornum, std::vecto
 }
 
 int AFS_Client::MakeDirectory(const std::string& path, mode_t mode, int& errornum) {
-  MkdirRequest request;
+  MkDirRequest request;
   request.set_path(path);
   request.set_modet(mode);
-  MkdirResponse reply;
+  MkDirResponse reply;
   ClientContext context;
 
-  Status status = stub_->Mkdir(&context, request, &reply);
+  Status status = stub_->MkDir(&context, request, &reply);
   if (status.ok()) {
     // std::cout << status.status() << std::endl;
     if (reply.status() != 0) {
@@ -70,7 +70,7 @@ int AFS_Client::RemoveDirectory(const std::string& path) {
   ClientContext context;
 
   // Here we can use the stub's newly available method we just added.
-  Status status = stub_->Rmdir(&context, request, &reply);
+  Status status = stub_->RmDir(&context, request, &reply);
   if (status.ok()) {
     // std::cout << status.status() << std::endl;
     return reply.status();
