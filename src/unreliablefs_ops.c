@@ -74,8 +74,6 @@ int unreliable_getattr(const char *path, struct stat *buf) {
         return ret;
     }
 
-    printf("@unreliable_getattr: path = %s\n", path);
-
     return cppWrapper_getattr(path, buf);
 }
 

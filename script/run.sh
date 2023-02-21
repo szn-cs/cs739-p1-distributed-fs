@@ -10,7 +10,7 @@ run_example() {
 fs_mount() {
 
   ######## [terminal instance 1] ##########################################################
-  mkdir -p ./tmp/fs
+  mkdir -p ./tmp/fsMountpoint ./tmp/fsRoot ./tmp/fsServer
 
   ## fix some issues probably with WSL2 setup
   # sudo ln -s /proc/self/mounts /etc/mtab

@@ -44,7 +44,7 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
 // ----------------------------------------------------------------------------
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
-  std::cout << termcolor::yellow << "cppWrapper_lstat" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_lstat" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -77,7 +77,7 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
-  std::cout << termcolor::yellow << "cppWrapper_readlink" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_readlink" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -91,7 +91,7 @@ int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {
 }
 
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
-  std::cout << termcolor::yellow << "cppWrapper_mknod" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_mknod" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -104,7 +104,7 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
 }
 
 int cppWrapper_mkdir(const char* path, mode_t mode) {
-  std::cout << termcolor::yellow << "cppWrapper_mkdir" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_mkdir" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -117,7 +117,7 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
 }
 
 int cppWrapper_unlink(const char* path) {
-  std::cout << termcolor::yellow << "cppWrapper_unlink" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_unlink" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -130,7 +130,7 @@ int cppWrapper_unlink(const char* path) {
 }
 
 int cppWrapper_rmdir(const char* path) {
-  std::cout << termcolor::yellow << "cppWrapper_rmdir" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_rmdir" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -143,7 +143,7 @@ int cppWrapper_rmdir(const char* path) {
 }
 
 int cppWrapper_symlink(const char* target, const char* linkpath) {
-  std::cout << termcolor::yellow << "cppWrapper_symlink" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_symlink" << termcolor::reset << std::endl;
 
   int ret = symlink(target, linkpath);
   if (ret == -1) {
@@ -154,7 +154,7 @@ int cppWrapper_symlink(const char* target, const char* linkpath) {
 }
 
 int cppWrapper_rename(const char* oldpath, const char* newpath) {
-  std::cout << termcolor::yellow << "cppWrapper_rename" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_rename" << termcolor::reset << std::endl;
 
   int ret = rename(oldpath, newpath);
   if (ret == -1) {
@@ -165,7 +165,7 @@ int cppWrapper_rename(const char* oldpath, const char* newpath) {
 }
 
 int cppWrapper_link(const char* oldpath, const char* newpath) {
-  std::cout << termcolor::yellow << "cppWrapper_link" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_link" << termcolor::reset << std::endl;
 
   int ret = link(oldpath, newpath);
   if (ret < 0) {
@@ -176,7 +176,7 @@ int cppWrapper_link(const char* oldpath, const char* newpath) {
 }
 
 int cppWrapper_chmod(const char* path, mode_t mode) {
-  std::cout << termcolor::yellow << "cppWrapper_chmod" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_chmod" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -189,7 +189,7 @@ int cppWrapper_chmod(const char* path, mode_t mode) {
 }
 
 int cppWrapper_chown(const char* path, uid_t owner, gid_t group) {
-  std::cout << termcolor::yellow << "cppWrapper_chown" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_chown" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -202,6 +202,10 @@ int cppWrapper_chown(const char* path, uid_t owner, gid_t group) {
 }
 
 int cppWrapper_truncate(const char* path, off_t length) {
+  std::cout << termcolor::yellow << "\ncppWrapper_truncate" << termcolor::reset << std::endl;
+
+  path = Utility::constructRelativePath(path).c_str();
+
   int ret = truncate(path, length);
   if (ret == -1) {
     return -errno;
@@ -211,7 +215,7 @@ int cppWrapper_truncate(const char* path, off_t length) {
 }
 
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_open" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_open" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -250,7 +254,7 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_read" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_read" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -287,7 +291,7 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
 }
 
 int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_write" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_write" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -347,7 +351,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
 }
 
 int cppWrapper_statfs(const char* path, struct statvfs* buf) {
-  std::cout << termcolor::yellow << "cppWrapper_statfs" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_statfs" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -360,7 +364,7 @@ int cppWrapper_statfs(const char* path, struct statvfs* buf) {
 }
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_flush" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_flush" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -373,7 +377,7 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_release" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_release" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -406,7 +410,7 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_fsync" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_fsync" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -428,7 +432,7 @@ int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) 
 
 #ifdef HAVE_XATTR
 int cppWrapper_setxattr(const char* path, const char* name, const char* value, size_t size, int flags) {
-  std::cout << termcolor::yellow << "cppWrapper_setxattr" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_setxattr" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -446,7 +450,7 @@ int cppWrapper_setxattr(const char* path, const char* name, const char* value, s
 }
 
 int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t size) {
-  std::cout << termcolor::yellow << "cppWrapper_getxattr" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_getxattr" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -464,7 +468,7 @@ int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t 
 }
 
 int cppWrapper_listxattr(const char* path, char* list, size_t size) {
-  std::cout << termcolor::yellow << "cppWrapper_listxattr" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_listxattr" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -482,7 +486,7 @@ int cppWrapper_listxattr(const char* path, char* list, size_t size) {
 }
 
 int cppWrapper_removexattr(const char* path, const char* name) {
-  std::cout << termcolor::yellow << "cppWrapper_removexattr" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_removexattr" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -501,7 +505,7 @@ int cppWrapper_removexattr(const char* path, const char* name) {
 #endif /* HAVE_XATTR */
 
 int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_opendir" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_opendir" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -516,7 +520,7 @@ int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_readdir" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_readdir" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
   /*
@@ -563,7 +567,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
 }
 
 int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_releasedir" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_releasedir" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -578,7 +582,7 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
 }
 
 int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_fsyncdir" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_fsyncdir" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -605,7 +609,7 @@ int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* f
 }
 
 int cppWrapper_access(const char* path, int mode) {
-  std::cout << termcolor::yellow << "cppWrapper_access" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_access" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -618,7 +622,7 @@ int cppWrapper_access(const char* path, int mode) {
 }
 
 int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_create" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_create" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -632,7 +636,7 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
 }
 
 int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_ftruncate" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_ftruncate" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -645,7 +649,7 @@ int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* 
 }
 
 int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_fgetattr" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_fgetattr" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -658,7 +662,7 @@ int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_inf
 }
 
 int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd, struct flock* fl) {
-  std::cout << termcolor::yellow << "cppWrapper_lock" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_lock" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -672,7 +676,7 @@ int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd, struct
 
 #if !defined(__OpenBSD__)
 int cppWrapper_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi, unsigned int flags, void* data) {
-  std::cout << termcolor::yellow << "cppWrapper_ioctl" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_ioctl" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -687,7 +691,7 @@ int cppWrapper_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info
 
 #ifdef HAVE_FLOCK
 int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op) {
-  std::cout << termcolor::yellow << "cppWrapper_flock" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_flock" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -703,7 +707,7 @@ int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op) {
 #ifdef HAVE_FALLOCATE
 // TODO:
 int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "cppWrapper_fallocate" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_fallocate" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
@@ -740,7 +744,7 @@ int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len, st
 
 #ifdef HAVE_UTIMENSAT
 int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
-  std::cout << termcolor::yellow << "cppWrapper_utimens" << termcolor::reset << std::endl;
+  std::cout << termcolor::yellow << "\ncppWrapper_utimens" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
 
