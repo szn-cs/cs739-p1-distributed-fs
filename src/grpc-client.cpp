@@ -2,16 +2,17 @@
 #include "./grpc-client.h"
 using namespace std;
 
-AFSClient::AFSClient(std::shared_ptr<Channel> channel) : stub_(CustomAFS::NewStub(channel)) {}
-int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<std::string>& results) {
+AFS_Client::AFS_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
+
+int AFS_Client::ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
   // return cppWrapper_readdir(path, buf, filler, offset, fi);
   // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
   std::cout << "trigger grpc client read dir on path: " << path << std::endl;
   Path request;
-  RedirResponse response;
+  afs::ReadDirResponse response;
   ClientContext context;
   request.set_path(path);
-  std::unique_ptr<ClientReader<RedirResponse>> reader(stub_->Redir(&context, request));
+  std::unique_ptr<ClientReader<afs::ReadDirResponse>> reader(stub_->ReadDir(&context, request));
 
   while (reader->Read(&response)) {
     results.push_back(response.buf());
@@ -24,7 +25,7 @@ int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<s
 
   return status.ok() ? 0 : status.error_code();
   /*
-  Status status = stub_->Redir(&context, request, &response);
+  Status status = stub_->ReadDir(&context, request, &response);
   if (status.ok()) {
     // -----------------after receive repeated de from grpc server, store them into result_ptr
     for (int i = 0; i < response.buf_size(); ++i) {
@@ -40,15 +41,14 @@ int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<s
   */
 }
 
-int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
-  std::cout << "trigger grpc client make dir on path: " << path << std::endl;
-  MkdirRequest request;
+int AFS_Client::MakeDirectory(const std::string& path, mode_t mode, int& errornum) {
+  MkDirRequest request;
   request.set_path(path);
   request.set_modet(mode);
-  MkdirResponse reply;
+  MkDirResponse reply;
   ClientContext context;
 
-  Status status = stub_->Mkdir(&context, request, &reply);
+  Status status = stub_->MkDir(&context, request, &reply);
   if (status.ok()) {
     // std::cout << status.status() << std::endl;
     if (reply.status() != 0) {
@@ -63,15 +63,14 @@ int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) 
   }
 }
 
-int AFSClient::clientRmdir(const std::string& path) {
-  std::cout << "trigger grpc client remove dir on path: " << path << std::endl;
+int AFS_Client::RemoveDirectory(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
   ClientContext context;
 
   // Here we can use the stub's newly available method we just added.
-  Status status = stub_->Rmdir(&context, request, &reply);
+  Status status = stub_->RmDir(&context, request, &reply);
   if (status.ok()) {
     // std::cout << status.status() << std::endl;
     return reply.status();
@@ -82,8 +81,7 @@ int AFSClient::clientRmdir(const std::string& path) {
   }
 }
 
-int AFSClient::clientUnlink(const std::string& path) {
-  std::cout << "trigger grpc client unlink on path: " << path << std::endl;
+int AFS_Client::Unlink(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
@@ -100,8 +98,9 @@ int AFSClient::clientUnlink(const std::string& path) {
   }
 }
 
-int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& errornum) {
-  std::cout << "trigger grpc client get attr dir on path: " << path << std::endl;
+int AFS_Client::GetAttribute(const std::string& path, struct stat* buf, int& errornum) {
+  cout << "⚫ GetAttribute called " << endl;
+  std::cout << "@GetAttribute constructed path:" << path << std::endl;
 
   Path request;
   request.set_path(path);
@@ -139,8 +138,7 @@ int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& err
   return reply.status();
 }
 
-int AFSClient::clientOpen(const std::string& path, const int& mode, long& timestamp) {
-  std::cout << "trigger grpc client open dir on path: " << path << std::endl;
+int AFS_Client::OpenFile(const std::string& path, const int& mode, long& timestamp) {
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
@@ -156,7 +154,7 @@ int AFSClient::clientOpen(const std::string& path, const int& mode, long& timest
   // return status.error_code();
 }
 
-int AFSClient::clientRead(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
+int AFS_Client::ReadFile(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
   request.set_path(path);
@@ -195,8 +193,8 @@ int AFSClient::clientRead(const std::string& path, /*const int& size,const int& 
   return status.error_code();
 }
 
-int AFSClient::clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
-  std::cout << "trigger grpc client write on path: " << path << "\n";
+int AFS_Client::WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
+  std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;
   ClientContext context;
@@ -244,7 +242,7 @@ int AFSClient::clientWrite(const std::string& path, const std::string& buf, cons
  * Assembles the client's payload, sends it and presents the response back
  * from the server.
  */
-std::string AFSClient::SayHello(const std::string& user) {
+std::string AFS_Client::SayHello(const std::string& user) {
   // Data we are sending to the server.
   HelloRequest request;
   request.set_name(user);
