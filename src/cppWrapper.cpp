@@ -31,6 +31,7 @@ extern "C" {
 int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
   grpcClient = new AFS_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
   cacheDirectory = _cacheDirectory;
+  // TODO: create cache direcotry.
   fsMountPath = argv[1];
   fsRootPath = _fsRootPath;
   cacheFile = cacheDirectory + "cache_file.txt";
