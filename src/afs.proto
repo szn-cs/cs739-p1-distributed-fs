@@ -8,12 +8,14 @@ service AFS {
   //                          check whether a local file (or its stat information) 
   // approach 1: get modified time 
   // approach 2: logical clocks ? or hashing content ? 
-  rpc checkCacheValidity() returns () {};
+  // TODO:
+  rpc checkCacheValidity(Path) returns (Response) {};
   
   // GetFileStat/GetAttr     Get the stat info for a file (Gets status info about files absent from cache)
   rpc GetAttr(Path) returns (StatInfo) {};
 
   // SetFileStat     Set the stat info for a file
+  // TODO:
   rpc SetFileStat(StatInfo) returns (Response) {}; 
 
   // Fetch/GetFileContents           Fetch the contents of file
