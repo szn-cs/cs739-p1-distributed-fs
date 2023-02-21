@@ -2,7 +2,7 @@ syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
 
-// AFSv1 Protocol Highlights
+// From OSTEP book: AFSv1 Protocol Highlights (Early version: caches only files, while directories are kept on the server)
 // TestAuth        Test whether a file has changed
 //                 (used to validate cached entries)
 // GetFileStat     Get the stat info for a file
