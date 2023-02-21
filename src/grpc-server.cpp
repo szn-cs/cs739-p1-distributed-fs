@@ -117,7 +117,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     return Status::OK;
   }
 
-  Status GetAttr(ServerContext* context, const Path* request, StatInfo* response) override {
+  Status GetAttr(ServerContext* context, const Path* request, /*char* string*/ StatInfo* response) override {
     cout << "⚫ GetAttr called " << endl;
 
     std::string getattr_file = rootDirectory + request->path();
@@ -162,6 +162,8 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
       response->set_status(-1);
       response->set_errornum(errno);
     }
+
+    // type cast from lstat to string and backagain
 
     return Status::OK;
   }
