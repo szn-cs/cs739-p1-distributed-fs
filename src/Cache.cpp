@@ -18,7 +18,7 @@ class Cache {
     // File format [key;value\n]:
     //            /temp/path/to/file;ijio1290ej9fjio
     //            /temp/path/to/file2;ijio1290ej9fjio
-    std::string local_cache_path = cacheDirectory + "cache_file.txt";
+    std::string local_cache_path = cacheDirectory;  // + "cache_file.txt";
 
     std::ifstream cache_file(local_cache_path);
     std::string line;
@@ -38,7 +38,7 @@ class Cache {
 
   static int fsync_cache(std::string& cacheDirectory, std::unordered_map<std::string, std::string> cache) {
     // update cache into local cache file.
-    std::string local_cache_path = cacheDirectory + "cache_file.txt";
+    std::string local_cache_path = cacheDirectory;  // + "cache_file.txt";
     std::string tmp_local_cache_path = local_cache_path + ".TMP";
     std::ofstream tmp_cache_file(tmp_local_cache_path);
     if (tmp_cache_file.is_open()) {

@@ -41,6 +41,7 @@ int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<s
 }
 
 int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
+  std::cout << "trigger grpc client make dir on path: " << path << std::endl;
   MkdirRequest request;
   request.set_path(path);
   request.set_modet(mode);
@@ -63,6 +64,7 @@ int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) 
 }
 
 int AFSClient::clientRmdir(const std::string& path) {
+  std::cout << "trigger grpc client remove dir on path: " << path << std::endl;
   Path request;
   request.set_path(path);
   Response reply;
@@ -81,6 +83,7 @@ int AFSClient::clientRmdir(const std::string& path) {
 }
 
 int AFSClient::clientUnlink(const std::string& path) {
+  std::cout << "trigger grpc client unlink on path: " << path << std::endl;
   Path request;
   request.set_path(path);
   Response reply;
@@ -98,8 +101,7 @@ int AFSClient::clientUnlink(const std::string& path) {
 }
 
 int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& errornum) {
-  cout << "⚫ clientGetAttr called " << endl;
-  std::cout << "@clientGetAttr constructed path:" << path << std::endl;
+  std::cout << "trigger grpc client get attr dir on path: " << path << std::endl;
 
   Path request;
   request.set_path(path);
@@ -138,6 +140,7 @@ int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& err
 }
 
 int AFSClient::clientOpen(const std::string& path, const int& mode, long& timestamp) {
+  std::cout << "trigger grpc client open dir on path: " << path << std::endl;
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
@@ -193,7 +196,7 @@ int AFSClient::clientRead(const std::string& path, /*const int& size,const int& 
 }
 
 int AFSClient::clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
-  std::cout << "GRPC client write\n";
+  std::cout << "trigger grpc client write on path: " << path << "\n";
   WriteRequest request;
   WriteReply reply;
   ClientContext context;
