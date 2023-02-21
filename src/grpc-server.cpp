@@ -15,6 +15,7 @@
  * limitations under the License.
  *
  */
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
@@ -50,6 +51,7 @@ using afs::OpenResponse;
 using afs::Path;
 using afs::ReadReply;
 using afs::ReadRequest;
+using afs::RedirResponse;
 using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
@@ -67,6 +69,46 @@ static std::string rootDirectory;
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
  public:
+  Status Redir(ServerContext* context, const Path* request, ServerWriter<RedirResponse>* writer) override {
+    std::cout << "trigger redir" << std::endl;
+    std::string new_dir_path = rootDirectory + request->path();
+    fs::path path_new_dir(new_dir_path);
+    std::vector<std::string> alldata;
+    struct dirent* de;
+    DIR* dp = opendir(path_new_dir.c_str());
+    if (dp == NULL) {
+      std::cout << "DIR is null in server redir function" << std::endl;
+      return Status::OK;
+    }
+
+    while ((de = readdir(dp)) != NULL) {
+      std::string data;
+      data.resize(sizeof(struct dirent));
+      memcpy(&data[0], de, sizeof(struct dirent));
+      std::cout << "data: " << data << std::endl;
+      alldata.push_back(data);
+      /*
+      struct stat st;
+      memset(&st, 0, sizeof(st));
+      st.st_ino = de->d_ino;
+      st.st_mode = de->d_type << 12;
+      if (filler(buf, de->d_name, &st, 0)) break;
+      */
+    }
+    closedir(dp);
+
+    RedirResponse* response = new RedirResponse();
+
+    for (auto entry : alldata) {
+      response->set_buf(entry);
+      writer->Write(*response);
+    }
+
+    // (void)offset;
+    // (void)fi;
+    // response->mutable_buf()->Add(alldata.begin(), alldata.end());
+    return Status::OK;
+  }
   Status Mkdir(ServerContext* context, const MkdirRequest* request, MkdirResponse* response) override {
     std::cout << "trigger mkdir" << std::endl;
     std::string new_dir_path = rootDirectory + request->path();

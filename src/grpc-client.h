@@ -28,6 +28,7 @@ using afs::OpenResponse;
 using afs::Path;
 using afs::ReadReply;
 using afs::ReadRequest;
+using afs::RedirResponse;
 using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
@@ -45,6 +46,7 @@ class AFSClient {
 
   int clientMkdir(const std::string& path, mode_t mode, int& errornum);
   int clientRmdir(const std::string& path);
+  int clientRedir(const std::string& path, int& errornum, std::vector<std::string>& results);
   int clientUnlink(const std::string& path);
   int clientGetAttr(const std::string& path, struct stat* buf, int& errornum);
   int clientOpen(const std::string& path, const int& mode, long& timestamp);

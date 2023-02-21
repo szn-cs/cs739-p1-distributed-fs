@@ -15,17 +15,23 @@ package afs;   // similar to namespace, avoid conflicts
 service CustomAFS {
     rpc Mkdir(MkdirRequest) returns (MkdirResponse) {};
     rpc Unlink(Path) returns (Response) {};
-    rpc Rmdir(Path) returns (Response) {};    
+    rpc Rmdir(Path) returns (Response) {}; 
+    rpc Redir(Path) returns (stream RedirResponse) {};   
     rpc GetAttr(Path) returns (StatInfo) {};
     rpc Read(ReadRequest) returns (stream ReadReply) {};
     rpc Write(stream WriteRequest) returns (WriteReply) {};
     rpc Open(OpenRequest) returns (OpenResponse) {};
     
-
     // EXAMPLE API: keep this for debudding
     // Sends a greeting
     rpc SayHello(HelloRequest) returns (HelloReply) {};
     rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {};
+}
+
+
+message RedirResponse {
+    int32 err = 2;
+    bytes buf = 1;
 }
 
 message Path {
