@@ -32,8 +32,10 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <termcolor/termcolor.hpp>
 #include <vector>
 
+#include "Utility.cpp"
 #include "afs.grpc.pb.h"
 
 using grpc::Server;
@@ -69,13 +71,14 @@ static std::string rootDirectory;
 // Logic and data behind the server's behavior.
 class AFSServerServiceImpl final : public CustomAFS::Service {
  public:
-  Status Redir(ServerContext* context, const Path* request, ServerWriter<RedirResponse>* writer) override {
+  Status Redir(ServerContext* context, const Path* request, ServerWriter<afs::RedirResponse>* writer) override {
     std::cout << "trigger redir" << std::endl;
-    std::string new_dir_path = rootDirectory + request->path();
-    fs::path path_new_dir(new_dir_path);
+
+    string path = Utility::concatenatePath(rootDirectory, request->path());
+
     std::vector<std::string> alldata;
     struct dirent* de;
-    DIR* dp = opendir(path_new_dir.c_str());
+    DIR* dp = opendir(path.c_str());
     if (dp == NULL) {
       std::cout << "DIR is null in server redir function" << std::endl;
       return Status::OK;
@@ -109,12 +112,15 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     // response->mutable_buf()->Add(alldata.begin(), alldata.end());
     return Status::OK;
   }
+
   Status Mkdir(ServerContext* context, const MkdirRequest* request, MkdirResponse* response) override {
     std::cout << "trigger mkdir" << std::endl;
-    std::string new_dir_path = rootDirectory + request->path();
+
+    string path = Utility::concatenatePath(rootDirectory, request->path());
+
     mode_t mode = (mode_t)request->modet();
-    fs::path path_new_dir(new_dir_path);
-    int ret = mkdir(path_new_dir.c_str(), mode);
+
+    int ret = mkdir(path.c_str(), mode);
     if (ret != 0) {
       response->set_erronum(errno);
     }
@@ -124,14 +130,14 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
 
   Status Rmdir(ServerContext* context, const Path* request, Response* response) override {
     std::cout << "trigger rmdir" << std::endl;
-    std::string remove_dir = rootDirectory + request->path();
-    fs::path path_rm_dir(remove_dir);
+
+    string path = Utility::concatenatePath(rootDirectory, request->path());
 
     response->set_status(1);
 
-    if (fs::exists(path_rm_dir)) {
+    if (fs::exists(path)) {
       std::error_code errorCode;
-      if (!fs::remove(path_rm_dir, errorCode)) {
+      if (!fs::remove(path, errorCode)) {
         perror("Failed to rm directory.");
         response->set_status(0);
       }
@@ -143,13 +149,13 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
 
   Status Unlink(ServerContext* context, const Path* request, Response* response) override {
     std::cout << "trigger unlink" << std::endl;
-    std::string remove_file = rootDirectory + request->path();
-    fs::path path_rm_file(remove_file);
+
+    string path = Utility::concatenatePath(rootDirectory, request->path());
 
     response->set_status(1);
-    if (fs::exists(path_rm_file)) {
+    if (fs::exists(path)) {
       std::error_code errorCode;
-      if (!fs::remove(path_rm_file, errorCode)) {
+      if (!fs::remove(path, errorCode)) {
         perror("Failed to rm file.");
         response->set_status(0);
       }
@@ -162,14 +168,11 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   Status GetAttr(ServerContext* context, const Path* request, /*char* string*/ StatInfo* response) override {
     cout << "⚫ GetAttr called " << endl;
 
-    std::string getattr_file = rootDirectory + request->path();
-    fs::path path_getattr_file(getattr_file);
-
-    cout << "path received for server: " << path_getattr_file << endl;
+    string path = Utility::concatenatePath(rootDirectory, request->path());
 
     struct stat sfile;
-    if (lstat(getattr_file.c_str(), &sfile) != -1) {
-      cout << "⚫ lstat found" << path_getattr_file << endl;
+    if (lstat(path.c_str(), &sfile) != -1) {
+      cout << "⚫ lstat found" << path << endl;
 
       response->set_status(0);
       response->set_stdev(sfile.st_dev);
@@ -199,7 +202,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
       // std::cout << sfile.st_mtime << std::endl;
       // std::cout << sfile.st_ctime << std::endl;
     } else {
-      cout << "⚫ lstat not found: " << path_getattr_file << endl;
+      cout << "⚫ lstat not found: " << path << endl;
 
       response->set_status(-1);
       response->set_errornum(errno);
@@ -213,7 +216,8 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
   Status Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) override {
     std::cout << "trigger server open" << std::endl;
     int rc;
-    std::string path = rootDirectory + request->path();
+
+    string path = Utility::concatenatePath(rootDirectory, request->path());
 
     // rc = creat(path.c_str(), request->mode());
 
@@ -237,7 +241,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     struct timespec spec;
     ReadReply* reply = new ReadReply();
 
-    std::string path = rootDirectory + request->path();
+    string path = Utility::concatenatePath(rootDirectory, request->path());
 
     std::cout << "ReadFileStream: " << path << std::endl;
 
@@ -362,7 +366,8 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     reply->set_numbytes(numOfBytes);
 
     while (reader->Read(&request)) {
-      path = rootDirectory + request.path();
+      path = Utility::concatenatePath(rootDirectory, request.path());
+
       size = request.size();
       offset = request.offset();
       std::string buf = request.buf();
@@ -439,7 +444,7 @@ void RunServer(std::string address) {
   builder.RegisterService(&service);
   // Finally assemble the server.
   std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << address << std::endl;
+  std::cout << termcolor::yellow << "⚡ Server listening on " << address << termcolor::reset << std::endl;
 
   // Wait for the server to shutdown. Note that some other thread must be
   // responsible for shutting down the server for this call to ever return.

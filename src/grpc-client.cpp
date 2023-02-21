@@ -8,10 +8,10 @@ int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<s
   // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
   std::cout << "trigger grpc client read dir on path: " << path << std::endl;
   Path request;
-  RedirResponse response;
+  afs::RedirResponse response;
   ClientContext context;
   request.set_path(path);
-  std::unique_ptr<ClientReader<RedirResponse>> reader(stub_->Redir(&context, request));
+  std::unique_ptr<ClientReader<afs::RedirResponse>> reader(stub_->Redir(&context, request));
 
   while (reader->Read(&response)) {
     results.push_back(response.buf());

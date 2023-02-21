@@ -22,4 +22,12 @@ class Utility {
     }
     return relativePath;
   }
+
+  static std::string concatenatePath(std::string base, std::string path) {
+    fs::path concatenated;
+    fs::path _base(base), _path(path);
+    concatenated = fs::absolute(_base / _path);
+
+    return concatenated.generic_string();
+  }
 };
