@@ -37,6 +37,7 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
   std::cout << "⚫ serverAddress path: " << serverAddress << std::endl;
   std::cout << "@cppWrapper_initialize fsMountPath: " << fsMountPath << std::endl;
   std::cout << "@cppWrapper_initialize fsRootPath: " << fsRootPath << endl;
+
   return 0;
 }
 
@@ -55,12 +56,14 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << termcolor::yellow << "cppWrapper_getattr" << termcolor::reset << std::endl;
-
+  std::cout << termcolor::yellow << "before: " << path << std::endl;
   path = Utility::constructRelativePath(path).c_str();
-
+  std::cout << termcolor::yellow << "after: " << path << termcolor::reset << std::endl;
   try {
     int errornum;
+
     std::memset(buf, 0, sizeof(struct stat));
+
     int ret = grpcClientInstance->clientGetAttr(path, buf, errornum);
     if (ret == -1) return -errornum;
     return 0;
@@ -150,7 +153,6 @@ int cppWrapper_symlink(const char* target, const char* linkpath) {
   return 0;
 }
 
-// TODO:
 int cppWrapper_rename(const char* oldpath, const char* newpath) {
   std::cout << termcolor::yellow << "cppWrapper_rename" << termcolor::reset << std::endl;
 
@@ -186,7 +188,6 @@ int cppWrapper_chmod(const char* path, mode_t mode) {
   return 0;
 }
 
-// TODO:
 int cppWrapper_chown(const char* path, uid_t owner, gid_t group) {
   std::cout << termcolor::yellow << "cppWrapper_chown" << termcolor::reset << std::endl;
 
@@ -201,10 +202,6 @@ int cppWrapper_chown(const char* path, uid_t owner, gid_t group) {
 }
 
 int cppWrapper_truncate(const char* path, off_t length) {
-  std::cout << termcolor::yellow << "cppWrapper_truncate" << termcolor::reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
-
   int ret = truncate(path, length);
   if (ret == -1) {
     return -errno;
@@ -430,7 +427,6 @@ int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) 
 }
 
 #ifdef HAVE_XATTR
-// TODO:
 int cppWrapper_setxattr(const char* path, const char* name, const char* value, size_t size, int flags) {
   std::cout << termcolor::yellow << "cppWrapper_setxattr" << termcolor::reset << std::endl;
 
@@ -485,7 +481,6 @@ int cppWrapper_listxattr(const char* path, char* list, size_t size) {
   return 0;
 }
 
-// TODO:
 int cppWrapper_removexattr(const char* path, const char* name) {
   std::cout << termcolor::yellow << "cppWrapper_removexattr" << termcolor::reset << std::endl;
 
@@ -524,7 +519,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
   std::cout << termcolor::yellow << "cppWrapper_readdir" << termcolor::reset << std::endl;
 
   path = Utility::constructRelativePath(path).c_str();
-
+  /*
   DIR* dp = opendir(path);
   if (dp == NULL) {
     return -errno;
@@ -542,7 +537,28 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
     if (filler(buf, de->d_name, &st, 0)) break;
   }
   closedir(dp);
+  */
+  struct dirent de;
+  int errornum = 0;
+  std::vector<std::string> results;
+  int ret = grpcClientInstance->clientRedir(path, errornum, results);
+  if (ret != 0) {
+    return -errornum;
+  }
 
+  std::cout << "show results cppWrapper_readdir read: " << std::endl;
+  for (auto str : results) {
+    std::cout << str << std::endl;
+  }
+  for (auto result : results) {
+    struct stat st;
+    memset(&st, 0, sizeof(st));
+    memcpy(&de, &result[0], result.size());
+    st.st_ino = de.d_ino;
+    st.st_mode = de.d_type << 12;
+    if (filler(buf, de.d_name, &st, 0)) break;
+  }
+  // closedir(dp);
   return 0;
 }
 
@@ -580,12 +596,11 @@ int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* f
     }
   } else {
     ret = fsync(dirfd(dir));
-    if (ret == -1) {
-      return -errno;
-    }
+    std::cout << termcolor::yellow << "before: " << path << std::endl;
+    path = Utility::constructRelativePath(path).c_str();
+    std::cout << termcolor::yellow << "after: " << path << termcolor::reset << std::endl;
   }
   closedir(dir);
-
   return 0;
 }
 

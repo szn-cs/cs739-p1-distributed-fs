@@ -3,6 +3,42 @@
 using namespace std;
 
 AFSClient::AFSClient(std::shared_ptr<Channel> channel) : stub_(CustomAFS::NewStub(channel)) {}
+int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<std::string>& results) {
+  // return cppWrapper_readdir(path, buf, filler, offset, fi);
+  // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
+  std::cout << "trigger grpc client read dir on path: " << path << std::endl;
+  Path request;
+  RedirResponse response;
+  ClientContext context;
+  request.set_path(path);
+  std::unique_ptr<ClientReader<RedirResponse>> reader(stub_->Redir(&context, request));
+
+  while (reader->Read(&response)) {
+    results.push_back(response.buf());
+    if (response.err() < 0) {
+      break;
+    }
+  }
+
+  Status status = reader->Finish();
+
+  return status.ok() ? 0 : status.error_code();
+  /*
+  Status status = stub_->Redir(&context, request, &response);
+  if (status.ok()) {
+    // -----------------after receive repeated de from grpc server, store them into result_ptr
+    for (int i = 0; i < response.buf_size(); ++i) {
+      results.push_back(response.buf(i));
+    }
+    return 0;
+  } else {
+    errornum = -1;
+    std::cout << status.error_code() << ": " << status.error_message()
+              << std::endl;
+    return -1;
+  }
+  */
+}
 
 int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
   MkdirRequest request;

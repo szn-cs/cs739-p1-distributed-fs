@@ -23,7 +23,7 @@ fs_mount() {
   popd
 
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  ./target/release/unreliablefs $(pwd)/tmp/fsMountpoint -basedir=/tmp/fsRoot -seed=1618680646 -d
+  ./target/release/unreliablefs $(pwd)/tmp/fsMountpoint -basedir=$(pwd)/tmp/fsRoot -seed=1618680646 -d
 
   ######## [terminal instance 2] ##########################################################
 
