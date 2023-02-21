@@ -20,15 +20,15 @@ using grpc::ClientReader;
 using grpc::ClientWriter;
 using grpc::Status;
 
-using afs::CustomAFS;
+using afs::AFS;
 using afs::MkdirRequest;
 using afs::MkdirResponse;
 using afs::OpenRequest;
 using afs::OpenResponse;
 using afs::Path;
+using afs::ReadDirResponse;
 using afs::ReadReply;
 using afs::ReadRequest;
-using afs::RedirResponse;
 using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
@@ -40,9 +40,9 @@ using afs::HelloReply, afs::HelloRequest;
 #define TIMEOUT 60 * 1000  // this is in ms
 #define CHUNK_SIZE 1572864
 
-class AFSClient {
+class AFS_Client {
  public:
-  AFSClient(std::shared_ptr<Channel> channel);
+  AFS_Client(std::shared_ptr<Channel> channel);
 
   int MakeDirectory(const std::string& path, mode_t mode, int& errornum);
   int RemoveDirectory(const std::string& path);
@@ -58,5 +58,5 @@ class AFSClient {
   std::string SayHello(const std::string& user);
 
  private:
-  std::unique_ptr<CustomAFS::Stub> stub_;
+  std::unique_ptr<AFS::Stub> stub_;
 };

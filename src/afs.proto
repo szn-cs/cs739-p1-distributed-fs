@@ -12,11 +12,11 @@ package afs;   // similar to namespace, avoid conflicts
 // ListDir         List the contents of a directory
 
 
-service CustomAFS {
+service AFS {
     rpc Mkdir(MkdirRequest) returns (MkdirResponse) {};
     rpc Unlink(Path) returns (Response) {};
     rpc Rmdir(Path) returns (Response) {}; 
-    rpc Redir(Path) returns (stream RedirResponse) {};   
+    rpc Redir(Path) returns (stream ReadDirResponse) {};   
     rpc GetAttr(Path) returns (StatInfo) {};
     rpc Read(ReadRequest) returns (stream ReadReply) {};
     rpc Write(stream WriteRequest) returns (WriteReply) {};
@@ -29,7 +29,7 @@ service CustomAFS {
 }
 
 
-message RedirResponse {
+message ReadDirResponse {
     int32 err = 2;
     bytes buf = 1;
 }

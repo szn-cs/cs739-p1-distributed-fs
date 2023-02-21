@@ -15,7 +15,7 @@
 
 using namespace std;
 
-static AFSClient* grpcClientInstance;
+static AFS_Client* grpcClientInstance;
 static std::string cacheDirectory;
 static std::string fsMountPath;
 static std::string fsRootPath;
@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
-  grpcClientInstance = new AFSClient(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
+  grpcClientInstance = new AFS_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
   cacheDirectory = _cacheDirectory;
   fsMountPath = argv[1];
   fsRootPath = _fsRootPath;
@@ -297,14 +297,14 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
   const char* _path = Utility::constructRelativePath(path).c_str();
 
   std::string local_cache_dir(cacheDirectory);
-  std::string path_str(path);
+
   int ret, fd;
   int free_mark = 0;
 
   if (fi == NULL) {
     fi = new fuse_file_info();
     fi->flags = O_WRONLY;
-    fd = cppWrapper_open(path, fi);
+    fd = cppWrapper_open(_path, fi);
     free_mark = 1;
   } else {
     fd = fi->fh;

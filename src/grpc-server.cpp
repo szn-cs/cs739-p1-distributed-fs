@@ -45,15 +45,15 @@ using grpc::ServerReader;
 using grpc::ServerWriter;
 using grpc::Status;
 
-using afs::CustomAFS;
+using afs::AFS;
 using afs::MkdirRequest;
 using afs::MkdirResponse;
 using afs::OpenRequest;
 using afs::OpenResponse;
 using afs::Path;
+using afs::ReadDirResponse;
 using afs::ReadReply;
 using afs::ReadRequest;
-using afs::RedirResponse;
 using afs::Response;
 using afs::StatInfo;
 using afs::WriteReply;
@@ -69,9 +69,9 @@ namespace fs = std::filesystem;
 static std::string rootDirectory;
 
 // Logic and data behind the server's behavior.
-class AFSServerServiceImpl final : public CustomAFS::Service {
+class AFS_Server final : public AFS::Service {
  public:
-  Status Redir(ServerContext* context, const Path* request, ServerWriter<afs::RedirResponse>* writer) override {
+  Status Redir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override {
     std::cout << "trigger redir" << std::endl;
 
     string path = Utility::concatenatePath(rootDirectory, request->path());
@@ -100,7 +100,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
     }
     closedir(dp);
 
-    RedirResponse* response = new RedirResponse();
+    ReadDirResponse* response = new ReadDirResponse();
 
     for (auto entry : alldata) {
       response->set_buf(entry);
@@ -419,7 +419,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
 };
 
 void RunServer(std::string address) {
-  AFSServerServiceImpl service;
+  AFS_Server service;
 
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
