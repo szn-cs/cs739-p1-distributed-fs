@@ -20,19 +20,8 @@ using grpc::ClientReader;
 using grpc::ClientWriter;
 using grpc::Status;
 
+using namespace afs;
 using afs::AFS;
-using afs::MkDirRequest;
-using afs::MkDirResponse;
-using afs::OpenRequest;
-using afs::OpenResponse;
-using afs::Path;
-using afs::ReadDirResponse;
-using afs::ReadReply;
-using afs::ReadRequest;
-using afs::Response;
-using afs::StatInfo;
-using afs::WriteReply;
-using afs::WriteRequest;
 
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply, afs::HelloRequest;
