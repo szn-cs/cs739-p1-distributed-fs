@@ -217,35 +217,36 @@ int cppWrapper_truncate(const char* path, off_t length) {
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << termcolor::yellow << "\ncppWrapper_open" << termcolor::reset << std::endl;
 
-  path = Utility::constructRelativePath(path).c_str();
+  const char* _path = Utility::constructRelativePath(path).c_str();
 
-  std::string local_cache_dir(cacheDirectory);
-  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(local_cache_dir);
-  std::string path_str(path);
-  std::string sha_path = Cache::get_hash_path(path_str);
-  std::string local_cache_file = local_cache_dir + sha_path;
-
+  std::string local_cache_file(path);
+  // std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(local_cache_dir);
+  std::string path_str(_path);
+  // std::string sha_path = Cache::get_hash_path(path_str);
+  // std::string local_cache_file = local_cache_dir + sha_path;
+  
   int ret;
   long timestamp;
+  
+  // if (cache.find(path_str) == cache.end()) {
+  //   // path not exist in the cache
+  ret = grpcClientInstance->clientOpen(path_str, O_RDWR | O_CREAT | S_IRWXU, timestamp);
+  //   if (ret != 0) return ret;
+  int numBytes;
+  std::string buf;
+  ret = grpcClientInstance->clientRead(path_str, numBytes, buf, timestamp);
+  if (ret != 0) return ret;
 
-  if (cache.find(path_str) == cache.end()) {
-    // path not exist in the cache
-    ret = grpcClientInstance->clientOpen(path_str, O_RDWR | O_CREAT, timestamp);
-    if (ret != 0) return ret;
-    int numBytes;
-    std::string buf;
-    ret = grpcClientInstance->clientRead(path, numBytes, buf, timestamp);
-    if (ret != 0) return ret;
-
-    Cache::fsync_file(local_cache_file, buf);
-    cache.insert(std::pair<std::string, std::string>(path_str, sha_path));
-    Cache::fsync_cache(local_cache_dir, cache);
-  }
+  Cache::fsync_file(local_cache_file, buf);
+  
+  //   cache.insert(std::pair<std::string, std::string>(path_str, sha_path));
+  //   Cache::fsync_cache(local_cache_dir, cache);
+  // }
   // path exist, then check version, fetch updated data
   // grpcClientInstance->clientGetAttr()
   //
   // open local cache file
-  ret = open(local_cache_file.c_str(), fi->flags);
+  ret = open(path, fi->flags);
   if (ret == -1) return -errno;
 
   fi->fh = ret;
@@ -293,7 +294,7 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
 int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << termcolor::yellow << "\ncppWrapper_write" << termcolor::reset << std::endl;
 
-  path = Utility::constructRelativePath(path).c_str();
+  const char* _path = Utility::constructRelativePath(path).c_str();
 
   std::string local_cache_dir(cacheDirectory);
   std::string path_str(path);
@@ -620,16 +621,55 @@ int cppWrapper_access(const char* path, int mode) {
 
 int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
   std::cout << termcolor::yellow << "\ncppWrapper_create" << termcolor::reset << std::endl;
+  // trigger server create file
+  // -> download data
+  const char* _path = Utility::constructRelativePath(path).c_str();
 
-  path = Utility::constructRelativePath(path).c_str();
+  std::string local_cache_file(path);
+  // std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(local_cache_dir);
+  std::string path_str(_path);
+  // std::string sha_path = Cache::get_hash_path(path_str);
+  // std::string local_cache_file = local_cache_dir + sha_path;
+  
+  int ret;
+  long timestamp;
 
-  int ret = open(path, fi->flags, mode);
-  if (ret == -1) {
-    return -errno;
-  }
+  // if (cache.find(path_str) == cache.end()) {
+  //   // path not exist in the cache
+  ret = grpcClientInstance->clientOpen(path_str, O_RDWR | O_CREAT, timestamp);
+  //   if (ret != 0) return ret;
+  int numBytes;
+  std::string buf;
+  ret = grpcClientInstance->clientRead(path_str, numBytes, buf, timestamp);
+  if (ret != 0) return ret;
+
+  Cache::fsync_file(local_cache_file, buf);
+  std::cout << "---------------------------------------fsync_file" << std::endl;
+  //   cache.insert(std::pair<std::string, std::string>(path_str, sha_path));
+  //   Cache::fsync_cache(local_cache_dir, cache);
+  // }
+  // path exist, then check version, fetch updated data
+  // grpcClientInstance->clientGetAttr()
+  //
+  // open local cache file
+
+  ret = open(path, fi->flags, S_IRWXG | S_IRWXO | S_IRWXU);
+  std::cout << "---------------------------------------_file" << std::endl;
+  if (ret == -1) return -errno;
+
   fi->fh = ret;
 
   return 0;
+  // 
+  // _path = Utility::constructRelativePath(path).c_str();
+
+  // int ret = open(path, fi->flags, mode);
+  // if (ret == -1) {
+  //   return -errno;
+  // }
+  // fi->fh = ret;
+
+  // return 0;
 }
 
 int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* fi) {

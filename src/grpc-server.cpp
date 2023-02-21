@@ -217,7 +217,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
 
     // rc = creat(path.c_str(), request->mode());
 
-    rc = open(path.c_str(), request->mode(), S_IRWXU);
+    rc = open(path.c_str(), request->mode(), S_IRWXG | S_IRWXO | S_IRWXU);
     if (rc == -1) {
       // cout << "create returned wrong value\n";
       response->set_err(-errno);
@@ -370,7 +370,7 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
         tempFilePath = path + ".TMP";
         // cout << "Creating new temp file at path = " << tempFilePath << " size
         // = " << size << "\n";
-        fd = open(tempFilePath.c_str(), O_CREAT | O_SYNC | O_WRONLY, 0666);
+        fd = open(tempFilePath.c_str(), O_CREAT | O_SYNC | O_WRONLY, S_IRWXG | S_IRWXO | S_IRWXU);
         if (fd == -1) {
           reply->set_err(-errno);
           reply->set_numbytes(INT_MIN);
