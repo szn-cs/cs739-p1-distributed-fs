@@ -188,19 +188,6 @@ class AFSServerServiceImpl final : public CustomAFS::Service {
       response->set_statime(sfile.st_atime);
       response->set_stmtime(sfile.st_mtime);
       response->set_stctime(sfile.st_ctime);
-      // std::cout << sfile.st_dev << std::endl;
-      // std::cout << sfile.st_ino << std::endl;
-      // std::cout << sfile.st_mode << std::endl;
-      // std::cout << sfile.st_nlink << std::endl;
-      // std::cout << sfile.st_uid << std::endl;
-      // std::cout << sfile.st_gid << std::endl;
-      // std::cout << sfile.st_rdev << std::endl;
-      // std::cout << sfile.st_size << std::endl;
-      // std::cout << sfile.st_blksize << std::endl;
-      // std::cout << sfile.st_blocks << std::endl;
-      // std::cout << sfile.st_atime << std::endl;
-      // std::cout << sfile.st_mtime << std::endl;
-      // std::cout << sfile.st_ctime << std::endl;
     } else {
       cout << "⚫ lstat not found: " << path << endl;
 

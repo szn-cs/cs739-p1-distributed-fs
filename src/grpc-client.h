@@ -44,14 +44,15 @@ class AFSClient {
  public:
   AFSClient(std::shared_ptr<Channel> channel);
 
-  int clientMkdir(const std::string& path, mode_t mode, int& errornum);
-  int clientRmdir(const std::string& path);
-  int clientRedir(const std::string& path, int& errornum, std::vector<std::string>& results);
-  int clientUnlink(const std::string& path);
-  int clientGetAttr(const std::string& path, struct stat* buf, int& errornum);
-  int clientOpen(const std::string& path, const int& mode, long& timestamp);
-  int clientRead(const std::string& path, /*const int& size, const int& offset,*/ int& numBytes, std::string& buf, long& timestamp);
-  int clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp);
+  int MakeDirectory(const std::string& path, mode_t mode, int& errornum);
+  int RemoveDirectory(const std::string& path);
+  int ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results);
+  int Unlink(const std::string& path);
+  int GetAttribute(const std::string& path, struct stat* buf, int& errornum);
+  // TODO: replace with Fetch & Store
+  int OpenFile(const std::string& path, const int& mode, long& timestamp);
+  int ReadFile(const std::string& path, /*const int& size, const int& offset,*/ int& numBytes, std::string& buf, long& timestamp);
+  int WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp);
 
   /** EXAMPLE: keep it to make sure things are working. Assembles the client's payload, sends it and presents the response back from the server. */
   std::string SayHello(const std::string& user);

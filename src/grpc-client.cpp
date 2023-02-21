@@ -3,7 +3,8 @@
 using namespace std;
 
 AFSClient::AFSClient(std::shared_ptr<Channel> channel) : stub_(CustomAFS::NewStub(channel)) {}
-int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<std::string>& results) {
+
+int AFSClient::ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
   // return cppWrapper_readdir(path, buf, filler, offset, fi);
   // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
   std::cout << "trigger grpc client read dir on path: " << path << std::endl;
@@ -40,7 +41,7 @@ int AFSClient::clientRedir(const std::string& path, int& errornum, std::vector<s
   */
 }
 
-int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) {
+int AFSClient::MakeDirectory(const std::string& path, mode_t mode, int& errornum) {
   MkdirRequest request;
   request.set_path(path);
   request.set_modet(mode);
@@ -62,7 +63,7 @@ int AFSClient::clientMkdir(const std::string& path, mode_t mode, int& errornum) 
   }
 }
 
-int AFSClient::clientRmdir(const std::string& path) {
+int AFSClient::RemoveDirectory(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
@@ -80,7 +81,7 @@ int AFSClient::clientRmdir(const std::string& path) {
   }
 }
 
-int AFSClient::clientUnlink(const std::string& path) {
+int AFSClient::Unlink(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
@@ -97,9 +98,9 @@ int AFSClient::clientUnlink(const std::string& path) {
   }
 }
 
-int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& errornum) {
-  cout << "⚫ clientGetAttr called " << endl;
-  std::cout << "@clientGetAttr constructed path:" << path << std::endl;
+int AFSClient::GetAttribute(const std::string& path, struct stat* buf, int& errornum) {
+  cout << "⚫ GetAttribute called " << endl;
+  std::cout << "@GetAttribute constructed path:" << path << std::endl;
 
   Path request;
   request.set_path(path);
@@ -137,7 +138,7 @@ int AFSClient::clientGetAttr(const std::string& path, struct stat* buf, int& err
   return reply.status();
 }
 
-int AFSClient::clientOpen(const std::string& path, const int& mode, long& timestamp) {
+int AFSClient::OpenFile(const std::string& path, const int& mode, long& timestamp) {
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
@@ -153,7 +154,7 @@ int AFSClient::clientOpen(const std::string& path, const int& mode, long& timest
   // return status.error_code();
 }
 
-int AFSClient::clientRead(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
+int AFSClient::ReadFile(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
   request.set_path(path);
@@ -192,7 +193,7 @@ int AFSClient::clientRead(const std::string& path, /*const int& size,const int& 
   return status.error_code();
 }
 
-int AFSClient::clientWrite(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
+int AFSClient::WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
   std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;
