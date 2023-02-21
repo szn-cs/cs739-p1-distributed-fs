@@ -378,9 +378,9 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   std::cout << termcolor::yellow << "\ncppWrapper_release" << termcolor::reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
-
+  
+  std::string _path = Utility::constructRelativePath(path).c_str();
+  
   int ret;
   int numOfBytes;
   long timestamp;
@@ -391,19 +391,20 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
     return -errno;
   }
 
-  std::string local_cache_dir(cacheDirectory);
-  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(local_cache_dir);
-  std::string sha_path = Cache::get_hash_path(path_str);
-  std::string local_cache_file = local_cache_dir + sha_path;
+  // std::string local_cache_dir(cacheDirectory);
+  // std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(local_cache_dir);
+  // std::string sha_path = Cache::get_hash_path(path_str);
+  // std::string local_cache_file = local_cache_dir + sha_path;
   std::ifstream is;
-  is.open(local_cache_file, std::ios::binary | std::ios::ate);
+  is.open(path, std::ios::binary | std::ios::ate | std::ios::in | std::ios::out | std::ios::app);
   is.seekg(0, is.end);
-  int length = is.tellg();
+  int length = (int) is.tellg() > 0 ? (int) is.tellg() : 0;
+
   is.seekg(0, is.beg);
-  if (length != 0) {
+  if (length >= 0) {
     std::string buf(length, '\0');
     is.read(&buf[0], length);
-    ret = grpcClientInstance->clientWrite(path_str, buf, length, 0, numOfBytes, timestamp);
+    ret = grpcClientInstance->clientWrite(_path, buf, length, 0, numOfBytes, timestamp);
   }
   is.close();
   return 0;
@@ -550,10 +551,6 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
     return -errornum;
   }
 
-  std::cout << "show results cppWrapper_readdir read: " << std::endl;
-  for (auto str : results) {
-    std::cout << str << std::endl;
-  }
   for (auto result : results) {
     struct stat st;
     memset(&st, 0, sizeof(st));
