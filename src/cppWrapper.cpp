@@ -121,12 +121,23 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
 int cppWrapper_unlink(const char* path) {
   std::cout << termcolor::yellow << "\ncppWrapper_unlink" << termcolor::reset << std::endl;
 
-  path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
+  int ret;
+  // delete server
+  ret = grpcClientInstance->clientUnlink(_path);
+  // delete local
+  std::string path_str(_path);
+  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(cacheFile);
+  std::string sha_path = Cache::get_hash_path(path_str);
+  std::string local_cache_file = fsRootPath + "/" + sha_path;
 
-  int ret = unlink(path);
+  ret = unlink(local_cache_file.c_str());
   if (ret == -1) {
     return -errno;
   }
+
+  cache.erase(_path);
+  Cache::fsync_cache(cacheFile, cache);
 
   return 0;
 }
@@ -668,10 +679,15 @@ int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* f
 
 int cppWrapper_access(const char* path, int mode) {
   std::cout << termcolor::yellow << "\ncppWrapper_access" << termcolor::reset << std::endl;
+  std::cout << "path: " << path << std::endl;
+  std::string _path = Utility::constructRelativePath(path);
 
-  path = Utility::constructRelativePath(path).c_str();
+  std::string local_cache_dir(fsRootPath);
+  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(cacheFile);
+  std::string sha_path = Cache::get_hash_path(_path);
+  std::string local_cache_file = local_cache_dir + "/" + sha_path;
 
-  int ret = access(path, mode);
+  int ret = access(local_cache_file.c_str(), mode) || access(path, mode);
   if (ret == -1) {
     return -errno;
   }
