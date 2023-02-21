@@ -2,30 +2,44 @@ syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
 
-// From OSTEP book: AFSv1 Protocol Highlights (Early version: caches only files, while directories are kept on the server)
-// TestAuth        Test whether a file has changed
-//                 (used to validate cached entries)
-// GetFileStat     Get the stat info for a file
-// Fetch           Fetch the contents of file
-// Store           Store this file on the server      
-// SetFileStat     Set the stat info for a file
-// ListDir         List the contents of a directory
-
-
+// AFS basic protocol version 1
 service AFS {
-    rpc MkDir(MkDirRequest) returns (MkDirResponse) {};
-    rpc Unlink(Path) returns (Response) {};
-    rpc RmDir(Path) returns (Response) {}; 
-    rpc ReadDir(Path) returns (stream ReadDirResponse) {};   
-    rpc GetAttr(Path) returns (StatInfo) {};
-    rpc Read(ReadRequest) returns (stream ReadReply) {};
-    rpc Write(stream WriteRequest) returns (WriteReply) {};
-    rpc Open(OpenRequest) returns (OpenResponse) {};
-    
-    // EXAMPLE API: keep this for debudding
-    // Sends a greeting
-    rpc SayHello(HelloRequest) returns (HelloReply) {};
-    rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {};
+  // TestAuth        Test whether a file has changed (used to validate cached entries). 
+  //                          check whether a local file (or its stat information) 
+  // approach 1: get modified time 
+  // approach 2: logical clocks ? or hashing content ? 
+  rpc checkCacheValidity() returns () {};
+  
+  // GetFileStat/GetAttr     Get the stat info for a file (Gets status info about files absent from cache)
+  rpc GetAttr(Path) returns (StatInfo) {};
+
+  // SetFileStat     Set the stat info for a file
+  rpc SetFileStat(StatInfo) returns (Response) {}; 
+
+  // Fetch/GetFileContents           Fetch the contents of file
+  rpc Open(OpenRequest) returns (OpenResponse) {};
+  rpc Read(ReadRequest) returns (stream ReadReply) {}; // TODO: remove redundant
+  
+  // Store/Update/Write file           Store this file on the server (called on close())
+  rpc Write(stream WriteRequest) returns (WriteReply) {};
+  
+  // remove file
+  rpc Unlink(Path) returns (Response) {};
+  
+  // create and remove directory
+  rpc MkDir(MkDirRequest) returns (MkDirResponse) {};
+  rpc RmDir(Path) returns (Response) {}; 
+
+  // ListDir         List the contents of a directory
+  rpc ReadDir(Path) returns (stream ReadDirResponse) {};   
+
+  // rename implementation ? 
+  // TODO: if needed
+
+  // EXAMPLE API: keep this for debudding
+  // Sends a greeting
+  rpc SayHello(HelloRequest) returns (HelloReply) {};
+  rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {};
 }
 
 

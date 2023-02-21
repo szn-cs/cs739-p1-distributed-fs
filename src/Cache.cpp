@@ -7,7 +7,7 @@
 using namespace std;
 extern std::string cacheDirectory;
 
-// Cache logic
+// Cache logic: storing status cache (not file cache)
 class Cache {
  public:
   static std::unordered_map<std::string, std::string> get_local_cache(const std::string& cacheDirectory) {
