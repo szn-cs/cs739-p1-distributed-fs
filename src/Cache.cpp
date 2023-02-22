@@ -29,13 +29,11 @@ class Cache {
 
   // check if cache entry exists for the fileCachePath
   bool isCacheEntry() {
-    return this->statusCache.find(this->fileCachePath) != this->statusCache.end();
+    return this->statusCache.find(this->relativePath) != this->statusCache.end();
   }
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
-    cout << this->fileCachePath << endl;
-    cout << statusCachePath << endl;
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
     std::ofstream fileCacheStream(tmp_fileCachePath);
 

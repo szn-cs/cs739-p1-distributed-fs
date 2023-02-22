@@ -92,7 +92,6 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
     goto OpenCachedFile;
 
 FetchToCache : {
-  cout << "isCacheEntry: " << c.isCacheEntry() << " ; Fetching !" << endl;
   long timestamp;
   int numBytes;
   std::string buf;
