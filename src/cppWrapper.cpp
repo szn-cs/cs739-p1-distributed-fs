@@ -24,7 +24,7 @@ extern "C" {
 
 ** FUSE functions:
 		[x] fuse→getattr() 
-		[x!] fuse→open()  // TODO- validation logic
+		[x!] fuse→open()  // TODO- cache validation logic
 		[ ] fuse→release() 
 		[ ] fuse→readdir() 
 		[ ] fuse→truncate() 
