@@ -46,6 +46,40 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
 }
 
 // ----------------------------------------------------------------------------
+/** Mappings of FUSE to AFS handler logic
+ * Main calls should be supported (check unreliablefs.c mapping)
+
+** FUSE functions:
+		fuse→open() 
+		fuse→release() 
+		fuse→readdir() 
+		fuse→truncate() 
+		fuse→fsync() 
+		fuse→mknod() 
+		fuse→getattr() 
+		fuse→mkdir() 
+		fuse→unlink() 
+		fuse→read() 
+		fuse→write() 
+		fuse→rmdir() 
+  
+** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
+		- open(): fuse→getattr(), fuse→open()
+		- close(): fuse→release()
+		- creat(): fuse→mknod()
+		- unlink(): fuse→getattr(), fuse→unlink()
+		- mkdir(): fuse→mkdir()
+		- rmdir(): fuse→rmdir()
+		- read(), pread(): fuse→read()
+		- write(), pwrite(): fuse→write(), fuse→truncate()
+		- stat(): fuse→getattr()
+		- fsync(): fuse→fsync()
+		- readdir(): fuse→readdir()
+
+
+ * TODO: remove unnecessary platform specific implementations
+
+*/
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
   std::cout << yellow << "\ncppWrapper_lstat" << reset << std::endl;

@@ -72,6 +72,7 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 - [ ] Examples:
   - [ ] <https://github.com/rohithvsm/SankalpaFS>
   - [ ] <https://github.com/c5h11oh/DistributedSystems-AFSv1>
+    - [ ] POSIX, FUSE, AFS protocols <https://github.com/c5h11oh/DistributedSystems-AFSv1/blob/f4179ec873e819b03dbd4548043a915f7c00ef9f/README>
 
 # gRPC resources:
 
