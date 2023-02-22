@@ -1,6 +1,8 @@
-stat() {
+getFileAttributes() {
   # equivalent to `lstat``
-  stat file.txt
+  stat $MOUNTPOINT
+  echo "content" >$ROOT/file.txt
+  stat $ROOT/file.txt
 
   # du -b file |cut -f1
 
