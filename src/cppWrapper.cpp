@@ -26,7 +26,7 @@ extern "C" {
 		[x] fuse→getattr() 
 		[x!] fuse→open()  // TODO- cache validation logic
 		[x] fuse→mkdir() 
-		[ ] fuse→rmdir()
+		[x] fuse→rmdir()
 		[ ] fuse→release() 
 		[ ] fuse→readdir() 
 		[ ] fuse→truncate() 
