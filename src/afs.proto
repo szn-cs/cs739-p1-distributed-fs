@@ -2,7 +2,10 @@ syntax = "proto3"; // we use proto version 3
 package afs;   // similar to namespace, avoid conflicts
 
 
-// AFS basic protocol version 1
+
+/**
+  * AFS (AFS basic protocol version 1) gRPC services:
+*/
 service AFS {
   // TestAuth        Test whether a file has changed (used to validate cached entries). 
   //                          check whether a local file (or its stat information) 
@@ -18,7 +21,7 @@ service AFS {
   // TODO:
   rpc SetFileStat(StatInfo) returns (Response) {}; 
 
-  // Fetch/GetFileContents           Fetch the contents of file
+  // Fetch/GetFileContents/Read/Open functionality         Fetch the contents of file
   rpc Open(OpenRequest) returns (OpenResponse) {};
   rpc Read(ReadRequest) returns (stream ReadReply) {}; // TODO: remove redundant
   
@@ -28,8 +31,9 @@ service AFS {
   // remove file
   rpc Unlink(Path) returns (Response) {};
   
-  // create and remove directory
+  // create/touch directory
   rpc MkDir(MkDirRequest) returns (MkDirResponse) {};
+  // remove directory
   rpc RmDir(Path) returns (Response) {}; 
 
   // ListDir         List the contents of a directory

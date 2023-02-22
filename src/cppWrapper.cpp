@@ -84,6 +84,18 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
 
  * TODO: remove unnecessary platform specific implementations
 
+
+# client side functions:
+
+- [ ] ls
+- [ ] stat
+- [ ] rmdir
+- [ ] mkdir
+- [ ] touch(create)
+- [ ] read
+- [ ] write
+- [ ] unlink
+
 */
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
