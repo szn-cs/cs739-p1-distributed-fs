@@ -35,11 +35,10 @@ service AFS {
   // ListDir         List the contents of a directory
   rpc ReadDir(Path) returns (stream ReadDirResponse) {};   
 
-  // rename implementation ? 
+  // rename implementation required ? 
   // TODO: if needed
 
   // EXAMPLE API: keep this for debudding
-  // Sends a greeting
   rpc SayHello(HelloRequest) returns (HelloReply) {};
   rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {};
 

@@ -1,3 +1,8 @@
+/**
+ * AFS Handlers: direct mapping from each of the UnreliableFS functions
+ * 
+*/
+
 #include "./cppWrapper.h"
 
 #include <sys/stat.h>
