@@ -29,7 +29,7 @@ class Cache {
 
   // check if cache entry exists for the fileCachePath
   bool isCacheEntry() {
-    return this->statusCache.find(this->fileCachePath) == this->statusCache.end();
+    return this->statusCache.find(this->fileCachePath) != this->statusCache.end();
   }
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS

@@ -204,8 +204,7 @@ int GRPC_Client::WriteFile(const std::string& path, const std::string& buf, cons
   std::chrono::time_point<std::chrono::system_clock> deadline =
       std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
   context.set_deadline(deadline);
-  std::unique_ptr<ClientWriter<WriteRequest>> writer(
-      stub_->Write(&context, &reply));
+  std::unique_ptr<ClientWriter<WriteRequest>> writer(stub_->Write(&context, &reply));
   int bytesLeft = size;
   int curr = offset;
   while (bytesLeft >= 0) {
@@ -227,16 +226,14 @@ int GRPC_Client::WriteFile(const std::string& path, const std::string& buf, cons
   writer->WritesDone();
   Status status = writer->Finish();
 
-  // std::cout << "There was an error in the server Write "
-  //           << status.error_code() << std::endl;
+  // std::cout << "There was an error in the server Write " << status.error_code() << std::endl;
 
   if (status.ok()) {
     numBytes = reply.numbytes();
     timestamp = reply.timestamp();
     return reply.err();
   }
-  // cout << "There was an error in the server Write " << status.error_code()
-  // << endl;
+  // cout << "There was an error in the server Write " << status.error_code() << endl;
 
   return status.error_code();
 }

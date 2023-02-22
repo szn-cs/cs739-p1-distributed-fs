@@ -22,9 +22,9 @@ class Utility {
 
     relativePath = (fs::relative(path, fsRootPath)).generic_string();
 
-    // trim slashes or `./` from trailing/leading ends
+    // trim slashes or `./` from trailing/leading ends for hashing to be consistent between server and client
     // TODO: for caching
-    cout << "📃 relative path has dots ?: " << relativePath << " from path: " << path << endl;
+    // cout << "📃 relative path has dots ?: " << relativePath << " from path: " << path << endl;
 
     return relativePath;
   }

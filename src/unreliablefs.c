@@ -162,8 +162,8 @@ int main(int argc, char *argv[]) {
     // default arguments
     conf.seed = time(0);
     conf.serverAddress = "0.0.0.0:50051";  // target address & port to send grpc requests to.
-    conf.basedir = "/tmp/fs_root";         // root filesystem folder to which the mountpoint would be directed
-    conf.cacheDirectory = "/tmp/fs_cache/";
+    conf.basedir = "./tmp/fsRoot";         // root filesystem folder to which the mountpoint would be directed
+    conf.cacheDirectory = "./tmp/fsCache/";
 
     // parse arguments
     fuse_opt_parse(&args, &conf, unreliablefs_opts, unreliablefs_opt_proc);

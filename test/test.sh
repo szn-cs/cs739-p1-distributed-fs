@@ -10,3 +10,7 @@ getFileAttributes() {
 
   # wc -c file | cut -f1
 }
+
+getFileContents() {
+
+}
