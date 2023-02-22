@@ -114,22 +114,23 @@ message WriteReply {
 
 
 
-// https://linux.die.net/man/2/stat
-// struct stat {
-//     dev_t     st_dev;     /* ID of device containing file */    -> unsigned long int
-//     ino_t     st_ino;     /* inode number */                    -> unsigned long int
-//     mode_t    st_mode;    /* protection */                      -> unsigned int
-//     nlink_t   st_nlink;   /* number of hard links */            -> unsigned long int
-//     uid_t     st_uid;     /* user ID of owner */                -> unsigned int
-//     gid_t     st_gid;     /* group ID of owner */               -> unsigned int
-//     dev_t     st_rdev;    /* device ID (if special file) */     -> unsigned long int
-//     off_t     st_size;    /* total size, in bytes */            -> long int
-//     blksize_t st_blksize; /* blocksize for file system I/O */   -> long int
-//     blkcnt_t  st_blocks;  /* number of 512B blocks allocated */ -> long int
-//     time_t    st_atime;   /* time of last access */             -> long int
-//     time_t    st_mtime;   /* time of last modification */       -> long int
-//     time_t    st_ctime;   /* time of last status change */      -> long int
-// };
+/** https://linux.die.net/man/2/stat
+  *    struct stat {
+  *        dev_t     st_dev;     /* ID of device containing file */    -> unsigned long int
+  *        ino_t     st_ino;     /* inode number */                    -> unsigned long int
+  *        mode_t    st_mode;    /* protection */                      -> unsigned int
+  *        nlink_t   st_nlink;   /* number of hard links */            -> unsigned long int
+  *        uid_t     st_uid;     /* user ID of owner */                -> unsigned int
+  *        gid_t     st_gid;     /* group ID of owner */               -> unsigned int
+  *        dev_t     st_rdev;    /* device ID (if special file) */     -> unsigned long int
+  *        off_t     st_size;    /* total size, in bytes */            -> long int
+  *        blksize_t st_blksize; /* blocksize for file system I/O */   -> long int
+  *        blkcnt_t  st_blocks;  /* number of 512B blocks allocated */ -> long int
+  *        time_t    st_atime;   /* time of last access */             -> long int
+  *        time_t    st_mtime;   /* time of last modification */       -> long int
+  *        time_t    st_ctime;   /* time of last status change */      -> long int
+  *    };
+*/
 message StatInfo {
     int32 status = 1;
     int32 errornum = 2;
@@ -150,7 +151,7 @@ message StatInfo {
 
 
 
-/********************************************************************************************************** EXAMPLE API *******************************f**/
+/** Test examples ******************************************************************************************************** EXAMPLE API *******************************f**/
 message HelloRequest { string name = 1; }
 message HelloReply { string message = 1; }
 
