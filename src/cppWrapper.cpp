@@ -38,12 +38,12 @@ extern "C" {
 
 * check manual pages for POSIX functions details https://linux.die.net/man/2/
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
-		[ ] open():             fuse→getattr(), fuse→open()
+		[x] open():             fuse→getattr(), fuse→open()
 		[ ] close():            fuse→release()
 		[ ] creat():            fuse→mknod()
 		[ ] unlink():           fuse→getattr(), fuse→unlink()
-		[ ] mkdir():            fuse→mkdir()
-		[ ] rmdir():            fuse→rmdir()
+		[x] mkdir():            fuse→mkdir()
+		[x] rmdir():            fuse→rmdir()
 		[ ] read(), pread():    fuse→read()
 		[ ] write(), pwrite():  fuse→write(), fuse→truncate()
     // https://linux.die.net/man/2/lstat
@@ -77,6 +77,11 @@ Original:
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) return -errno;
   return 0;
+}
+
+int cppWrapper_lstat(const char* path, struct stat* buf) {
+  std::cout << yellow << "\ncppWrapper_lstat —forward→ cppWrapper_getattr" << reset << std::endl;
+  return cppWrapper_getattr(path, buf);
 }
 
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
@@ -139,17 +144,6 @@ int cppWrapper_rmdir(const char* path) {
   int ret = grpcClient->RemoveDirectory(path);
   if (ret == -1)
     return -errno;
-
-  return 0;
-}
-
-int cppWrapper_lstat(const char* path, struct stat* buf) {
-  std::cout << yellow << "\ncppWrapper_lstat" << reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
-
-  memset(buf, 0, sizeof(struct stat));
-  if (lstat(path, buf) == -1) return -errno;
 
   return 0;
 }
