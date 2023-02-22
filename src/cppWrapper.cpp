@@ -477,7 +477,7 @@ int cppWrapper_statfs(const char* path, struct statvfs* buf) {
 
   const char* _path = Utility::constructRelativePath(path).c_str();
 
-  int ret = statvfs(path, buf);
+  int ret = statvfs(_path, buf);
   if (ret == -1) {
     return -errno;
   }
