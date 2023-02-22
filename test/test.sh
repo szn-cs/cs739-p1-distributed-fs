@@ -12,5 +12,13 @@ getFileAttributes() {
 }
 
 getFileContents() {
+  echo "content" >$ROOT/file.txt
+  cat $ROOT/file.txt
+}
 
+manipulateDirectories() {
+  mkdir $ROOT/x
+  mkdir $ROOT/x
+  rmdir $ROOT/x
+  rmdir $ROOT/x
 }
