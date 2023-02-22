@@ -90,7 +90,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
 
     std::string buffer(length, '\0');
     is.read(&buffer[0], length);
-    std::cout << "buffer: " << buffer << std::endl;
+    // std::cout << "buffer" << buffer << std::endl;
     // send data chunk to client
     int bytesRead = 0;
     int minSize = std::min(CHUNK_SIZE, length);

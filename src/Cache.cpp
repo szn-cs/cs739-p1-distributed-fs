@@ -34,6 +34,8 @@ class Cache {
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
+    cout << this->fileCachePath << endl;
+    cout << statusCachePath << endl;
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
     std::ofstream fileCacheStream(tmp_fileCachePath);
 
@@ -51,16 +53,16 @@ class Cache {
 
   // fsync update cache into local cache file.
   int commitStatusCache() {
-    std::string tmp_statusCachePath = this->statusCachePath + ".TMP";
+    std::string tmp_statusCachePath = statusCachePath + ".TMP";
 
     std::ofstream tmp_cache_file(tmp_statusCachePath);
     if (!tmp_cache_file.is_open())
-      throw "Error @commitStatusCache: openning statusCachePath: " + this->statusCachePath;
+      throw "Error @commitStatusCache: openning statusCachePath: " + statusCachePath;
 
     for (auto i = this->statusCache.begin(); i != this->statusCache.end(); i++)
       tmp_cache_file << i->first << ";" << i->second << std::endl;
 
-    rename(tmp_statusCachePath.c_str(), this->statusCachePath.c_str());
+    rename(tmp_statusCachePath.c_str(), statusCachePath.c_str());
 
     return 0;
   }
@@ -83,13 +85,9 @@ class Cache {
   std::unordered_map<std::string, std::string> statusCache;  // in-memory copy from the statusCachePath contents
 
   // static members
-  static std::string statusCachePath;
   static std::unordered_map<std::string, std::string> getStatusCache();
   static std::string getPathHash(const std::string& path);
 };
-
-// initilize static member from extern global variable
-std::string Cache::statusCachePath = statusCachePath;
 
 /* if no file for cache then create new file for keeping cache file.
      after the file exists, read each line and add key value pair into cache in memory.
@@ -100,7 +98,7 @@ std::string Cache::statusCachePath = statusCachePath;
   */
 std::unordered_map<std::string, std::string> Cache::getStatusCache() {
   std::unordered_map<std::string, std::string> statusCache;
-  std::ifstream statusCacheStream(Cache::statusCachePath);
+  std::ifstream statusCacheStream(statusCachePath);
   std::string line;
 
   while (std::getline(statusCacheStream, line)) {

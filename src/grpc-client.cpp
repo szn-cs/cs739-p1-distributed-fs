@@ -75,11 +75,14 @@ int GRPC_Client::getFileContents(const std::string& path, /*const int& size,cons
     return -1;
   }
 
+  if (reply.err() != 0)
+    return reply.err();
+
   numBytes = reply.numbytes();
   timestamp = reply.timestamp();
-  std::cout << "grpc getFileContents client complete" << numBytes << " " << timestamp << std::endl;
+  std::cout << "grpc getFileContents client complete " << numBytes << " " << timestamp << std::endl;
 
-  return reply.err();  // forward if any
+  return 0;
 }
 
 int GRPC_Client::ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {

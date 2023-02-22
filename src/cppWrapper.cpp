@@ -25,12 +25,12 @@ extern "C" {
 ** FUSE functions:
 		[x] fuse→getattr() 
 		[x!] fuse→open()  // TODO- cache validation logic
+		[ ] fuse→mkdir() 
 		[ ] fuse→release() 
 		[ ] fuse→readdir() 
 		[ ] fuse→truncate() 
 		[ ] fuse→fsync() 
 		[ ] fuse→mknod() 
-		[ ] fuse→mkdir() 
 		[ ] fuse→unlink() 
 		[ ] fuse→read() 
 		[ ] fuse→write() 
@@ -92,6 +92,7 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
     goto OpenCachedFile;
 
 FetchToCache : {
+  cout << "isCacheEntry: " << c.isCacheEntry() << " ; Fetching !" << endl;
   long timestamp;
   int numBytes;
   std::string buf;
@@ -120,6 +121,19 @@ Original:
   fi->fh = ret;
 }
 
+int cppWrapper_mkdir(const char* path, mode_t mode) {
+  std::cout << yellow << "\ncppWrapper_mkdir" << reset << std::endl;
+
+  path = Utility::constructRelativePath(path).c_str();
+
+  int errornum;
+  int ret = grpcClient->MakeDirectory(path, mode, errornum);
+  if (ret == -1) {
+    return -errornum;
+  }
+  return 0;
+}
+
 int cppWrapper_lstat(const char* path, struct stat* buf) {
   std::cout << yellow << "\ncppWrapper_lstat" << reset << std::endl;
 
@@ -127,6 +141,24 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) return -errno;
+
+  return 0;
+}
+
+int cppWrapper_unlink(const char* path) {
+  std::cout << yellow << "\ncppWrapper_unlink" << reset << std::endl;
+  int ret;
+  string _path = Utility::constructRelativePath(path);
+
+  Cache c(_path);
+
+  // delete on server
+  ret = grpcClient->Unlink(_path);
+  if (ret != 0) return -errno;
+
+  // delete local
+  ret = c.deleteEntry();
+  if (ret != 0) return -errno;
 
   return 0;
 }
@@ -154,37 +186,6 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
   if (ret == -1) {
     return -errno;
   }
-
-  return 0;
-}
-
-int cppWrapper_mkdir(const char* path, mode_t mode) {
-  std::cout << yellow << "\ncppWrapper_mkdir" << reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
-
-  int errornum;
-  int ret = grpcClient->MakeDirectory(path, mode, errornum);
-  if (ret == -1) {
-    return -errornum;
-  }
-  return 0;
-}
-
-int cppWrapper_unlink(const char* path) {
-  std::cout << yellow << "\ncppWrapper_unlink" << reset << std::endl;
-  int ret;
-  string _path = Utility::constructRelativePath(path);
-
-  Cache c(_path);
-
-  // delete on server
-  ret = grpcClient->Unlink(_path);
-  if (ret != 0) return -errno;
-
-  // delete local
-  ret = c.deleteEntry();
-  if (ret != 0) return -errno;
 
   return 0;
 }
