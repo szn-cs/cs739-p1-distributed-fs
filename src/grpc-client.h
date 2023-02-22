@@ -11,6 +11,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <termcolor/termcolor.hpp>
 
 #include "afs.grpc.pb.h"
 

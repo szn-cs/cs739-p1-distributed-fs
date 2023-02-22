@@ -28,6 +28,14 @@
 
 #include "./grpc-client.h"
 
+// additional headers
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <termcolor/termcolor.hpp>
+
 extern "C" {
 #endif
 

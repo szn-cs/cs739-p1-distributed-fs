@@ -2,24 +2,12 @@
  * AFS Handlers: direct mapping from each of the UnreliableFS functions
  * 
 */
-
 #include "./cppWrapper.h"
-
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <termcolor/termcolor.hpp>
 
 #ifdef __cplusplus
 
 using namespace std;
-using termcolor::reset, termcolor::yellow;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
 static AFS_Client* grpcClient;
 static std::string cacheDirectory;
@@ -55,18 +43,18 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
  * Main calls should be supported (check unreliablefs.c mapping)
 
 ** FUSE functions:
-		fuse→open() 
-		fuse→release() 
-		fuse→readdir() 
-		fuse→truncate() 
-		fuse→fsync() 
-		fuse→mknod() 
-		fuse→getattr() 
-		fuse→mkdir() 
-		fuse→unlink() 
-		fuse→read() 
-		fuse→write() 
-		fuse→rmdir() 
+		[ ] fuse→open() 
+		[ ] fuse→release() 
+		[ ] fuse→readdir() 
+		[ ] fuse→truncate() 
+		[ ] fuse→fsync() 
+		[ ] fuse→mknod() 
+		[ ] fuse→getattr() 
+		[ ] fuse→mkdir() 
+		[ ] fuse→unlink() 
+		[ ] fuse→read() 
+		[ ] fuse→write() 
+		[ ] fuse→rmdir() 
   
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
 		- open():             fuse→getattr(), fuse→open()
@@ -99,24 +87,24 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << yellow << "cppWrapper_getattr" << reset << std::endl;
-  std::cout << yellow << "before: " << path << std::endl;
   path = Utility::constructRelativePath(path).c_str();
-  std::cout << yellow << "after: " << path << reset << std::endl;
-  try {
-    int errornum;
 
+  try {
+    int errornum, r;
     std::memset(buf, 0, sizeof(struct stat));
 
-    int ret = grpcClient->GetAttribute(path, buf, errornum);
-    if (ret == -1) return -errornum;
-    return 0;
+    r = grpcClient->GetAttribute(path, buf, errornum);
+
+    return (r == -1) ? -errornum : 0;
   } catch (...) {
-    cout << "⚫ fallback to original implementation" << endl;
-    // original:
-    memset(buf, 0, sizeof(struct stat));
-    if (lstat(path, buf) == -1) return -errno;
-    return 0;
+    goto Original;
   }
+
+Original:
+  cout << red << "cppWrapper_getattr fallback to original implementation" << reset << endl;
+  memset(buf, 0, sizeof(struct stat));
+  if (lstat(path, buf) == -1) return -errno;
+  return 0;
 }
 
 int cppWrapper_readlink(const char* path, char* buf, size_t bufsiz) {

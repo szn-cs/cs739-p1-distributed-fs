@@ -1,6 +1,7 @@
 
 #include "./grpc-client.h"
 using namespace std;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
 AFS_Client::AFS_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
 
@@ -99,8 +100,7 @@ int AFS_Client::Unlink(const std::string& path) {
 }
 
 int AFS_Client::GetAttribute(const std::string& path, struct stat* buf, int& errornum) {
-  cout << "⚫ GetAttribute called " << endl;
-  std::cout << "@GetAttribute constructed path:" << path << std::endl;
+  std::cout << blue << "FS_Client::GetAttribute" << reset << std::endl;
 
   Path request;
   request.set_path(path);
