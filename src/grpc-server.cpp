@@ -23,7 +23,7 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
   if (lstat(path.c_str(), &attributes) == -1) {
-    cout << "path: " << path << endl;
+    cout << red << "`lstat` errno: " << errno << " for path: " << path << reset << endl;
     response->set_status(-1);
     response->set_errornum(errno);
     return Status::OK;
@@ -46,6 +46,129 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
   response->set_grpc_st_ctime(attributes.st_ctime);
 
   return Status::OK;
+}
+
+Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) {
+  std::cout << yellow << "GRPC_Server::getFileContents" << reset << std::endl;
+  int numOfBytes = 0;
+  int res;
+  struct timespec spec;
+  string path = Utility::concatenatePath(serverDirectory, request->path());
+
+  ReadReply* reply = new ReadReply();
+
+  std::ifstream is;
+  is.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+  try {
+    // read data to buffer with offset and size
+    is.open(path, std::ios::binary | std::ios::ate);
+
+    is.seekg(0, is.end);
+    int length = is.tellg();
+    is.seekg(0, is.beg);
+    /*
+    if (offset + size > is.tellg()) {
+      std::cout << "The offset + size is greater then the file size.\n"
+                << "file size: " << is.tellg() << "\n"
+                << "offset: " << offset << "\n"
+                << "size: " << size << std::endl;
+    }
+    */
+
+    // is.seekg(offset, std::ios::beg);
+    if (length == 0) {
+      clock_gettime(CLOCK_REALTIME, &spec);
+      reply->set_buf("");
+      reply->set_numbytes(0);
+      reply->set_err(0);
+      reply->set_timestamp(spec.tv_sec);
+      writer->Write(*reply);
+      std::cout << "File is empty." << std::endl;
+      is.close();
+      return Status::OK;
+    }
+
+    std::string buffer(length, '\0');
+    is.read(&buffer[0], length);
+    std::cout << "buffer: " << buffer << std::endl;
+    // send data chunk to client
+    int bytesRead = 0;
+    int minSize = std::min(CHUNK_SIZE, length);
+
+    while (bytesRead < is.tellg()) {
+      clock_gettime(CLOCK_REALTIME, &spec);
+      std::string subBuffer = buffer.substr(bytesRead, minSize);
+      // if (subBuffer.find("SERVER_READ_CRASH") != std::string::npos) {
+      //   std::cout << "Killing server process in read\n";
+      //   kill(getpid(), SIGINT);
+      // }
+      reply->set_buf(subBuffer);
+      reply->set_numbytes(minSize);
+      reply->set_err(0);
+      reply->set_timestamp(spec.tv_sec);
+      bytesRead += minSize;
+      writer->Write(*reply);
+    }
+
+    is.close();
+
+  } catch (std::ifstream::failure e) {
+    reply->set_buf("");
+    reply->set_numbytes(0);
+    reply->set_err(-1);
+    reply->set_timestamp(-1);
+    writer->Write(*reply);
+    std::cout << "Caught a failure when read.\n Explanatory string: " << e.what() << "'\nError code: " << e.code() << std::endl;
+    is.close();
+  }
+
+  return Status::OK;
+
+  /*
+  int fd = open(path.c_str(), O_RDONLY);
+
+  if (fd == -1) {
+    reply->set_err(-errno);
+    reply->set_numbytes(INT_MIN);
+    return Status::OK;
+  }
+
+  std::string buf;
+  buf.resize(size);
+
+  int bytesRead = pread(fd, &buf[0], size, offset);
+  if (bytesRead != size) {
+    printf("Read Send: PREAD didn't read %d bytes from offset %d\n", size,
+            offset);
+  }
+
+  if (bytesRead == -1) {
+    reply->set_err(-errno);
+    reply->set_numbytes(INT_MIN);
+  }
+
+  int curr = 0;
+  while (bytesRead > 0) {
+    if (buf.find("crash1") != std::string::npos) {
+      std::cout << "Killing server process in read\n";
+      kill(getpid(), SIGINT);
+    }
+    clock_gettime(CLOCK_REALTIME, &spec);
+    reply->set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesRead)));
+    reply->set_numbytes(std::min(CHUNK_SIZE, bytesRead));
+    reply->set_err(0);
+    reply->set_timestamp(spec.tv_sec);
+    curr += std::min(CHUNK_SIZE, bytesRead);
+    bytesRead -= std::min(CHUNK_SIZE, bytesRead);
+
+    writer->Write(*reply);
+  }
+
+  if (fd > 0) {
+    printf("Read Send: Calling close()\n");
+    close(fd);
+  }
+  */
 }
 
 Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
@@ -145,7 +268,6 @@ Status GRPC_Server::Unlink(ServerContext* context, const Path* request, Response
 Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
   std::cout << "trigger server open" << std::endl;
   int rc;
-
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
   // rc = creat(path.c_str(), request->mode());
@@ -161,128 +283,6 @@ Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, Ope
   response->set_timestamp(spec.tv_sec);
   response->set_err(0);
   return Status::OK;
-}
-
-Status GRPC_Server::Read(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) {
-  std::cout << "trigger server read" << std::endl;
-  int numOfBytes = 0;
-  int res;
-  struct timespec spec;
-  ReadReply* reply = new ReadReply();
-
-  string path = Utility::concatenatePath(serverDirectory, request->path());
-
-  std::cout << "ReadFileStream: " << path << std::endl;
-
-  std::ifstream is;
-  is.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-  try {
-    // read data to buffer with offset and size
-    is.open(path, std::ios::binary | std::ios::ate);
-    is.seekg(0, is.end);
-    int length = is.tellg();
-    is.seekg(0, is.beg);
-    /*
-    if (offset + size > is.tellg()) {
-      std::cout << "The offset + size is greater then the file size.\n"
-                << "file size: " << is.tellg() << "\n"
-                << "offset: " << offset << "\n"
-                << "size: " << size << std::endl;
-    }
-    */
-    // is.seekg(offset, std::ios::beg);
-    if (length == 0) {
-      clock_gettime(CLOCK_REALTIME, &spec);
-      reply->set_buf("");
-      reply->set_numbytes(0);
-      reply->set_err(0);
-      reply->set_timestamp(spec.tv_sec);
-      writer->Write(*reply);
-      std::cout << "File is empty." << std::endl;
-      is.close();
-      return Status::OK;
-    }
-
-    std::string buffer(length, '\0');
-    is.read(&buffer[0], length);
-    std::cout << "buffer: " << buffer << std::endl;
-    // send data chunk to client
-    int bytesRead = 0;
-    int minSize = std::min(CHUNK_SIZE, length);
-
-    while (bytesRead < is.tellg()) {
-      clock_gettime(CLOCK_REALTIME, &spec);
-      std::string subBuffer = buffer.substr(bytesRead, minSize);
-      // if (subBuffer.find("SERVER_READ_CRASH") != std::string::npos) {
-      //   std::cout << "Killing server process in read\n";
-      //   kill(getpid(), SIGINT);
-      // }
-      reply->set_buf(subBuffer);
-      reply->set_numbytes(minSize);
-      reply->set_err(0);
-      reply->set_timestamp(spec.tv_sec);
-      bytesRead += minSize;
-      writer->Write(*reply);
-    }
-
-    is.close();
-  } catch (std::ifstream::failure e) {
-    reply->set_buf("");
-    reply->set_numbytes(0);
-    reply->set_err(-1);
-    reply->set_timestamp(-1);
-    writer->Write(*reply);
-    std::cout << "Caught a failure when read.\n"
-              << "Explanatory string: " << e.what() << '\n'
-              << "Error code: " << e.code() << std::endl;
-    is.close();
-  }
-  return Status::OK;
-  /*
-  int fd = open(path.c_str(), O_RDONLY);
-
-  if (fd == -1) {
-    reply->set_err(-errno);
-    reply->set_numbytes(INT_MIN);
-    return Status::OK;
-  }
-
-  std::string buf;
-  buf.resize(size);
-
-  int bytesRead = pread(fd, &buf[0], size, offset);
-  if (bytesRead != size) {
-    printf("Read Send: PREAD didn't read %d bytes from offset %d\n", size,
-            offset);
-  }
-
-  if (bytesRead == -1) {
-    reply->set_err(-errno);
-    reply->set_numbytes(INT_MIN);
-  }
-
-  int curr = 0;
-  while (bytesRead > 0) {
-    if (buf.find("crash1") != std::string::npos) {
-      std::cout << "Killing server process in read\n";
-      kill(getpid(), SIGINT);
-    }
-    clock_gettime(CLOCK_REALTIME, &spec);
-    reply->set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesRead)));
-    reply->set_numbytes(std::min(CHUNK_SIZE, bytesRead));
-    reply->set_err(0);
-    reply->set_timestamp(spec.tv_sec);
-    curr += std::min(CHUNK_SIZE, bytesRead);
-    bytesRead -= std::min(CHUNK_SIZE, bytesRead);
-
-    writer->Write(*reply);
-  }
-
-  if (fd > 0) {
-    printf("Read Send: Calling close()\n");
-    close(fd);
-  }
-  */
 }
 
 Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) {

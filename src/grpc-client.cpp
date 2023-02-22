@@ -15,7 +15,7 @@ int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, in
   Status status = stub_->getFileAttributes(&context, request, &reply);
 
   if (!status.ok()) {
-    std::cout << red << "GRPC error: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
+    std::cout << red << "GRPC error @getFileAttributes: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
     return -1;
   }
 
@@ -40,6 +40,46 @@ int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, in
   buf->st_ctime = reply.grpc_st_ctime();
 
   return 0;
+}
+
+int GRPC_Client::getFileContents(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
+  std::cout << blue << "GRPC_Client::getFileContents" << reset << std::endl;
+  ReadRequest request;
+  ReadReply reply;
+  ClientContext context;
+
+  request.set_path(path);
+  // request.set_size(size);
+  // request.set_offset(offset);
+
+  std::chrono::time_point<std::chrono::system_clock> deadline =
+      std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
+  context.set_deadline(deadline);
+
+  std::unique_ptr<ClientReader<ReadReply>> reader(stub_->getFileContents(&context, request));  // contact server
+
+  while (reader->Read(&reply)) {
+    // if (reply.buf().find("crash3") != std::string::npos) {
+    //   std::cout << "Killing client process in read()\n";
+    //   kill(getpid(), SIGABRT);
+    // }
+    // std::cout << reply.buf() << std::endl;
+    buf.append(reply.buf());
+    if (reply.numbytes() < 0)
+      break;
+  }
+
+  Status status = reader->Finish();
+  if (!status.ok()) {
+    std::cout << red << "GRPC error @getFileContents: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
+    return -1;
+  }
+
+  numBytes = reply.numbytes();
+  timestamp = reply.timestamp();
+  std::cout << "grpc getFileContents client complete" << numBytes << " " << timestamp << std::endl;
+
+  return reply.err();  // forward if any
 }
 
 int GRPC_Client::ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
@@ -136,6 +176,10 @@ int GRPC_Client::Unlink(const std::string& path) {
   }
 }
 
+// HOW to call:
+//   ret = grpcClient->OpenFile(_path, O_RDWR | O_CREAT | S_IRWXU, timestamp);
+//    if (ret != 0) return ret;
+// TODO: ? touch functionality: only create file without contents
 int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timestamp) {
   OpenRequest request;
   request.set_path(path);
@@ -150,47 +194,6 @@ int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timest
   // grpc fail
   return -1;
   // return status.error_code();
-}
-
-// touch functionality: only create file without contents
-// TODO: is that the same as Open above ? Is it necessary to implement ?
-int GRPC_Client::ReadFile(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
-  std::cout << "trigger grpc client read on path: " << path << "\n";
-  ReadRequest request;
-  request.set_path(path);
-  // request.set_size(size);
-  // request.set_offset(offset);
-  ReadReply reply;
-  ClientContext context;
-  std::chrono::time_point<std::chrono::system_clock> deadline =
-      std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
-  context.set_deadline(deadline);
-
-  std::unique_ptr<ClientReader<ReadReply>> reader(
-      stub_->Read(&context, request));
-
-  while (reader->Read(&reply)) {
-    // if (reply.buf().find("crash3") != std::string::npos) {
-    //   std::cout << "Killing client process in read()\n";
-    //   kill(getpid(), SIGABRT);
-    // }
-    std::cout << reply.buf() << std::endl;
-    buf.append(reply.buf());
-    if (reply.numbytes() < 0) {
-      break;
-    }
-  }
-  Status status = reader->Finish();
-  if (status.ok()) {
-    numBytes = reply.numbytes();
-    timestamp = reply.timestamp();
-    std::cout << "grpc Read client " << numBytes << " " << timestamp
-              << std::endl;
-    return reply.err();
-  }
-  std::cout << "There was an error in the server Read " << status.error_code()
-            << std::endl;
-  return status.error_code();
 }
 
 int GRPC_Client::WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {

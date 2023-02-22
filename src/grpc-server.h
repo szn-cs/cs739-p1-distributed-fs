@@ -40,7 +40,7 @@ class GRPC_Server final : public AFS::Service {
   Status Unlink(ServerContext* context, const Path* request, Response* response) override;
   Status getFileAttributes(ServerContext* context, const Path* request, /*char* string*/ Attributes* response) override;
   Status Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) override;
-  Status Read(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) override;
+  Status getFileContents(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) override;
   Status Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) override;
   Status SayHello(ServerContext* context, const HelloRequest* request, HelloReply* reply) override;
 };

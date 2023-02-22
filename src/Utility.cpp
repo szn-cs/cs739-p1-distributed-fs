@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 // #include <boost/filesystem.hpp>
 #include <filesystem>
@@ -15,11 +17,15 @@ class Utility {
   // construct a relative path
   static std::string constructRelativePath(std::string path) {
     string relativePath;
-    if ((fs::path(path)).is_absolute()) {
-      relativePath = (fs::relative(path, fsRootPath)).generic_string();
-    } else {
-      relativePath = (fs::relative(fs::absolute(path), fsRootPath)).generic_string();
-    }
+    if (!(fs::path(path)).is_absolute())
+      path = fs::canonical(path);
+
+    relativePath = (fs::relative(path, fsRootPath)).generic_string();
+
+    // trim slashes or `./` from trailing/leading ends
+    // TODO: for caching
+    cout << "📃 relative path has dots ?: " << relativePath << " from path: " << path << endl;
+
     return relativePath;
   }
 

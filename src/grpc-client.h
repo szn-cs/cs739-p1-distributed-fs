@@ -41,7 +41,7 @@ class GRPC_Client {
   int getFileAttributes(const std::string& path, struct stat* buf, int& errornum);
   // TODO: replace with Fetch & Store
   int OpenFile(const std::string& path, const int& mode, long& timestamp);
-  int ReadFile(const std::string& path, /*const int& size, const int& offset,*/ int& numBytes, std::string& buf, long& timestamp);
+  int getFileContents(const std::string& path, /*const int& size, const int& offset,*/ int& numBytes, std::string& buf, long& timestamp);
   int WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp);
 
   /** EXAMPLE: keep it to make sure things are working. Assembles the client's payload, sends it and presents the response back from the server. */

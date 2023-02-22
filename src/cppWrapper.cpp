@@ -12,45 +12,19 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
 static GRPC_Client* grpcClient;
 std::string cacheDirectory;
-std::string cacheFile;
+std::string statusCachePath;
 std::string fsMountPath;
 std::string fsRootPath;
 
 extern "C" {
 #endif
 
-int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
-  grpcClient = new GRPC_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
-  cacheDirectory = _cacheDirectory;
-  fsMountPath = argv[1];
-  fsRootPath = _fsRootPath;
-
-  // create direcotries
-  fs::create_directories(cacheDirectory) == true ? cout << blue << "cacheDirectory created" << reset << endl : cout << blue << "cacheDirectory already exists" << reset << endl;
-  fs::create_directories(fsMountPath) == true ? cout << blue << "fsMountPath created" << reset << endl : cout << blue << "fsMountPath already exists" << reset << endl;
-
-  cacheFile = Utility::concatenatePath(cacheDirectory, "cache_file.txt");
-
-  cout << blue << "cacheFile: " << cacheFile << reset << endl;
-  cout << blue << "serverAddress: " << serverAddress << reset << endl;
-  cout << blue << "fsMountPath: " << fsMountPath << reset << endl;
-  cout << blue << "fsRootPath: " << fsRootPath << reset << endl;
-  cout << yellow << "cppWrapper_initialize complete" << reset << endl;
-
-  return 0;
-}
-
-void cppWrapper_createDirectories(char* path) {
-  fs::create_directories(path) == true ? cout << blue << path << " directory created" << reset << endl : cout << blue << path << " directory already exists" << reset << endl;
-}
-
-// ----------------------------------------------------------------------------
 /** Mappings of FUSE to AFS handler logic
  * Main calls should be supported (check unreliablefs.c mapping)
 
 ** FUSE functions:
 		[x] fuse→getattr() 
-		[ ] fuse→open() 
+		[x!] fuse→open()  // TODO- validation logic
 		[ ] fuse→release() 
 		[ ] fuse→readdir() 
 		[ ] fuse→truncate() 
@@ -61,7 +35,8 @@ void cppWrapper_createDirectories(char* path) {
 		[ ] fuse→read() 
 		[ ] fuse→write() 
 		[ ] fuse→rmdir() 
-  
+
+* check manual pages for POSIX functions details https://linux.die.net/man/2/
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
 		[ ] open():             fuse→getattr(), fuse→open()
 		[ ] close():            fuse→release()
@@ -72,7 +47,7 @@ void cppWrapper_createDirectories(char* path) {
 		[ ] read(), pread():    fuse→read()
 		[ ] write(), pwrite():  fuse→write(), fuse→truncate()
     // https://linux.die.net/man/2/lstat
-		[?] stat():             fuse→getattr()
+		[x] stat():             fuse→getattr()
     [ ] fsync():            fuse→fsync()
 		[ ] readdir():          fuse→readdir()
 
@@ -102,6 +77,47 @@ Original:
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) return -errno;
   return 0;
+}
+
+int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
+  std::cout << yellow << "\ncppWrapper_open" << reset << std::endl;
+  int ret;
+  string _path = Utility::constructRelativePath(path);
+
+  Cache c(_path);
+
+  // check if cache entry for the path exists
+  // TODO: and check is cache valid or stale
+  if (c.isCacheEntry() && true /* if valid cache **/)
+    goto OpenCachedFile;
+
+FetchToCache : {
+  long timestamp;
+  int numBytes;
+  std::string buf;
+
+  // fetch file
+  ret = grpcClient->getFileContents(_path, numBytes, buf, timestamp);
+  if (ret != 0) return ret;
+
+  c.commitFileCache(buf);
+  c.commitStatusCache();
+}
+
+OpenCachedFile:  // open local cache file
+  ret = open(c.fileCachePath.c_str(), fi->flags);
+  if (ret == -1) return -errno;
+
+  fi->fh = ret;
+
+  return 0;
+
+Original:
+  ret = open(path, fi->flags);
+  if (ret == -1) {
+    return -errno;
+  }
+  fi->fh = ret;
 }
 
 int cppWrapper_lstat(const char* path, struct stat* buf) {
@@ -157,24 +173,18 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
 
 int cppWrapper_unlink(const char* path) {
   std::cout << yellow << "\ncppWrapper_unlink" << reset << std::endl;
-
-  std::string _path = Utility::constructRelativePath(path);
   int ret;
-  // delete server
+  string _path = Utility::constructRelativePath(path);
+
+  Cache c(_path);
+
+  // delete on server
   ret = grpcClient->Unlink(_path);
+  if (ret != 0) return -errno;
+
   // delete local
-  std::string path_str(_path);
-  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(cacheFile);
-  std::string sha_path = Cache::get_hash_path(path_str);
-  std::string local_cache_file = fsRootPath + "/" + sha_path;
-
-  ret = unlink(local_cache_file.c_str());
-  if (ret == -1) {
-    return -errno;
-  }
-
-  cache.erase(_path);
-  Cache::fsync_cache(cacheFile, cache);
+  ret = c.deleteEntry();
+  if (ret != 0) return -errno;
 
   return 0;
 }
@@ -264,107 +274,56 @@ int cppWrapper_truncate(const char* path, off_t length) {
   return 0;
 }
 
-int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
-  std::cout << yellow << "\ncppWrapper_open" << reset << std::endl;
-
-  const char* _path = Utility::constructRelativePath(path).c_str();
-
-  std::string local_cache_file(path);
-  std::string path_str(_path);
-  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(cacheFile);
-  std::string sha_path = Cache::get_hash_path(path_str);
-  local_cache_file = fsRootPath + "/" + sha_path;
-
+// trigger server create file -> download data
+int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
+  std::cout << termcolor::yellow << "\ncppWrapper_create" << termcolor::reset << std::endl;
+  string _path = Utility::constructRelativePath(path);
   int ret;
   long timestamp;
 
-  if (cache.find(path_str) == cache.end()) {
-    // path not exist in the cache
-    ret = grpcClient->OpenFile(path_str, O_RDWR | O_CREAT | S_IRWXU, timestamp);
-    if (ret != 0) return ret;
-    int numBytes;
-    std::string buf;
-    ret = grpcClient->ReadFile(path_str, numBytes, buf, timestamp);
-    if (ret != 0) return ret;
+  Cache c(_path);
 
-    Cache::fsync_file(local_cache_file, buf);
+  // if path not exist in the cache
+  // TODO: and check is cache valid or stale
+  if (c.isCacheEntry() && true /* if valid cache **/)
+    goto OpenCachedFile;
 
-    cache.insert(std::pair<std::string, std::string>(path_str, sha_path));
-    Cache::fsync_cache(cacheFile, cache);
-  }
-  // path exist, then check version, fetch updated data
-  // grpcClient->getFileAttributes()
-  //
-  // open local cache file
-  // ret = open(path, fi->flags);
-  ret = open(local_cache_file.c_str(), fi->flags);
+FetchCache : {
+  int numBytes;
+  std::string buf;
+  ret = grpcClient->OpenFile(_path, O_RDWR | O_CREAT, timestamp);
+  if (ret != 0) return ret;
+  ret = grpcClient->getFileContents(_path, numBytes, buf, timestamp);
+  if (ret != 0) return ret;
+
+  c.commitFileCache(buf);
+  c.commitStatusCache();
+}
+
+OpenCachedFile:
+  //  open local cache file
+  ret = open(c.fileCachePath.c_str(), fi->flags, S_IRWXG | S_IRWXO | S_IRWXU);
   if (ret == -1) return -errno;
 
+  fi->fh = ret;
+
+  return 0;
+
+Original : {
+  int ret = open(path, fi->flags, mode);
+  if (ret == -1) {
+    return -errno;
+  }
   fi->fh = ret;
 
   return 0;
 }
-
-int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
-  std::cout << termcolor::yellow << "\ncppWrapper_create" << termcolor::reset << std::endl;
-  // trigger server create file
-  // -> download data
-  const char* _path = Utility::constructRelativePath(path).c_str();
-
-  std::string local_cache_file(path);
-  std::string path_str(_path);
-  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(cacheFile);
-  std::string sha_path = Cache::get_hash_path(path_str);
-  local_cache_file = fsRootPath + "/" + sha_path;
-
-  int ret;
-  long timestamp;
-
-  if (cache.find(path_str) == cache.end()) {
-    // path not exist in the cache
-    ret = grpcClient->OpenFile(path_str, O_RDWR | O_CREAT, timestamp);
-    if (ret != 0) return ret;
-    int numBytes;
-    std::string buf;
-    ret = grpcClient->ReadFile(path_str, numBytes, buf, timestamp);
-    if (ret != 0) return ret;
-
-    Cache::fsync_file(local_cache_file, buf);
-    // std::cout << "---------------------------------------fsync_file" << std::endl;
-    cache.insert(std::pair<std::string, std::string>(path_str, sha_path));
-    Cache::fsync_cache(cacheFile, cache);
-  }
-  //  path exist, then check version, fetch updated data
-  //  grpcClientInstance->clientGetAttr()
-  //
-  //  open local cache file
-
-  ret = open(local_cache_file.c_str(), fi->flags, S_IRWXG | S_IRWXO | S_IRWXU);
-  // std::cout << "---------------------------------------_file" << std::endl;
-  if (ret == -1) return -errno;
-
-  fi->fh = ret;
-
-  return 0;
-  //
-  // _path = Utility::constructRelativePath(path).c_str();
-
-  // int ret = open(path, fi->flags, mode);
-  // if (ret == -1) {
-  //   return -errno;
-  // }
-  // fi->fh = ret;
-
-  // return 0;
 }
 
 int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_read" << reset << std::endl;
-
   path = Utility::constructRelativePath(path).c_str();
 
-  // std::string local_cache_dir(cacheDirectory);
-  // std::string path_str(path);
   int ret, fd;
   int free_mark = 0;
 
@@ -397,10 +356,7 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
 
 int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_write" << reset << std::endl;
-
   const char* _path = Utility::constructRelativePath(path).c_str();
-
-  std::string local_cache_dir(cacheDirectory);
 
   int ret, fd;
   int free_mark = 0;
@@ -415,15 +371,13 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
     fd = fi->fh;
   }
 
-  if (fd == -1) {
+  if (fd == -1)
     return -errno;
-  }
-  std::cout << "cppWrapper_write buf: " << buf << " size: " << size
-            << std::endl;
+
+  std::cout << "cppWrapper_write buf: " << buf << " size: " << size << std::endl;
   ret = pwrite(fd, buf, size, offset);
-  if (ret == -1) {
+  if (ret == -1)
     ret = -errno;
-  }
 
   // if (fi == NULL) {
   if (free_mark == 1) {
@@ -431,7 +385,9 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
     close(fd);
   }
 
-  /*
+  return 0;
+
+Original : {
   int fd;
   (void)fi;
   if (fi == NULL) {
@@ -444,7 +400,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
     return -errno;
   }
 
-  int ret = pwrite(fd, buf, size, offset);
+  ret = pwrite(fd, buf, size, offset);
   if (ret == -1) {
     ret = -errno;
   }
@@ -452,8 +408,9 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
   if (fi == NULL) {
     close(fd);
   }
-  */
-  return 0;
+
+  return ret;
+}
 }
 
 int cppWrapper_statfs(const char* path, struct statvfs* buf) {
@@ -484,28 +441,23 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_release" << reset << std::endl;
-
   std::string _path = Utility::constructRelativePath(path).c_str();
-
   int ret;
   int numOfBytes;
   long timestamp;
-  std::string path_str(_path);
-
-  ret = close(fi->fh);
-  if (ret == -1) {
-    return -errno;
-  }
-
-  std::string local_cache_dir(fsRootPath);
-  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(cacheFile);
-  std::string sha_path = Cache::get_hash_path(path_str);
-  std::string local_cache_file = local_cache_dir + "/" + sha_path;
   std::ifstream is;
-  is.open(local_cache_file, std::ios::binary | std::ios::ate | std::ios::in | std::ios::out | std::ios::app);
+
+  Cache c(_path);
+
+  // close file locally
+  ret = close(fi->fh);
+  if (ret == -1)
+    return -errno;
+
+  // stream file to server
+  is.open(c.fileCachePath, std::ios::binary | std::ios::ate | std::ios::in | std::ios::out | std::ios::app);
   is.seekg(0, is.end);
   int length = (int)is.tellg() > 0 ? (int)is.tellg() : 0;
-
   is.seekg(0, is.beg);
   if (length >= 0) {
     std::string buf(length, '\0');
@@ -513,6 +465,7 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
     ret = grpcClient->WriteFile(_path, buf, length, 0, numOfBytes, timestamp);
   }
   is.close();
+
   return 0;
 }
 
@@ -672,7 +625,6 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
 
 int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_releasedir" << reset << std::endl;
-
   path = Utility::constructRelativePath(path).c_str();
 
   DIR* dir = (DIR*)fi->fh;
@@ -714,18 +666,13 @@ int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* f
 
 int cppWrapper_access(const char* path, int mode) {
   std::cout << yellow << "\ncppWrapper_access" << reset << std::endl;
-  std::cout << "path: " << path << std::endl;
   std::string _path = Utility::constructRelativePath(path);
 
-  std::string local_cache_dir(fsRootPath);
-  std::unordered_map<std::string, std::string> cache = Cache::get_local_cache(cacheFile);
-  std::string sha_path = Cache::get_hash_path(_path);
-  std::string local_cache_file = local_cache_dir + "/" + sha_path;
+  Cache c(_path);
 
-  int ret = access(local_cache_file.c_str(), mode) || access(path, mode);
-  if (ret == -1) {
+  int ret = access(c.fileCachePath.c_str(), mode);
+  if (ret == -1)
     return -errno;
-  }
 
   return 0;
 }
@@ -854,20 +801,48 @@ int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
 }
 #endif /* HAVE_UTIMENSAT */
 
+/** ------------------------------------------------------------------------------------
+ * AFS initialization functions 
+ */
+int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
+  grpcClient = new GRPC_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
+  cacheDirectory = _cacheDirectory;
+  fsMountPath = argv[1];
+  fsRootPath = _fsRootPath;
+
+  // create direcotries
+  fs::create_directories(cacheDirectory) == true ? cout << blue << "cacheDirectory created" << reset << endl : cout << blue << "cacheDirectory already exists" << reset << endl;
+  fs::create_directories(fsMountPath) == true ? cout << blue << "fsMountPath created" << reset << endl : cout << blue << "fsMountPath already exists" << reset << endl;
+
+  statusCachePath = Utility::concatenatePath(cacheDirectory, "cache_file.txt");
+
+  cout << blue << "statusCachePath: " << statusCachePath << reset << endl;
+  cout << blue << "serverAddress: " << serverAddress << reset << endl;
+  cout << blue << "fsMountPath: " << fsMountPath << reset << endl;
+  cout << blue << "fsRootPath: " << fsRootPath << reset << endl;
+  cout << yellow << "cppWrapper_initialize complete" << reset << endl;
+
+  return 0;
+}
+
+void cppWrapper_createDirectories(char* path) {
+  fs::create_directories(path) == true ? cout << blue << path << " directory created" << reset << endl : cout << blue << path << " directory already exists" << reset << endl;
+}
+
 /** // testing:
   int main() {
     // std::unordered_map<std::string, std::string> Cache::get_local_cache(const
-    // std::string& path) int Cache::fsync_cache(std::string& path,
+    // std::string& path) int Cache::commitStatusCache(std::string& path,
     // std::unordered_map<std::string, std::string> cache) std::string
     // hash_path(const std::string& path)
     // std::string test_cache_path("./test_cache.txt");
     // std::unordered_map<std::string, std::string> tmp_cache =
     //     Cache::get_local_cache(test_cache_path);
     // std::string test_path = "./test_pathh";
-    // std::string test_hash = Cache::get_hash_path(test_path);
+    // std::string test_hash = Cache::getPathHash(test_path);
     // std::cout << test_path << " " << test_hash << std::endl;
     // tmp_cache.insert(std::pair<std::string, std::string>(test_path,
-    // test_hash)); Cache::fsync_cache(test_cache_path, tmp_cache);
+    // test_hash)); Cache::commitStatusCache(test_cache_path, tmp_cache);
     // std::string AddrPort_ = "localhost:50051";
     // std::string cacheDirectory_ = "/tmp/cache/";
 
