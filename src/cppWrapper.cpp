@@ -69,32 +69,20 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
 		fuse→rmdir() 
   
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
-		- open(): fuse→getattr(), fuse→open()
-		- close(): fuse→release()
-		- creat(): fuse→mknod()
-		- unlink(): fuse→getattr(), fuse→unlink()
-		- mkdir(): fuse→mkdir()
-		- rmdir(): fuse→rmdir()
-		- read(), pread(): fuse→read()
-		- write(), pwrite(): fuse→write(), fuse→truncate()
-		- stat(): fuse→getattr()
-		- fsync(): fuse→fsync()
-		- readdir(): fuse→readdir()
+		- open():             fuse→getattr(), fuse→open()
+		- close():            fuse→release()
+		- creat():            fuse→mknod()
+		- unlink():           fuse→getattr(), fuse→unlink()
+		- mkdir():            fuse→mkdir()
+		- rmdir():            fuse→rmdir()
+		- read(), pread():    fuse→read()
+		- write(), pwrite():  fuse→write(), fuse→truncate()
+		- stat():             fuse→getattr()
+    - fsync():            fuse→fsync()
+		- readdir():          fuse→readdir()
 
 
  * TODO: remove unnecessary platform specific implementations
-
-
-# client side functions:
-
-- [ ] ls
-- [ ] stat
-- [ ] rmdir
-- [ ] mkdir
-- [ ] touch(create)
-- [ ] read
-- [ ] write
-- [ ] unlink
 
 */
 

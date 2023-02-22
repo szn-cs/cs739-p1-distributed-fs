@@ -154,6 +154,8 @@ int AFS_Client::OpenFile(const std::string& path, const int& mode, long& timesta
   // return status.error_code();
 }
 
+// touch functionality: only create file without contents
+// TODO: is that the same as Open above ? Is it necessary to implement ?
 int AFS_Client::ReadFile(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
