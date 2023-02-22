@@ -6,17 +6,15 @@
 
 #ifdef __cplusplus
 
+namespace fs = std::filesystem;
 using namespace std;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
 static AFS_Client* grpcClient;
-static std::string cacheDirectory;
-static std::string cacheFile;
-static std::string fsMountPath;
-static std::string fsRootPath;
-
-#include "./Cache.cpp"
-#include "./Utility.cpp"
+std::string cacheDirectory;
+std::string cacheFile;
+std::string fsMountPath;
+std::string fsRootPath;
 
 extern "C" {
 #endif
@@ -24,16 +22,18 @@ extern "C" {
 int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
   grpcClient = new AFS_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
   cacheDirectory = _cacheDirectory;
-  // TODO: create cache direcotry.
   fsMountPath = argv[1];
   fsRootPath = _fsRootPath;
-  cacheFile = cacheDirectory + "cache_file.txt";
-  std::cout << "⚫ cppWrapper initialized" << std::endl;
-  std::cout << "⚫ cacheDirectory path: " << cacheDirectory << std::endl;
-  std::cout << "⚫ cacheFile path: " << cacheFile << std::endl;
-  std::cout << "⚫ serverAddress path: " << serverAddress << std::endl;
-  std::cout << "@cppWrapper_initialize fsMountPath: " << fsMountPath << std::endl;
-  std::cout << "@cppWrapper_initialize fsRootPath: " << fsRootPath << endl;
+
+  // create cache direcotry.
+  fs::create_directories(cacheDirectory) == true ? cout << blue << "cacheDirectory created" << reset << endl : cout << blue << "cacheDirectory already exists" << reset << endl;
+  cacheFile = Utility::concatenatePath(cacheDirectory, "cache_file.txt");
+
+  cout << blue << "cacheFile: " << cacheFile << reset << endl;
+  cout << blue << "serverAddress: " << serverAddress << reset << endl;
+  cout << blue << "fsMountPath: " << fsMountPath << reset << endl;
+  cout << blue << "fsRootPath: " << fsRootPath << reset << endl;
+  cout << yellow << "cppWrapper_initialize complete" << reset << endl;
 
   return 0;
 }
@@ -49,7 +49,7 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
 		[ ] fuse→truncate() 
 		[ ] fuse→fsync() 
 		[ ] fuse→mknod() 
-		[ ] fuse→getattr() 
+		[?] fuse→getattr() 
 		[ ] fuse→mkdir() 
 		[ ] fuse→unlink() 
 		[ ] fuse→read() 
@@ -57,17 +57,17 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
 		[ ] fuse→rmdir() 
   
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
-		- open():             fuse→getattr(), fuse→open()
-		- close():            fuse→release()
-		- creat():            fuse→mknod()
-		- unlink():           fuse→getattr(), fuse→unlink()
-		- mkdir():            fuse→mkdir()
-		- rmdir():            fuse→rmdir()
-		- read(), pread():    fuse→read()
-		- write(), pwrite():  fuse→write(), fuse→truncate()
-		- stat():             fuse→getattr()
-    - fsync():            fuse→fsync()
-		- readdir():          fuse→readdir()
+		[ ] open():             fuse→getattr(), fuse→open()
+		[ ] close():            fuse→release()
+		[ ] creat():            fuse→mknod()
+		[ ] unlink():           fuse→getattr(), fuse→unlink()
+		[ ] mkdir():            fuse→mkdir()
+		[ ] rmdir():            fuse→rmdir()
+		[ ] read(), pread():    fuse→read()
+		[ ] write(), pwrite():  fuse→write(), fuse→truncate()
+		[?] stat():             fuse→getattr()
+    [ ] fsync():            fuse→fsync()
+		[ ] readdir():          fuse→readdir()
 
 
  * TODO: remove unnecessary platform specific implementations
@@ -87,10 +87,11 @@ int cppWrapper_lstat(const char* path, struct stat* buf) {
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << yellow << "cppWrapper_getattr" << reset << std::endl;
+
+  int errornum, r;
   path = Utility::constructRelativePath(path).c_str();
 
   try {
-    int errornum, r;
     std::memset(buf, 0, sizeof(struct stat));
 
     r = grpcClient->GetAttribute(path, buf, errornum);

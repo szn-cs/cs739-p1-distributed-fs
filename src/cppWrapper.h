@@ -36,6 +36,9 @@
 #include <string>
 #include <termcolor/termcolor.hpp>
 
+#include "./Cache.cpp"
+#include "./Utility.cpp"
+
 extern "C" {
 #endif
 

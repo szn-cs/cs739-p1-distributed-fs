@@ -3,6 +3,7 @@
 namespace fs = std::filesystem;
 using namespace std;
 using namespace afs;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
 using afs::AFS;
 using grpc::Server;
@@ -10,16 +11,14 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerReader;
 using grpc::ServerWriter;
-using grpc::Status;
+using grpc::Status;  // https://grpc.github.io/grpc/core/md_doc_statuscodes.html
 
-using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
-
-static std::string rootDirectory;
+static std::string serverDirectory;
 
 Status AFS_Server::ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
   std::cout << "trigger redir" << std::endl;
 
-  string path = Utility::concatenatePath(rootDirectory, request->path());
+  string path = Utility::concatenatePath(serverDirectory, request->path());
 
   std::vector<std::string> alldata;
   struct dirent* de;
@@ -61,7 +60,7 @@ Status AFS_Server::ReadDir(ServerContext* context, const Path* request, ServerWr
 Status AFS_Server::MkDir(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
   std::cout << "trigger mkdir" << std::endl;
 
-  string path = Utility::concatenatePath(rootDirectory, request->path());
+  string path = Utility::concatenatePath(serverDirectory, request->path());
 
   mode_t mode = (mode_t)request->modet();
 
@@ -76,7 +75,7 @@ Status AFS_Server::MkDir(ServerContext* context, const MkDirRequest* request, Mk
 Status AFS_Server::RmDir(ServerContext* context, const Path* request, Response* response) {
   std::cout << "trigger rmdir" << std::endl;
 
-  string path = Utility::concatenatePath(rootDirectory, request->path());
+  string path = Utility::concatenatePath(serverDirectory, request->path());
 
   response->set_status(1);
 
@@ -95,7 +94,7 @@ Status AFS_Server::RmDir(ServerContext* context, const Path* request, Response* 
 Status AFS_Server::Unlink(ServerContext* context, const Path* request, Response* response) {
   std::cout << "trigger unlink" << std::endl;
 
-  string path = Utility::concatenatePath(rootDirectory, request->path());
+  string path = Utility::concatenatePath(serverDirectory, request->path());
 
   response->set_status(1);
   if (fs::exists(path)) {
@@ -110,10 +109,10 @@ Status AFS_Server::Unlink(ServerContext* context, const Path* request, Response*
   return Status::OK;
 }
 
-Status AFS_Server::GetAttr(ServerContext* context, const Path* request, /*char* string*/ StatInfo* response) {
+Status AFS_Server::GetAttr(ServerContext* context, const Path* request, StatInfo* response) {
   std::cout << yellow << "AFS_Server::GetAttr" << reset << std::endl;
 
-  string path = Utility::concatenatePath(rootDirectory, request->path());
+  string path = Utility::concatenatePath(serverDirectory, request->path());
 
   struct stat sfile;
   if (lstat(path.c_str(), &sfile) != -1) {
@@ -140,8 +139,6 @@ Status AFS_Server::GetAttr(ServerContext* context, const Path* request, /*char* 
     response->set_errornum(errno);
   }
 
-  // type cast from lstat to string and backagain
-
   return Status::OK;
 }
 
@@ -149,7 +146,7 @@ Status AFS_Server::Open(ServerContext* context, const OpenRequest* request, Open
   std::cout << "trigger server open" << std::endl;
   int rc;
 
-  string path = Utility::concatenatePath(rootDirectory, request->path());
+  string path = Utility::concatenatePath(serverDirectory, request->path());
 
   // rc = creat(path.c_str(), request->mode());
 
@@ -173,7 +170,7 @@ Status AFS_Server::Read(ServerContext* context, const ReadRequest* request, Serv
   struct timespec spec;
   ReadReply* reply = new ReadReply();
 
-  string path = Utility::concatenatePath(rootDirectory, request->path());
+  string path = Utility::concatenatePath(serverDirectory, request->path());
 
   std::cout << "ReadFileStream: " << path << std::endl;
 
@@ -292,13 +289,13 @@ Status AFS_Server::Write(ServerContext* context, ServerReader<WriteRequest>* rea
   std::cout << "trigger server write" << std::endl;
   std::string path;
   WriteRequest request;
-  std::string tempFilePath = rootDirectory;
+  std::string tempFilePath = serverDirectory;
   int fd = -1;
   int res, size, offset, numOfBytes = 0;
   reply->set_numbytes(numOfBytes);
 
   while (reader->Read(&request)) {
-    path = Utility::concatenatePath(rootDirectory, request.path());
+    path = Utility::concatenatePath(serverDirectory, request.path());
 
     size = request.size();
     offset = request.offset();
@@ -375,7 +372,7 @@ void RunServer(std::string address) {
   builder.RegisterService(&service);
   // Finally assemble the server.
   std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << termcolor::yellow << "⚡ Server listening on " << address << termcolor::reset << std::endl;
+  std::cout << termcolor::blue << "⚡ Server listening on " << address << termcolor::reset << std::endl;
 
   // Wait for the server to shutdown. Note that some other thread must be
   // responsible for shutting down the server for this call to ever return.
@@ -387,18 +384,17 @@ int main(int argc, char** argv) {
 
   // set defaults
   const std::string address("0.0.0.0:50051");
-  rootDirectory = fs::current_path().generic_string() + "/tmp/fsServer/";
+  serverDirectory = Utility::concatenatePath(fs::current_path().generic_string(), "tmp/fsServer");
 
   // set configs from arguments
   if (argc == 2)
-    rootDirectory = argv[1];
+    serverDirectory = argv[1];
 
-  fs::path _rootDirectory(rootDirectory);
-  if (!fs::exists(_rootDirectory))
-    if (!fs::create_directories(_rootDirectory))
-      perror("Failed to create the root directory.");
+  // create directory if doesn't exist
+  serverDirectory = fs::absolute(serverDirectory);
+  fs::create_directories(serverDirectory);
+  std::cout << blue << "serverDirectory: " << serverDirectory << reset << std::endl;
 
-  std::cout << "Created root directory at: " << fs::absolute(_rootDirectory) << std::endl;
   RunServer(address);
 
   return 0;
