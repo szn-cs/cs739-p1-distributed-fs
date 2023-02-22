@@ -213,22 +213,21 @@ Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerW
   return Status::OK;
 }
 
-Status GRPC_Server::MkDir(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
+Status GRPC_Server::MakeDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
   std::cout << "trigger mkdir" << std::endl;
-
   string path = Utility::concatenatePath(serverDirectory, request->path());
-
   mode_t mode = (mode_t)request->modet();
 
   int ret = mkdir(path.c_str(), mode);
-  if (ret != 0) {
+  if (ret != 0)
     response->set_erronum(errno);
-  }
+
   response->set_status(ret);
+
   return Status::OK;
 }
 
-Status GRPC_Server::RmDir(ServerContext* context, const Path* request, Response* response) {
+Status GRPC_Server::RemoveDirectory(ServerContext* context, const Path* request, Response* response) {
   std::cout << "trigger rmdir" << std::endl;
 
   string path = Utility::concatenatePath(serverDirectory, request->path());

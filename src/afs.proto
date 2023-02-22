@@ -32,9 +32,9 @@ service AFS {
   rpc Unlink(Path) returns (Response) {};
   
   // create directory
-  rpc MkDir(MkDirRequest) returns (MkDirResponse) {};
+  rpc MakeDirectory(MkDirRequest) returns (MkDirResponse) {};
   // remove directory
-  rpc RmDir(Path) returns (Response) {}; 
+  rpc RemoveDirectory(Path) returns (Response) {}; 
 
   // ListDir         List the contents of a directory
   rpc ReadDir(Path) returns (stream ReadDirResponse) {};   

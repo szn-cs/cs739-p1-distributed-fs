@@ -124,42 +124,40 @@ int GRPC_Client::ReadDirectory(const std::string& path, int& errornum, std::vect
 
 int GRPC_Client::MakeDirectory(const std::string& path, mode_t mode, int& errornum) {
   MkDirRequest request;
-  request.set_path(path);
-  request.set_modet(mode);
   MkDirResponse reply;
   ClientContext context;
 
-  Status status = stub_->MkDir(&context, request, &reply);
-  if (status.ok()) {
-    // std::cout << status.status() << std::endl;
-    if (reply.status() != 0) {
-      errornum = reply.erronum();
-    }
-    return reply.status();
-  } else {
+  request.set_path(path);
+  request.set_modet(mode);
+
+  Status status = stub_->MakeDirectory(&context, request, &reply);
+
+  if (!status.ok()) {
     errornum = -1;
-    std::cout << status.error_code() << ": " << status.error_message()
-              << std::endl;
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
     return -1;
   }
+
+  if (reply.status() != 0)
+    errornum = reply.erronum();
+
+  return reply.status();
 }
 
 int GRPC_Client::RemoveDirectory(const std::string& path) {
   Path request;
-  request.set_path(path);
   Response reply;
   ClientContext context;
 
-  // Here we can use the stub's newly available method we just added.
-  Status status = stub_->RmDir(&context, request, &reply);
-  if (status.ok()) {
-    // std::cout << status.status() << std::endl;
-    return reply.status();
-  } else {
-    std::cout << status.error_code() << ": " << status.error_message()
-              << std::endl;
+  request.set_path(path);
+
+  Status status = stub_->RemoveDirectory(&context, request, &reply);
+  if (!status.ok()) {
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
     return -1;
   }
+
+  return reply.status();
 }
 
 int GRPC_Client::Unlink(const std::string& path) {

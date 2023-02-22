@@ -25,7 +25,8 @@ extern "C" {
 ** FUSE functions:
 		[x] fuse→getattr() 
 		[x!] fuse→open()  // TODO- cache validation logic
-		[ ] fuse→mkdir() 
+		[x] fuse→mkdir() 
+		[ ] fuse→rmdir()
 		[ ] fuse→release() 
 		[ ] fuse→readdir() 
 		[ ] fuse→truncate() 
@@ -34,7 +35,6 @@ extern "C" {
 		[ ] fuse→unlink() 
 		[ ] fuse→read() 
 		[ ] fuse→write() 
-		[ ] fuse→rmdir() 
 
 * check manual pages for POSIX functions details https://linux.die.net/man/2/
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
@@ -122,14 +122,24 @@ Original:
 
 int cppWrapper_mkdir(const char* path, mode_t mode) {
   std::cout << yellow << "\ncppWrapper_mkdir" << reset << std::endl;
+  path = Utility::constructRelativePath(path).c_str();
+  int errornum;
 
+  int ret = grpcClient->MakeDirectory(path, mode, errornum);
+  if (ret == -1)
+    return -errornum;
+
+  return 0;
+}
+
+int cppWrapper_rmdir(const char* path) {
+  std::cout << yellow << "\ncppWrapper_rmdir" << reset << std::endl;
   path = Utility::constructRelativePath(path).c_str();
 
-  int errornum;
-  int ret = grpcClient->MakeDirectory(path, mode, errornum);
-  if (ret == -1) {
-    return -errornum;
-  }
+  int ret = grpcClient->RemoveDirectory(path);
+  if (ret == -1)
+    return -errno;
+
   return 0;
 }
 
@@ -182,19 +192,6 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
   path = Utility::constructRelativePath(path).c_str();
 
   int ret = mknod(path, mode, dev);
-  if (ret == -1) {
-    return -errno;
-  }
-
-  return 0;
-}
-
-int cppWrapper_rmdir(const char* path) {
-  std::cout << yellow << "\ncppWrapper_rmdir" << reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
-
-  int ret = rmdir(path);
   if (ret == -1) {
     return -errno;
   }
