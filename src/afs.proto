@@ -22,16 +22,16 @@ service AFS {
   rpc SetFileStat(StatInfo) returns (Response) {}; 
 
   // Fetch/GetFileContents/Read/Open functionality         Fetch the contents of file
-  rpc Open(OpenRequest) returns (OpenResponse) {};
   rpc Read(ReadRequest) returns (stream ReadReply) {}; // TODO: remove redundant
-  
+  rpc Open(OpenRequest) returns (OpenResponse) {};
+
   // Store/Update/Write file           Store this file on the server (called on close())
   rpc Write(stream WriteRequest) returns (WriteReply) {};
   
   // remove file
   rpc Unlink(Path) returns (Response) {};
   
-  // create/touch directory
+  // create directory
   rpc MkDir(MkDirRequest) returns (MkDirResponse) {};
   // remove directory
   rpc RmDir(Path) returns (Response) {}; 
