@@ -15,7 +15,40 @@ using grpc::Status;  // https://grpc.github.io/grpc/core/md_doc_statuscodes.html
 
 static std::string serverDirectory;
 
-Status AFS_Server::ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
+/** mimics `stat`/`lstat` functionality */
+Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* request, Attributes* response) {
+  std::cout << yellow << "GRPC_Server::getFileAttributes" << reset << std::endl;
+
+  struct stat attributes;
+  string path = Utility::concatenatePath(serverDirectory, request->path());
+
+  if (lstat(path.c_str(), &attributes) == -1) {
+    cout << "path: " << path << endl;
+    response->set_status(-1);
+    response->set_errornum(errno);
+    return Status::OK;
+  }
+
+  response->set_status(0);
+  // map satus info to equivalent grpc message structure
+  response->set_grpc_st_dev(attributes.st_dev);
+  response->set_grpc_st_ino(attributes.st_ino);
+  response->set_grpc_st_mode(attributes.st_mode);
+  response->set_grpc_st_nlink(attributes.st_nlink);
+  response->set_grpc_st_uid(attributes.st_uid);
+  response->set_grpc_st_gid(attributes.st_gid);
+  response->set_grpc_st_rdev(attributes.st_rdev);
+  response->set_grpc_st_size(attributes.st_size);
+  response->set_grpc_st_blksize(attributes.st_blksize);
+  response->set_grpc_st_blocks(attributes.st_blocks);
+  response->set_grpc_st_atime(attributes.st_atime);
+  response->set_grpc_st_mtime(attributes.st_mtime);
+  response->set_grpc_st_ctime(attributes.st_ctime);
+
+  return Status::OK;
+}
+
+Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
   std::cout << "trigger redir" << std::endl;
 
   string path = Utility::concatenatePath(serverDirectory, request->path());
@@ -57,7 +90,7 @@ Status AFS_Server::ReadDir(ServerContext* context, const Path* request, ServerWr
   return Status::OK;
 }
 
-Status AFS_Server::MkDir(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
+Status GRPC_Server::MkDir(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
   std::cout << "trigger mkdir" << std::endl;
 
   string path = Utility::concatenatePath(serverDirectory, request->path());
@@ -72,7 +105,7 @@ Status AFS_Server::MkDir(ServerContext* context, const MkDirRequest* request, Mk
   return Status::OK;
 }
 
-Status AFS_Server::RmDir(ServerContext* context, const Path* request, Response* response) {
+Status GRPC_Server::RmDir(ServerContext* context, const Path* request, Response* response) {
   std::cout << "trigger rmdir" << std::endl;
 
   string path = Utility::concatenatePath(serverDirectory, request->path());
@@ -91,7 +124,7 @@ Status AFS_Server::RmDir(ServerContext* context, const Path* request, Response* 
   return Status::OK;
 }
 
-Status AFS_Server::Unlink(ServerContext* context, const Path* request, Response* response) {
+Status GRPC_Server::Unlink(ServerContext* context, const Path* request, Response* response) {
   std::cout << "trigger unlink" << std::endl;
 
   string path = Utility::concatenatePath(serverDirectory, request->path());
@@ -109,40 +142,7 @@ Status AFS_Server::Unlink(ServerContext* context, const Path* request, Response*
   return Status::OK;
 }
 
-Status AFS_Server::GetAttr(ServerContext* context, const Path* request, StatInfo* response) {
-  std::cout << yellow << "AFS_Server::GetAttr" << reset << std::endl;
-
-  string path = Utility::concatenatePath(serverDirectory, request->path());
-
-  struct stat sfile;
-  if (lstat(path.c_str(), &sfile) != -1) {
-    cout << "⚫ lstat found" << path << endl;
-
-    response->set_status(0);
-    response->set_stdev(sfile.st_dev);
-    response->set_stino(sfile.st_ino);
-    response->set_stmode(sfile.st_mode);
-    response->set_stnlink(sfile.st_nlink);
-    response->set_stuid(sfile.st_uid);
-    response->set_stgid(sfile.st_gid);
-    response->set_strdev(sfile.st_rdev);
-    response->set_stsize(sfile.st_size);
-    response->set_stblksize(sfile.st_blksize);
-    response->set_stblocks(sfile.st_blocks);
-    response->set_statime(sfile.st_atime);
-    response->set_stmtime(sfile.st_mtime);
-    response->set_stctime(sfile.st_ctime);
-  } else {
-    cout << "⚫ lstat not found: " << path << endl;
-
-    response->set_status(-1);
-    response->set_errornum(errno);
-  }
-
-  return Status::OK;
-}
-
-Status AFS_Server::Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
+Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
   std::cout << "trigger server open" << std::endl;
   int rc;
 
@@ -163,7 +163,7 @@ Status AFS_Server::Open(ServerContext* context, const OpenRequest* request, Open
   return Status::OK;
 }
 
-Status AFS_Server::Read(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) {
+Status GRPC_Server::Read(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) {
   std::cout << "trigger server read" << std::endl;
   int numOfBytes = 0;
   int res;
@@ -285,7 +285,7 @@ Status AFS_Server::Read(ServerContext* context, const ReadRequest* request, Serv
   */
 }
 
-Status AFS_Server::Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) {
+Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) {
   std::cout << "trigger server write" << std::endl;
   std::string path;
   WriteRequest request;
@@ -353,14 +353,14 @@ Status AFS_Server::Write(ServerContext* context, ServerReader<WriteRequest>* rea
 }
 
 // EXAMPLE API
-Status AFS_Server::SayHello(ServerContext* context, const HelloRequest* request, HelloReply* reply) {
+Status GRPC_Server::SayHello(ServerContext* context, const HelloRequest* request, HelloReply* reply) {
   std::string prefix("Hello ");
   reply->set_message(prefix + request->name());
   return Status::OK;
 }
 
 void RunServer(std::string address) {
-  AFS_Server service;
+  GRPC_Server service;
 
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();

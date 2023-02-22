@@ -170,6 +170,9 @@ int main(int argc, char *argv[]) {
     srand(conf.seed);
     fprintf(stdout, "random seed = %d\n", conf.seed);
 
+    // create directory if doesn't exist
+    cppWrapper_createDirectories(conf.basedir);
+
     if (is_dir(conf.basedir) == 0) {
         fprintf(stderr, "basedir ('%s') is not a directory\n", conf.basedir);
         fuse_opt_free_args(&args);

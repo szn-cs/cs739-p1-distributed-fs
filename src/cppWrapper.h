@@ -43,6 +43,7 @@ extern "C" {
 #endif
 
 int cppWrapper_initialize(char* serverAddress, char* cacheDirectory, char* argv[], char* baseDir);
+void cppWrapper_createDirectories(char* path);
 
 int cppWrapper_lstat(const char* path, struct stat* buf);
 // 1. getattr(self, path)

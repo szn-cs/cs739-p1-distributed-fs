@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 using namespace std;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
-static AFS_Client* grpcClient;
+static GRPC_Client* grpcClient;
 std::string cacheDirectory;
 std::string cacheFile;
 std::string fsMountPath;
@@ -20,13 +20,15 @@ extern "C" {
 #endif
 
 int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
-  grpcClient = new AFS_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
+  grpcClient = new GRPC_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
   cacheDirectory = _cacheDirectory;
   fsMountPath = argv[1];
   fsRootPath = _fsRootPath;
 
-  // create cache direcotry.
+  // create direcotries
   fs::create_directories(cacheDirectory) == true ? cout << blue << "cacheDirectory created" << reset << endl : cout << blue << "cacheDirectory already exists" << reset << endl;
+  fs::create_directories(fsMountPath) == true ? cout << blue << "fsMountPath created" << reset << endl : cout << blue << "fsMountPath already exists" << reset << endl;
+
   cacheFile = Utility::concatenatePath(cacheDirectory, "cache_file.txt");
 
   cout << blue << "cacheFile: " << cacheFile << reset << endl;
@@ -38,18 +40,22 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
   return 0;
 }
 
+void cppWrapper_createDirectories(char* path) {
+  fs::create_directories(path) == true ? cout << blue << path << " directory created" << reset << endl : cout << blue << path << " directory already exists" << reset << endl;
+}
+
 // ----------------------------------------------------------------------------
 /** Mappings of FUSE to AFS handler logic
  * Main calls should be supported (check unreliablefs.c mapping)
 
 ** FUSE functions:
+		[x] fuse→getattr() 
 		[ ] fuse→open() 
 		[ ] fuse→release() 
 		[ ] fuse→readdir() 
 		[ ] fuse→truncate() 
 		[ ] fuse→fsync() 
 		[ ] fuse→mknod() 
-		[?] fuse→getattr() 
 		[ ] fuse→mkdir() 
 		[ ] fuse→unlink() 
 		[ ] fuse→read() 
@@ -65,6 +71,7 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
 		[ ] rmdir():            fuse→rmdir()
 		[ ] read(), pread():    fuse→read()
 		[ ] write(), pwrite():  fuse→write(), fuse→truncate()
+    // https://linux.die.net/man/2/lstat
 		[?] stat():             fuse→getattr()
     [ ] fsync():            fuse→fsync()
 		[ ] readdir():          fuse→readdir()
@@ -73,17 +80,6 @@ int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv
  * TODO: remove unnecessary platform specific implementations
 
 */
-
-int cppWrapper_lstat(const char* path, struct stat* buf) {
-  std::cout << yellow << "\ncppWrapper_lstat" << reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
-
-  memset(buf, 0, sizeof(struct stat));
-  if (lstat(path, buf) == -1) return -errno;
-
-  return 0;
-}
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << yellow << "cppWrapper_getattr" << reset << std::endl;
@@ -94,7 +90,7 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
   try {
     std::memset(buf, 0, sizeof(struct stat));
 
-    r = grpcClient->GetAttribute(path, buf, errornum);
+    r = grpcClient->getFileAttributes(path, buf, errornum);
 
     return (r == -1) ? -errornum : 0;
   } catch (...) {
@@ -105,6 +101,17 @@ Original:
   cout << red << "cppWrapper_getattr fallback to original implementation" << reset << endl;
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) return -errno;
+  return 0;
+}
+
+int cppWrapper_lstat(const char* path, struct stat* buf) {
+  std::cout << yellow << "\ncppWrapper_lstat" << reset << std::endl;
+
+  path = Utility::constructRelativePath(path).c_str();
+
+  memset(buf, 0, sizeof(struct stat));
+  if (lstat(path, buf) == -1) return -errno;
+
   return 0;
 }
 
@@ -286,7 +293,7 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
     Cache::fsync_cache(cacheFile, cache);
   }
   // path exist, then check version, fetch updated data
-  // grpcClient->GetAttribute()
+  // grpcClient->getFileAttributes()
   //
   // open local cache file
   // ret = open(path, fi->flags);

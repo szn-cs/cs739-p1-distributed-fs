@@ -3,9 +3,46 @@
 using namespace std;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
-AFS_Client::AFS_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
+GRPC_Client::GRPC_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
 
-int AFS_Client::ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
+int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, int& errornum) {
+  std::cout << blue << "GRPC_Client::getFileAttributes" << reset << std::endl;
+
+  Attributes reply;
+  ClientContext context;
+  Path request;
+  request.set_path(path);
+  Status status = stub_->getFileAttributes(&context, request, &reply);
+
+  if (!status.ok()) {
+    std::cout << red << "GRPC error: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
+    return -1;
+  }
+
+  if (reply.status() != 0) {
+    errornum = reply.errornum();
+    return -1;
+  }
+
+  // retrieve status info from grpc message
+  buf->st_dev = reply.grpc_st_dev();
+  buf->st_ino = reply.grpc_st_ino();
+  buf->st_mode = reply.grpc_st_mode();
+  buf->st_nlink = reply.grpc_st_nlink();
+  buf->st_uid = reply.grpc_st_uid();
+  buf->st_gid = reply.grpc_st_gid();
+  buf->st_rdev = reply.grpc_st_rdev();
+  buf->st_size = reply.grpc_st_size();
+  buf->st_blksize = reply.grpc_st_blksize();
+  buf->st_blocks = reply.grpc_st_blocks();
+  buf->st_atime = reply.grpc_st_atime();
+  buf->st_mtime = reply.grpc_st_mtime();
+  buf->st_ctime = reply.grpc_st_ctime();
+
+  return 0;
+}
+
+int GRPC_Client::ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
   // return cppWrapper_readdir(path, buf, filler, offset, fi);
   // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
   std::cout << "trigger grpc client read dir on path: " << path << std::endl;
@@ -42,7 +79,7 @@ int AFS_Client::ReadDirectory(const std::string& path, int& errornum, std::vecto
   */
 }
 
-int AFS_Client::MakeDirectory(const std::string& path, mode_t mode, int& errornum) {
+int GRPC_Client::MakeDirectory(const std::string& path, mode_t mode, int& errornum) {
   MkDirRequest request;
   request.set_path(path);
   request.set_modet(mode);
@@ -64,7 +101,7 @@ int AFS_Client::MakeDirectory(const std::string& path, mode_t mode, int& errornu
   }
 }
 
-int AFS_Client::RemoveDirectory(const std::string& path) {
+int GRPC_Client::RemoveDirectory(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
@@ -82,7 +119,7 @@ int AFS_Client::RemoveDirectory(const std::string& path) {
   }
 }
 
-int AFS_Client::Unlink(const std::string& path) {
+int GRPC_Client::Unlink(const std::string& path) {
   Path request;
   request.set_path(path);
   Response reply;
@@ -99,46 +136,7 @@ int AFS_Client::Unlink(const std::string& path) {
   }
 }
 
-int AFS_Client::GetAttribute(const std::string& path, struct stat* buf, int& errornum) {
-  std::cout << blue << "FS_Client::GetAttribute" << reset << std::endl;
-
-  Path request;
-  request.set_path(path);
-
-  StatInfo reply;
-  ClientContext context;
-
-  Status status = stub_->GetAttr(&context, request, &reply);
-
-  if (!status.ok()) {
-    std::cout << "⚫" << status.error_code() << ": " << status.error_message() << std::endl;
-    return -1;
-  }
-
-  if (reply.status() != 0) {
-    errornum = reply.errornum();
-    std::cout << "⚫ replay.status != 0 with errornum:" << errornum << std::endl;
-    return -1;
-  }
-
-  buf->st_dev = reply.stdev();
-  buf->st_ino = reply.stino();
-  buf->st_mode = reply.stmode();
-  buf->st_nlink = reply.stnlink();
-  buf->st_uid = reply.stuid();
-  buf->st_gid = reply.stgid();
-  buf->st_rdev = reply.strdev();
-  buf->st_size = reply.stsize();
-  buf->st_blksize = reply.stblksize();
-  buf->st_blocks = reply.stblocks();
-  buf->st_atime = reply.statime();
-  buf->st_mtime = reply.stmtime();
-  buf->st_ctime = reply.stctime();
-
-  return reply.status();
-}
-
-int AFS_Client::OpenFile(const std::string& path, const int& mode, long& timestamp) {
+int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timestamp) {
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
@@ -156,7 +154,7 @@ int AFS_Client::OpenFile(const std::string& path, const int& mode, long& timesta
 
 // touch functionality: only create file without contents
 // TODO: is that the same as Open above ? Is it necessary to implement ?
-int AFS_Client::ReadFile(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
+int GRPC_Client::ReadFile(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
   std::cout << "trigger grpc client read on path: " << path << "\n";
   ReadRequest request;
   request.set_path(path);
@@ -195,7 +193,7 @@ int AFS_Client::ReadFile(const std::string& path, /*const int& size,const int& o
   return status.error_code();
 }
 
-int AFS_Client::WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
+int GRPC_Client::WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
   std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;
@@ -244,7 +242,7 @@ int AFS_Client::WriteFile(const std::string& path, const std::string& buf, const
  * Assembles the client's payload, sends it and presents the response back
  * from the server.
  */
-std::string AFS_Client::SayHello(const std::string& user) {
+std::string GRPC_Client::SayHello(const std::string& user) {
   // Data we are sending to the server.
   HelloRequest request;
   request.set_name(user);

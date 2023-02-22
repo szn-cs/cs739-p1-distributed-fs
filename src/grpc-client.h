@@ -30,15 +30,15 @@ using afs::HelloReply, afs::HelloRequest;
 #define TIMEOUT 60 * 1000  // this is in ms
 #define CHUNK_SIZE 1572864
 
-class AFS_Client {
+class GRPC_Client {
  public:
-  AFS_Client(std::shared_ptr<Channel> channel);
+  GRPC_Client(std::shared_ptr<Channel> channel);
 
   int MakeDirectory(const std::string& path, mode_t mode, int& errornum);
   int RemoveDirectory(const std::string& path);
   int ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results);
   int Unlink(const std::string& path);
-  int GetAttribute(const std::string& path, struct stat* buf, int& errornum);
+  int getFileAttributes(const std::string& path, struct stat* buf, int& errornum);
   // TODO: replace with Fetch & Store
   int OpenFile(const std::string& path, const int& mode, long& timestamp);
   int ReadFile(const std::string& path, /*const int& size, const int& offset,*/ int& numBytes, std::string& buf, long& timestamp);

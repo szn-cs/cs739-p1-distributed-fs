@@ -32,13 +32,13 @@ using namespace afs;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 
 // Logic and data behind the server's behavior.
-class AFS_Server final : public AFS::Service {
+class GRPC_Server final : public AFS::Service {
  public:
   Status ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override;
   Status MkDir(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) override;
   Status RmDir(ServerContext* context, const Path* request, Response* response) override;
   Status Unlink(ServerContext* context, const Path* request, Response* response) override;
-  Status GetAttr(ServerContext* context, const Path* request, /*char* string*/ StatInfo* response) override;
+  Status getFileAttributes(ServerContext* context, const Path* request, /*char* string*/ Attributes* response) override;
   Status Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) override;
   Status Read(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) override;
   Status Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) override;
