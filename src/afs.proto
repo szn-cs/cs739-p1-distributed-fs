@@ -29,12 +29,12 @@ service AFS {
   rpc Write(stream WriteRequest) returns (WriteReply) {};
   
   // remove file / unlink
-  rpc RemoveFile(Path) returns (Response) {};
+  rpc removeFile(Path) returns (Response) {};
   
   // create directory
-  rpc MakeDirectory(MkDirRequest) returns (MkDirResponse) {};
+  rpc createDirectory(MkDirRequest) returns (MkDirResponse) {};
   // remove directory
-  rpc RemoveDirectory(Path) returns (Response) {}; 
+  rpc removeDirectory(Path) returns (Response) {}; 
 
   // ListDir         List the contents of a directory
   rpc ReadDir(Path) returns (stream ReadDirResponse) {};   

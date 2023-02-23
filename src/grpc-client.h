@@ -34,10 +34,10 @@ class GRPC_Client {
  public:
   GRPC_Client(std::shared_ptr<Channel> channel);
 
-  int MakeDirectory(const std::string& path, mode_t mode, int& errornum);
-  int RemoveDirectory(const std::string& path);
-  int ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results);
-  int RemoveFile(const std::string& path);
+  int createDirectory(const std::string& path, mode_t mode, int& errornum);
+  int removeDirectory(const std::string& path);
+  int readDirectory(const std::string& path, int& errornum, std::vector<std::string>& results);
+  int removeFile(const std::string& path);
   int getFileAttributes(const std::string& path, struct stat* buf, int& errornum);
   // TODO: replace with Fetch & Store
   int OpenFile(const std::string& path, const int& mode, long& timestamp);

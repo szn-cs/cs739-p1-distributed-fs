@@ -171,7 +171,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
 }
 
 Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
-  std::cout << yellow << "GRPC_Server::ReadDirectory" << reset << std::endl;
+  std::cout << yellow << "GRPC_Server::readDirectory" << reset << std::endl;
 
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
@@ -212,8 +212,8 @@ Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerW
   return Status::OK;
 }
 
-Status GRPC_Server::MakeDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
-  std::cout << yellow << "GRPC_Server::MakeDirectory" << reset << std::endl;
+Status GRPC_Server::createDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
+  std::cout << yellow << "GRPC_Server::createDirectory" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
   mode_t mode = (mode_t)request->modet();
 
@@ -226,8 +226,8 @@ Status GRPC_Server::MakeDirectory(ServerContext* context, const MkDirRequest* re
   return Status::OK;
 }
 
-Status GRPC_Server::RemoveDirectory(ServerContext* context, const Path* request, Response* response) {
-  std::cout << yellow << "GRPC_Server::RemoveDirectory" << reset << std::endl;
+Status GRPC_Server::removeDirectory(ServerContext* context, const Path* request, Response* response) {
+  std::cout << yellow << "GRPC_Server::removeDirectory" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
   std::error_code errorCode;
 
@@ -242,8 +242,8 @@ Status GRPC_Server::RemoveDirectory(ServerContext* context, const Path* request,
   return Status::OK;
 }
 
-Status GRPC_Server::RemoveFile(ServerContext* context, const Path* request, Response* response) {
-  std::cout << yellow << "GRPC_Server::RemoveFile" << reset << std::endl;
+Status GRPC_Server::removeFile(ServerContext* context, const Path* request, Response* response) {
+  std::cout << yellow << "GRPC_Server::removeFile" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
   std::error_code errorCode;
 

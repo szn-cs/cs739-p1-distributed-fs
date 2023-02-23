@@ -85,7 +85,7 @@ int GRPC_Client::getFileContents(const std::string& path, /*const int& size,cons
   return 0;
 }
 
-int GRPC_Client::ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
+int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
   // return cppWrapper_readdir(path, buf, filler, offset, fi);
   // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
   std::cout << "trigger grpc client read dir on path: " << path << std::endl;
@@ -122,7 +122,7 @@ int GRPC_Client::ReadDirectory(const std::string& path, int& errornum, std::vect
   */
 }
 
-int GRPC_Client::MakeDirectory(const std::string& path, mode_t mode, int& errornum) {
+int GRPC_Client::createDirectory(const std::string& path, mode_t mode, int& errornum) {
   MkDirRequest request;
   MkDirResponse reply;
   ClientContext context;
@@ -130,7 +130,7 @@ int GRPC_Client::MakeDirectory(const std::string& path, mode_t mode, int& errorn
   request.set_path(path);
   request.set_modet(mode);
 
-  Status status = stub_->MakeDirectory(&context, request, &reply);
+  Status status = stub_->createDirectory(&context, request, &reply);
 
   if (!status.ok()) {
     errornum = -1;
@@ -144,14 +144,14 @@ int GRPC_Client::MakeDirectory(const std::string& path, mode_t mode, int& errorn
   return reply.status();
 }
 
-int GRPC_Client::RemoveDirectory(const std::string& path) {
+int GRPC_Client::removeDirectory(const std::string& path) {
   Path request;
   Response reply;
   ClientContext context;
 
   request.set_path(path);
 
-  Status status = stub_->RemoveDirectory(&context, request, &reply);
+  Status status = stub_->removeDirectory(&context, request, &reply);
   if (!status.ok()) {
     std::cout << status.error_code() << ": " << status.error_message() << std::endl;
     return -1;
@@ -163,7 +163,7 @@ int GRPC_Client::RemoveDirectory(const std::string& path) {
   return 0;
 }
 
-int GRPC_Client::RemoveFile(const std::string& path) {
+int GRPC_Client::removeFile(const std::string& path) {
   Path request;
   Response reply;
   ClientContext context;
@@ -171,7 +171,7 @@ int GRPC_Client::RemoveFile(const std::string& path) {
   request.set_path(path);
 
   // Here we can use the stub's newly available method we just added.
-  Status status = stub_->RemoveFile(&context, request, &reply);
+  Status status = stub_->removeFile(&context, request, &reply);
 
   if (!status.ok()) {
     std::cout << status.error_code() << ": " << status.error_message() << std::endl;

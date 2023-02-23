@@ -130,7 +130,7 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
   path = Utility::constructRelativePath(path).c_str();
   int errornum;
 
-  int ret = grpcClient->MakeDirectory(path, mode, errornum);
+  int ret = grpcClient->createDirectory(path, mode, errornum);
   if (ret == -1)
     return -errornum;
 
@@ -141,7 +141,7 @@ int cppWrapper_rmdir(const char* path) {
   std::cout << yellow << "\ncppWrapper_rmdir" << reset << std::endl;
   path = Utility::constructRelativePath(path).c_str();
 
-  int ret = grpcClient->RemoveDirectory(path);
+  int ret = grpcClient->removeDirectory(path);
   if (ret == -1)
     return -errno;
 
@@ -156,7 +156,7 @@ int cppWrapper_unlink(const char* path) {
   Cache c(_path);
 
   // delete on server
-  ret = grpcClient->RemoveFile(_path);
+  ret = grpcClient->removeFile(_path);
   if (ret != 0) return -errno;
 
   // delete local
@@ -599,7 +599,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
   struct dirent de;
   int errornum = 0;
   std::vector<std::string> results;
-  int ret = grpcClient->ReadDirectory(path, errornum, results);
+  int ret = grpcClient->readDirectory(path, errornum, results);
   if (ret != 0) {
     return -errornum;
   }
