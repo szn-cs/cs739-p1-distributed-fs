@@ -28,10 +28,10 @@ extern "C" {
         [x] fuse→mkdir()
         [x] fuse→rmdir()
         [x] fuse→unlink()
-        [x] fuse→read()
-        [x] fuse→write()  // TODO- test further for edge cases
-        [ ] fuse→release()
         [ ] fuse→readdir()
+        [x!] fuse→read()
+        [x!] fuse→write()  // TODO- test further for edge cases
+        [x!] fuse→release()
         [ ] fuse→truncate()
         [ ] fuse→fsync()
         [ ] fuse→mknod()
@@ -48,7 +48,7 @@ extern "C" {
         [ ] write(), pwrite():  fuse→write(), fuse→truncate()
     // https://linux.die.net/man/2/lstat
         [x] stat():             fuse→getattr()
-    [ ] fsync():            fuse→fsync()
+        [ ] fsync():            fuse→fsync()
         [ ] readdir():          fuse→readdir()
 
 
@@ -418,26 +418,7 @@ Original:
 
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_readdir" << reset << std::endl;
-Original:
-  /*
-  DIR* dp = opendir(path);
-  if (dp == NULL) {
-    return -errno;
-  }
-  struct dirent* de;
 
-  (void)offset;
-  (void)fi;
-
-  while ((de = readdir(dp)) != NULL) {
-    struct stat st;
-    memset(&st, 0, sizeof(st));
-    st.st_ino = de->d_ino;
-    st.st_mode = de->d_type << 12;
-    if (filler(buf, de->d_name, &st, 0)) break;
-  }
-  closedir(dp);
-  */
   struct dirent de;
   int errornum = 0;
   std::vector<std::string> results;
@@ -455,7 +436,7 @@ Original:
     std::cout << "de.d_name: " << de.d_name << std::endl;
     if (filler(buf, de.d_name, &st, 0)) break;
   }
-  // closedir(dp);
+
   return 0;
 }
 

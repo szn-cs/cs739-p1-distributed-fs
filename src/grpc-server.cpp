@@ -184,24 +184,22 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
   */
 }
 
-Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
+Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
   std::cout << yellow << "GRPC_Server::readDirectory" << reset << std::endl;
-
   string path = Utility::concatenatePath(serverDirectory, request->path());
-
   std::vector<std::string> alldata;
   struct dirent* de;
+
+  ReadDirResponse* response = new ReadDirResponse();
+
   DIR* dp = opendir(path.c_str());
-  if (dp == NULL) {
-    std::cout << "DIR is null in server redir function" << std::endl;
+  if (dp == NULL)
     return Status::OK;
-  }
 
   while ((de = readdir(dp)) != NULL) {
     std::string data;
     data.resize(sizeof(struct dirent));
     memcpy(&data[0], de, sizeof(struct dirent));
-    std::cout << "data: " << data << std::endl;
     alldata.push_back(data);
     /*
     struct stat st;
@@ -211,9 +209,8 @@ Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerW
     if (filler(buf, de->d_name, &st, 0)) break;
     */
   }
-  closedir(dp);
 
-  ReadDirResponse* response = new ReadDirResponse();
+  closedir(dp);
 
   for (auto entry : alldata) {
     response->set_buf(entry);
@@ -223,6 +220,7 @@ Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerW
   // (void)offset;
   // (void)fi;
   // response->mutable_buf()->Add(alldata.begin(), alldata.end());
+
   return Status::OK;
 }
 
@@ -270,7 +268,7 @@ Status GRPC_Server::removeFile(ServerContext* context, const Path* request, Resp
 }
 
 Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
-  std::cout << "trigger server open" << std::endl;
+  std::cout << yellow << "GRPC_Server::Open" << reset << std::endl;
   int rc;
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
@@ -290,7 +288,7 @@ Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, Ope
 }
 
 Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) {
-  std::cout << "trigger server write" << std::endl;
+  std::cout << yellow << "GRPC_Server::Write" << reset << std::endl;
   std::string path;
   WriteRequest request;
   std::string tempFilePath = serverDirectory;
@@ -356,6 +354,7 @@ Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* re
   return Status::OK;
 }
 
+// -------------------------------------------------------------------------------------------------
 // EXAMPLE API
 Status GRPC_Server::SayHello(ServerContext* context, const HelloRequest* request, HelloReply* reply) {
   std::string prefix("Hello ");

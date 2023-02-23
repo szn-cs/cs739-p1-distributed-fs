@@ -8,9 +8,8 @@ run_example() {
 }
 
 fs_mount() {
-  MOUNTPOINT=$(pwd)/tmp/fsMountpoint
-  ROOT=$(pwd)/tmp/fsRoot
-  SERVER=$(pwd)/tmp/fsServer
+  MOUNTPOINT=$(pwd)/tmp/mount
+  ROOT=$(pwd)/tmp/root
 
   ######## [terminal instance 1] ##########################################################
   mkdir -p $MOUNTPOINT $ROOT $SERVER
@@ -56,7 +55,8 @@ example_grpc() {
 }
 
 server() {
-  ./target/release/server
+  SERVER=$(pwd)/tmp/server
+  ./target/release/server $SERVER
   echo 0
 }
 

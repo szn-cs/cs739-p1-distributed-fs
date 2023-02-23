@@ -93,7 +93,7 @@ int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vect
   afs::ReadDirResponse response;
   ClientContext context;
   request.set_path(path);
-  std::unique_ptr<ClientReader<afs::ReadDirResponse>> reader(stub_->ReadDir(&context, request));
+  std::unique_ptr<ClientReader<afs::ReadDirResponse>> reader(stub_->readDirectory(&context, request));
 
   while (reader->Read(&response)) {
     results.push_back(response.buf());
@@ -106,7 +106,7 @@ int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vect
 
   return status.ok() ? 0 : status.error_code();
   /*
-  Status status = stub_->ReadDir(&context, request, &response);
+  Status status = stub_->readDirectory(&context, request, &response);
   if (status.ok()) {
     // -----------------after receive repeated de from grpc server, store them into result_ptr
     for (int i = 0; i < response.buf_size(); ++i) {

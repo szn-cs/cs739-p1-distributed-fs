@@ -34,7 +34,7 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 // Logic and data behind the server's behavior.
 class GRPC_Server final : public AFS::Service {
  public:
-  Status ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override;
+  Status readDirectory(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override;
   Status createDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) override;
   Status removeDirectory(ServerContext* context, const Path* request, Response* response) override;
   Status removeFile(ServerContext* context, const Path* request, Response* response) override;

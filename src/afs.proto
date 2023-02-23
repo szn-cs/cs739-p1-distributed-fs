@@ -37,7 +37,7 @@ service AFS {
   rpc removeDirectory(Path) returns (Response) {}; 
 
   // ListDir         List the contents of a directory
-  rpc ReadDir(Path) returns (stream ReadDirResponse) {};   
+  rpc readDirectory(Path) returns (stream ReadDirResponse) {};   
 
   // rename implementation required ? 
   // TODO: if needed
