@@ -1,5 +1,9 @@
 #!/bin/bash
 
+MOUNTPOINT=$(pwd)/tmp/mount
+ROOT=$(pwd)/tmp/root
+SERVER=$(pwd)/tmp/server
+
 run_example() {
   # terminal 1 ###########################################################################################
   ./target/release/example-grpc/greeter_server
@@ -8,8 +12,6 @@ run_example() {
 }
 
 fs_mount() {
-  MOUNTPOINT=$(pwd)/tmp/mount
-  ROOT=$(pwd)/tmp/root
 
   ######## [terminal instance 1] ##########################################################
   mkdir -p $MOUNTPOINT $ROOT $SERVER
@@ -55,7 +57,6 @@ example_grpc() {
 }
 
 server() {
-  SERVER=$(pwd)/tmp/server
   ./target/release/server $SERVER
   echo 0
 }
