@@ -50,11 +50,13 @@ class Cache {
 
   void setDirtyBit() {
     this->dirtyBit = 1;
+    updateCache();
     commitStatusCache();
   }
 
   void resetDirtyBit() {
     this->dirtyBit = 0;
+    updateCache();
     commitStatusCache();
   }
 
@@ -64,7 +66,14 @@ class Cache {
 
   void syncClock(long time) {
     this->clock = time;
+    updateCache();
     commitStatusCache();
+  }
+
+  void updateCache() {
+    auto it = this->statusCache.find(this->relativePath);
+    if(it != this->statusCache.end()) 
+        it->second = make_tuple(this->hash, this->dirtyBit, this->clock);
   }
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
@@ -80,7 +89,6 @@ class Cache {
     rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str());
 
     this->statusCache[this->relativePath] = make_tuple(this->hash, this->dirtyBit, this->clock);
-
     return 0;
   }
 

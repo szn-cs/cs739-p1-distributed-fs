@@ -59,13 +59,13 @@ extern "C" {
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << blue << "cppWrapper_getattr" << reset << std::endl;
-  path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
   std::cout << cyan << "path: " << path << reset << endl;
   int errornum, r;
 
   std::memset(buf, 0, sizeof(struct stat));
 
-  r = grpcClient->getFileAttributes(path, buf, errornum);
+  r = grpcClient->getFileAttributes(_path, buf, errornum);
 
   return (r == -1) ? -errornum : 0;
 }
@@ -237,9 +237,10 @@ int cppWrapper_rename(const char* oldpath, const char* newpath) {
 int cppWrapper_truncate(const char* path, off_t length) {
   std::cout << blue << "\ncppWrapper_truncate" << reset << std::endl;
 
-  path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
+  Cache c(_path);
 
-  int ret = truncate(path, length);
+  int ret = truncate(c.fileCachePath.c_str(), length);
   if (ret == -1) {
     return -errno;
   }
@@ -310,6 +311,7 @@ OpenCachedFile:
   return 0;
 
 Original : {
+  // int ret = open(path, 32768, mode);
   int ret = open(path, fi->flags, mode);
   if (ret == -1) {
     return -errno;
@@ -327,12 +329,11 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
   int ret, fd;
   int free_mark = 0;
   Cache c(_path);
-
   if (fi == NULL) {
     std::cout << "fi == NULL" << std::endl;
     fi = new fuse_file_info();
     fi->flags = O_WRONLY;
-    fd = cppWrapper_open(_path.c_str(), fi);
+    fd = cppWrapper_open(path, fi);
     free_mark = 1;
   } else {
     fd = fi->fh;
@@ -345,14 +346,13 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
   ret = pwrite(fd, buf, size, offset);
   if (ret == -1)
     ret = -errno;
-
   // if (fi == NULL) {
   if (free_mark == 1) {
     delete fi;
     close(fd);
   }
   c.setDirtyBit();
-  return 0;
+  return ret;
 }
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
@@ -378,13 +378,20 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   Cache c(_path);
 
   // close file locally
+ 
+  std::cout << blue << "check dirty: " <<  c.isDirty() << reset <<  std::endl;
+  if (!c.isDirty()) {
+    return 0;  // by-pass
+    ret = close(fi->fh);
+    std::cout << blue << "ret: " << ret << std::endl;
+    if (ret == -1)
+      return -errno;
+  }
   ret = close(fi->fh);
+  std::cout << blue << "ret: " << ret << std::endl;
   if (ret == -1)
     return -errno;
 
-  if (!c.isDirty()) {
-    return 0;  // by-pass
-  }
   // write to server...
   // stream file to server
   is.open(c.fileCachePath, std::ios::binary | std::ios::ate | std::ios::in | std::ios::out | std::ios::app);
@@ -526,14 +533,14 @@ Original:
 #ifdef HAVE_XATTR
 int cppWrapper_setxattr(const char* path, const char* name, const char* value, size_t size, int flags) {
   std::cout << blue << "\ncppWrapper_setxattr" << reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
+  Cache c(_path);
 
   int ret;
 #ifdef __APPLE__
-  ret = setxattr(path, name, value, size, 0, flags);
+  ret = setxattr(c.fileCachePath.c_str(), name, value, size, 0, flags);
 #else
-  ret = setxattr(path, name, value, size, flags);
+  ret = setxattr(c.fileCachePath.c_str(), name, value, size, flags);
 #endif /* __APPLE__ */
   if (ret == -1) {
     return -errno;
