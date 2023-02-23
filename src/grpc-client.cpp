@@ -204,7 +204,7 @@ int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timest
   // return status.error_code();
 }
 
-int GRPC_Client::WriteFile(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
+int GRPC_Client::putFileContents(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
   std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;

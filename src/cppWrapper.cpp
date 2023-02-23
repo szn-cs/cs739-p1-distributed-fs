@@ -375,7 +375,7 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   if (length >= 0) {
     std::string buf(length, '\0');
     is.read(&buf[0], length);
-    ret = grpcClient->WriteFile(_path, buf, length, 0, numOfBytes, timestamp);
+    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
   }
   is.close();
 
