@@ -6,7 +6,7 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 GRPC_Client::GRPC_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
 
 int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, int& errornum) {
-  std::cout << blue << "GRPC_Client::getFileAttributes" << reset << std::endl;
+  std::cout << yellow << "GRPC_Client::getFileAttributes" << reset << std::endl;
 
   Attributes reply;
   ClientContext context;
@@ -43,7 +43,7 @@ int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, in
 }
 
 int GRPC_Client::getFileContents(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
-  std::cout << blue << "GRPC_Client::getFileContents" << reset << std::endl;
+  std::cout << yellow << "GRPC_Client::getFileContents" << reset << std::endl;
   ReadRequest request;
   ReadReply reply;
   ClientContext context;
@@ -86,9 +86,9 @@ int GRPC_Client::getFileContents(const std::string& path, /*const int& size,cons
 }
 
 int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
+  std::cout << yellow << "GRPC_Client::readDirectory" << reset << std::endl;
   // return cppWrapper_readdir(path, buf, filler, offset, fi);
   // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
-  std::cout << "trigger grpc client read dir on path: " << path << std::endl;
   Path request;
   afs::ReadDirResponse response;
   ClientContext context;
@@ -123,6 +123,7 @@ int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vect
 }
 
 int GRPC_Client::createDirectory(const std::string& path, mode_t mode, int& errornum) {
+  std::cout << yellow << "GRPC_Client::createDirectory" << reset << std::endl;
   MkDirRequest request;
   Response reply;
   ClientContext context;
@@ -145,6 +146,7 @@ int GRPC_Client::createDirectory(const std::string& path, mode_t mode, int& erro
 }
 
 int GRPC_Client::removeDirectory(const std::string& path) {
+  std::cout << yellow << "GRPC_Client::removeDirectory" << reset << std::endl;
   Path request;
   Response reply;
   ClientContext context;
@@ -164,6 +166,7 @@ int GRPC_Client::removeDirectory(const std::string& path) {
 }
 
 int GRPC_Client::removeFile(const std::string& path) {
+  std::cout << yellow << "GRPC_Client::removeFile" << reset << std::endl;
   Path request;
   Response reply;
   ClientContext context;
@@ -189,6 +192,7 @@ int GRPC_Client::removeFile(const std::string& path) {
 //    if (ret != 0) return ret;
 // TODO: ? touch functionality: only create file without contents
 int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timestamp) {
+  std::cout << yellow << "GRPC_Client::OpenFile" << reset << std::endl;
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
@@ -205,6 +209,7 @@ int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timest
 }
 
 int GRPC_Client::putFileContents(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
+  std::cout << yellow << "GRPC_Client::putFileContents" << reset << std::endl;
   std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;
