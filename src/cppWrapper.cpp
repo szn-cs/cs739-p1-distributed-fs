@@ -134,13 +134,13 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
   return 0;
 }
 
-/**
-    cppWrapper_getattr
-    cppWrapper_open
-    cppWrapper_read
-    cppWrapper_flush
-    cppWrapper_lock
-    cppWrapper_release
+/** read triggers: 
+      cppWrapper_getattr
+      cppWrapper_open
+      cppWrapper_read
+      cppWrapper_flush
+      cppWrapper_lock
+      cppWrapper_release
 */
 int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_read" << reset << std::endl;
@@ -541,14 +541,9 @@ int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t 
   std::cout << blue << "\ncppWrapper_getxattr" << reset << std::endl;
 Original:
   int ret;
-#ifdef __APPLE__
-  ret = getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
-#else
   ret = getxattr(path, name, value, size);
-#endif /* __APPLE__ */
-  if (ret == -1) {
+  if (ret == -1)
     return -errno;
-  }
 
   return 0;
 }
