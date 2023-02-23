@@ -28,13 +28,13 @@ extern "C" {
         [x] fuse→mkdir()
         [x] fuse→rmdir()
         [x] fuse→unlink()
+        [x] fuse→read()
+        [ ] fuse→write()
         [ ] fuse→release()
         [ ] fuse→readdir()
         [ ] fuse→truncate()
         [ ] fuse→fsync()
         [ ] fuse→mknod()
-        [ ] fuse→read()
-        [ ] fuse→write()
 
 * check manual pages for POSIX functions details https://linux.die.net/man/2/
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
@@ -70,39 +70,32 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_open" << reset << std::endl;
-  int ret, errornum = 0;
-  int consistence = -1;
+  int ret, _r, errornum = 0;
+  bool isCacheValid = true;
   string _path = Utility::constructRelativePath(path);
 
   Cache c(_path);
 
   // check if cache entry for the path exists
-  // TODO: and check is cache valid or stale
   struct stat localAttr, serverAttr;
-  if (lstat(c.fileCachePath.c_str(), &localAttr) != 0) {
-    cout << red << "client target doesn't exist" << errornum << reset << endl;
+  if (lstat(c.fileCachePath.c_str(), &localAttr) != 0)
     goto FetchToCache;
-  }
 
-  grpcClient->getFileAttributes(path, &serverAttr, errornum);
-  if (errornum == 2) {
-    cout << red << "server target doesn't exist" << errornum << reset << endl;
+  // check is cache valid or stale
+  _r = grpcClient->getFileAttributes(path, &serverAttr, errornum);
+  if (_r != 0)
     goto FetchToCache;
-  }
 
   if (serverAttr.st_mtime > localAttr.st_mtime) {
-    // stale cache, need to fetch
-    consistence = -1;
-  } else if (serverAttr.st_mtime < localAttr.st_mtime) {
-    // TODO local didn't push new data
-    consistence = 1;
-    // goto ???
-  } else {
-    // valid cache
-    consistence = 0;
+    isCacheValid = false;  // stale cache, need to fetch
   }
 
-  if (c.isCacheEntry() && consistence == 0 /* if valid cache **/)  // ATTENTION: c.isCacheEntry() is redundent
+  // local cache was stored after last server-modified (may have same content) or could be newer/locally-modified
+  // if (serverAttr.st_mtime < localAttr.st_mtime) {
+  //   goto OpenCachedFile;
+  // }
+
+  if (c.isCacheEntry() && isCacheValid /* if valid cache **/)
     goto OpenCachedFile;
 
 FetchToCache : {
@@ -135,6 +128,39 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
   int ret = grpcClient->createDirectory(path, mode, errornum);
   if (ret == -1)
     return -errornum;
+
+  return 0;
+}
+
+int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
+  std::cout << yellow << "\ncppWrapper_read" << reset << std::endl;
+
+  int ret, fd;
+  int free_mark = 0;
+
+  if (fi == NULL) {
+    fi = new fuse_file_info();
+    fi->flags = O_RDONLY;
+    fd = cppWrapper_open(path, fi);
+    free_mark = 1;
+  } else {
+    fd = fi->fh;
+  }
+
+  if (fd == -1) {
+    return -errno;
+  }
+
+  ret = pread(fd, buf, size, offset);
+  if (ret == -1) {
+    ret = -errno;
+  }
+
+  // if (fi == NULL) {
+  if (free_mark == 1) {
+    delete fi;
+    close(fd);
+  }
 
   return 0;
 }
@@ -278,40 +304,6 @@ Original : {
 
   return 0;
 }
-}
-
-int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
-  std::cout << yellow << "\ncppWrapper_read" << reset << std::endl;
-  path = Utility::constructRelativePath(path).c_str();
-
-  int ret, fd;
-  int free_mark = 0;
-
-  if (fi == NULL) {
-    fi = new fuse_file_info();
-    fi->flags = O_RDONLY;
-    fd = cppWrapper_open(path, fi);
-    free_mark = 1;
-  } else {
-    fd = fi->fh;
-  }
-
-  if (fd == -1) {
-    return -errno;
-  }
-
-  ret = pread(fd, buf, size, offset);
-  if (ret == -1) {
-    ret = -errno;
-  }
-
-  // if (fi == NULL) {
-  if (free_mark == 1) {
-    delete fi;
-    close(fd);
-  }
-
-  return 0;
 }
 
 int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
