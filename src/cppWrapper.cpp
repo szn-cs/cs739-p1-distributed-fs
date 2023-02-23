@@ -28,7 +28,7 @@ extern "C" {
         [x] fuse→rmdir()
         [x] fuse→readdir()
         [x] fuse→unlink()
-        [x] fuse→open() 
+        [x] fuse→open()
         [x!] fuse→read() // TODO- reading content issue
         [x!] fuse→release() //TODO dirty bit
         [x!] fuse→write()  // TODO- test further for edge cases
@@ -155,7 +155,7 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
     fd = cppWrapper_open(path, fi);
     free_mark = 1;
   } else {
-    cout << red << "fh already given" << reset << endl;
+    cout << red << "fh already given fh " << fi->fh << reset << endl;
 
     fd = fi->fh;
   }
@@ -174,7 +174,7 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
     close(fd);
   }
 
-  return 0;
+  return ret;
 }
 
 int cppWrapper_rmdir(const char* path) {
@@ -291,6 +291,7 @@ FetchToCache : {
   int numBytes;
   std::string buf;
   ret = grpcClient->OpenFile(_path, O_RDWR | O_CREAT, timestamp);
+  std::cout << "ret " << ret << std::endl;
   if (ret != 0) return ret;
   ret = grpcClient->getFileContents(_path, numBytes, buf, timestamp);
   if (ret != 0) return ret;
@@ -321,16 +322,17 @@ Original : {
 
 int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_write" << reset << std::endl;
-  const char* _path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
 
   int ret, fd;
   int free_mark = 0;
+  Cache c(_path);
 
   if (fi == NULL) {
     std::cout << "fi == NULL" << std::endl;
     fi = new fuse_file_info();
     fi->flags = O_WRONLY;
-    fd = cppWrapper_open(_path, fi);
+    fd = cppWrapper_open(_path.c_str(), fi);
     free_mark = 1;
   } else {
     fd = fi->fh;
@@ -349,7 +351,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
     delete fi;
     close(fd);
   }
-
+  c.setDirtyBit();
   return 0;
 }
 
@@ -375,16 +377,15 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 
   Cache c(_path);
 
-  if (!c.isDirty())
-    return 0;  // by-pass
-
-  // write to server...
-
   // close file locally
   ret = close(fi->fh);
   if (ret == -1)
     return -errno;
 
+  if (!c.isDirty()) {
+    return 0;  // by-pass
+  }
+  // write to server...
   // stream file to server
   is.open(c.fileCachePath, std::ios::binary | std::ios::ate | std::ios::in | std::ios::out | std::ios::app);
   is.seekg(0, is.end);
@@ -396,6 +397,9 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
     ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
   }
   is.close();
+
+  // reset DirtyBit
+  c.resetDirtyBit();
 
   return 0;
 }
@@ -435,6 +439,7 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
 // ✅
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_readdir" << reset << std::endl;
+  path = Utility::constructRelativePath(path).c_str();
   struct dirent de;
   int errornum = 0;
   std::vector<std::string> results;
