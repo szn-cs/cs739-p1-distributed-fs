@@ -665,60 +665,6 @@ void cppWrapper_createDirectories(char* path) {
   fs::create_directories(path) == true ? cout << blue << path << " directory created" << reset << endl : cout << blue << path << " directory already exists" << reset << endl;
 }
 
-/** // testing:
-  int main() {
-    // std::unordered_map<std::string, std::string> Cache::get_local_cache(const
-    // std::string& path) int Cache::commitStatusCache(std::string& path,
-    // std::unordered_map<std::string, std::string> cache) std::string
-    // hash_path(const std::string& path)
-    // std::string test_cache_path("./test_cache.txt");
-    // std::unordered_map<std::string, std::string> tmp_cache =
-    //     Cache::get_local_cache(test_cache_path);
-    // std::string test_path = "./test_pathh";
-    // std::string test_hash = Cache::getPathHash(test_path);
-    // std::cout << test_path << " " << test_hash << std::endl;
-    // tmp_cache.insert(std::pair<std::string, std::string>(test_path,
-    // test_hash)); Cache::commitStatusCache(test_cache_path, tmp_cache);
-    // std::string AddrPort_ = "localhost:50051";
-    // std::string cacheDirectory_ = "/tmp/cache/";
-
-    //  1.) with fh (data in local cache)
-    //  2.) without fh
-    //                -> (data in/not in local cache)   -> wrapper_open()
-
-    struct fuse_file_info t1;
-    struct fuse_file_info t2;
-    t1.flags = O_RDWR;
-    t2.flags = O_RDWR;
-    struct fuse_file_info* p1 = &t1;
-    struct fuse_file_info* p2 = &t2;
-    std::string buf = "I want to go home.\0";
-    char* pbuf = &buf[0];
-    // char buf1[20];
-    // buf1[0] = '\0';
-    // char buf2[20];
-    // buf2[0] = '\0';
-    // cppWrapper_open("localhost:50051", "/tmp/cache/", "test2.txt", p1);
-    // cppWrapper_read("localhost:50051", "/tmp/cache/", "test2.txt", buf1, 20,
-    5,
-    //                 p1);
-    // std::cout << "with fh " << buf1 << std::endl;
-    // cppWrapper_read("localhost:50051", "/tmp/cache/", "test1.txt", buf2, 20,
-    5,
-    //                 NULL);
-    // std::cout << "without fh " << buf2 << std::endl;
-    cppWrapper_open("localhost:50051", "/tmp/cache/", "test1.txt", p1);
-
-    cppWrapper_write("localhost:50051", "/tmp/cache/", "test1.txt", pbuf,
-                    buf.size(), 0, p1);
-
-    cppWrapper_write("localhost:50051", "/tmp/cache/", "test2.txt", pbuf,
-                    buf.size(), 0, NULL);
-    cppWrapper_release("localhost:50051", "/tmp/cache/", "test1.txt", p1);
-    return 0;
-  }
-*/
-
 #ifdef __cplusplus
 }
 #endif
