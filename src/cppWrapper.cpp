@@ -29,12 +29,9 @@ extern "C" {
         [x] fuse→readdir()
         [x] fuse→unlink()
         [x] fuse→open() 
-        
-
-
-        [x!] fuse→read()
+        [x!] fuse→read() // TODO- reading content issue
+        [x!] fuse→release() //TODO dirty bit
         [x!] fuse→write()  // TODO- test further for edge cases
-        [x!] fuse→release()
 
         [ ] fuse→fsync()
         [ ] fuse→truncate()
