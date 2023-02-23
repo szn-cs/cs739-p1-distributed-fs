@@ -54,6 +54,12 @@ directory() {
   rmdir $MOUNTPOINT/x/y/
   rmdir $MOUNTPOINT/x/
 
+  #### readdir
+  mkdir -p $MOUNTPOINT/x/y/z/t
+  ls $MOUNTPOINT
+  ls $MOUNTPOINT/x
+  ls $MOUNTPOINT/m/t/q
+
 }
 
 removeFile() {

@@ -26,9 +26,9 @@ extern "C" {
         [xx] fuse→getattr()
         [xx] fuse→mkdir()
         [xx] fuse→rmdir()
+        [ ] fuse→readdir()
         [x!] fuse→open()  // TODO- cache validation logic
         [x] fuse→unlink()
-        [ ] fuse→readdir()
         [x!] fuse→read()
         [x!] fuse→write()  // TODO- test further for edge cases
         [x!] fuse→release()
@@ -419,14 +419,13 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_readdir" << reset << std::endl;
-
   struct dirent de;
   int errornum = 0;
   std::vector<std::string> results;
+
   int ret = grpcClient->readDirectory(path, errornum, results);
-  if (ret != 0) {
+  if (ret != 0)
     return -errornum;
-  }
 
   for (auto result : results) {
     struct stat st;
