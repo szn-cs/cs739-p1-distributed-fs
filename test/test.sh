@@ -18,9 +18,13 @@ attribute() {
   # wc -c file | cut -f1
 }
 
-getFileContents() {
+file() {
   echo "content" >$SERVER/file.txt
   cat $MOUNTPOINT/file.txt
+
+  echo "content" >$SERVER/file.txt
+  unlink $MOUNTPOINT/file.txt
+
 }
 
 directory() {
@@ -60,11 +64,6 @@ directory() {
   ls $MOUNTPOINT/x
   ls $MOUNTPOINT/m/t/q
 
-}
-
-removeFile() {
-  echo "content" >$SERVER/file.txt
-  unlink $MOUNTPOINT/file.txt
 }
 
 trace() {

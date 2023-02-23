@@ -23,17 +23,21 @@ extern "C" {
  * Main calls should be supported (check unreliablefs.c mapping)
 
 ** FUSE functions:
-        [xx] fuse→getattr()
-        [xx] fuse→mkdir()
-        [xx] fuse→rmdir()
-        [ ] fuse→readdir()
-        [x!] fuse→open()  // TODO- cache validation logic
+        [x] fuse→getattr()
+        [x] fuse→mkdir()
+        [x] fuse→rmdir()
+        [x] fuse→readdir()
         [x] fuse→unlink()
+        [x] fuse→open() 
+        
+
+
         [x!] fuse→read()
         [x!] fuse→write()  // TODO- test further for edge cases
         [x!] fuse→release()
-        [ ] fuse→truncate()
+
         [ ] fuse→fsync()
+        [ ] fuse→truncate()
         [ ] fuse→mknod()
 
 * check manual pages for POSIX functions details https://linux.die.net/man/2/
@@ -49,7 +53,7 @@ extern "C" {
     // https://linux.die.net/man/2/lstat
         [x] stat():             fuse→getattr()
         [ ] fsync():            fuse→fsync()
-        [ ] readdir():          fuse→readdir()
+        [x] readdir():          fuse→readdir()
 
 
  * TODO: remove unnecessary platform specific implementations
@@ -133,29 +137,39 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
   return 0;
 }
 
+/**
+    cppWrapper_getattr
+    cppWrapper_open
+    cppWrapper_read
+    cppWrapper_flush
+    cppWrapper_lock
+    cppWrapper_release
+*/
 int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_read" << reset << std::endl;
-
   int ret, fd;
   int free_mark = 0;
 
   if (fi == NULL) {
+    cout << red << "fh requested from open " << reset << endl;
+
     fi = new fuse_file_info();
     fi->flags = O_RDONLY;
     fd = cppWrapper_open(path, fi);
     free_mark = 1;
   } else {
+    // cout << red << "fh already given" << reset << endl;
+
     fd = fi->fh;
   }
-
-  if (fd == -1) {
+  if (fd == -1)
     return -errno;
-  }
+
+  // cout << red << "read size: " << size << reset << endl;
 
   ret = pread(fd, buf, size, offset);
-  if (ret == -1) {
+  if (ret == -1)
     ret = -errno;
-  }
 
   // if (fi == NULL) {
   if (free_mark == 1) {
@@ -185,10 +199,6 @@ int cppWrapper_unlink(const char* path) {
 
   Cache c(_path);
 
-  // delete on server
-  ret = grpcClient->removeFile(_path);
-  if (ret != 0) return -errno;
-
   // delete local
   if (c.isCacheEntry()) {
     ret = c.deleteEntry();
@@ -196,12 +206,16 @@ int cppWrapper_unlink(const char* path) {
       return -errno;
   }
 
+  // delete on server
+  ret = grpcClient->removeFile(_path);
+  if (ret != 0) return -errno;
+
   return 0;
 }
 
+// TODO:
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
   std::cout << blue << "\ncppWrapper_mknod" << reset << std::endl;
-
   path = Utility::constructRelativePath(path).c_str();
 
   int ret = mknod(path, mode, dev);
@@ -386,10 +400,9 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_fsync" << reset << std::endl;
-
   path = Utility::constructRelativePath(path).c_str();
-
   int ret;
+
   if (datasync) {
     ret = fdatasync(fi->fh);
     if (ret == -1) {
@@ -417,6 +430,7 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
   return 0;  // by-pass
 }
 
+// ✅
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_readdir" << reset << std::endl;
   struct dirent de;

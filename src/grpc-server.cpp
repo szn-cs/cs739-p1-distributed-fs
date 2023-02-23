@@ -287,8 +287,8 @@ Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, Ope
   return Status::OK;
 }
 
-Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) {
-  std::cout << yellow << "GRPC_Server::Write" << reset << std::endl;
+Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) {
+  std::cout << yellow << "GRPC_Server::putFileContents" << reset << std::endl;
   std::string path;
   WriteRequest request;
   std::string tempFilePath = serverDirectory;
@@ -312,7 +312,7 @@ Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* re
         reply->set_numbytes(INT_MIN);
         return Status::OK;
       }
-      // printf("Write Send: %s \n", path.c_str());
+      // printf("putFileContents Send: %s \n", path.c_str());
     }
     res = pwrite(fd, &buf[0], size, offset);
     fsync(fd);
@@ -320,7 +320,7 @@ Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* re
     if (res == -1) {
       reply->set_err(-errno);
       reply->set_numbytes(INT_MIN);
-      printf("Write Send: Pwrite failed!");
+      printf("putFileContents Send: Pwrite failed!");
       return Status::OK;
     }
     numOfBytes += res;
@@ -337,7 +337,7 @@ Status GRPC_Server::Write(ServerContext* context, ServerReader<WriteRequest>* re
       // cout << "Killing server process in write()\n";
       kill(getpid(), SIGINT);
     }
-    // printf("Write Send: Calling fsync()\n");
+    // printf("putFileContents Send: Calling fsync()\n");
     fsync(fd);
     close(fd);
     int res = rename(tempFilePath.c_str(), path.c_str());

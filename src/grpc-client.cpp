@@ -217,7 +217,7 @@ int GRPC_Client::putFileContents(const std::string& path, const std::string& buf
   std::chrono::time_point<std::chrono::system_clock> deadline =
       std::chrono::system_clock::now() + std::chrono::milliseconds(TIMEOUT);
   context.set_deadline(deadline);
-  std::unique_ptr<ClientWriter<WriteRequest>> writer(stub_->Write(&context, &reply));
+  std::unique_ptr<ClientWriter<WriteRequest>> writer(stub_->putFileContents(&context, &reply));
   int bytesLeft = size;
   int curr = offset;
   while (bytesLeft >= 0) {

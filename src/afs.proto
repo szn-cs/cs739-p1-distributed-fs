@@ -26,7 +26,7 @@ service AFS {
   rpc Open(OpenRequest) returns (OpenResponse) {};
 
   // Store/Update/Write file           Store this file on the server (called on close())
-  rpc Write(stream WriteRequest) returns (WriteReply) {};
+  rpc putFileContents(stream WriteRequest) returns (WriteReply) {};
   
   // remove file / unlink
   rpc removeFile(Path) returns (Response) {};
