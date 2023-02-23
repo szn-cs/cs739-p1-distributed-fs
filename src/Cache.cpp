@@ -25,6 +25,7 @@ class Cache {
     this->statusCache = Cache::getStatusCache();
     this->hash = Cache::getPathHash(relativePath);
     this->fileCachePath = Utility::concatenatePath(fsRootPath, hash);
+    dirtyBit = 0;
   }
 
   // check if cache entry exists for the fileCachePath
@@ -80,6 +81,8 @@ class Cache {
   std::string relativePath;
   std::string fileCachePath;
   std::string hash;
+  bool dirtyBit;
+
   std::unordered_map<std::string, std::string> statusCache;  // in-memory copy from the statusCachePath contents
 
   // static members
