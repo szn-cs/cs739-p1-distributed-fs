@@ -1,7 +1,7 @@
 /**
  * AFS Handlers: direct mapping from each of the UnreliableFS functions
- * 
-*/
+ *
+ */
 #include "./cppWrapper.h"
 
 #ifdef __cplusplus
@@ -23,33 +23,33 @@ extern "C" {
  * Main calls should be supported (check unreliablefs.c mapping)
 
 ** FUSE functions:
-		[x] fuse→getattr() 
-		[x!] fuse→open()  // TODO- cache validation logic
-		[x] fuse→mkdir() 
-		[x] fuse→rmdir()
-		[x] fuse→unlink() 
-		[ ] fuse→release() 
-		[ ] fuse→readdir() 
-		[ ] fuse→truncate() 
-		[ ] fuse→fsync() 
-		[ ] fuse→mknod() 
-		[ ] fuse→read() 
-		[ ] fuse→write() 
+        [x] fuse→getattr()
+        [x!] fuse→open()  // TODO- cache validation logic
+        [x] fuse→mkdir()
+        [x] fuse→rmdir()
+        [x] fuse→unlink()
+        [ ] fuse→release()
+        [ ] fuse→readdir()
+        [ ] fuse→truncate()
+        [ ] fuse→fsync()
+        [ ] fuse→mknod()
+        [ ] fuse→read()
+        [ ] fuse→write()
 
 * check manual pages for POSIX functions details https://linux.die.net/man/2/
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
-		[x] open():             fuse→getattr(), fuse→open()
-		[ ] close():            fuse→release()
-		[ ] creat():            fuse→mknod()
-		[x] unlink():           fuse→getattr(), fuse→unlink()
-		[x] mkdir():            fuse→mkdir()
-		[x] rmdir():            fuse→rmdir()
-		[ ] read(), pread():    fuse→read()
-		[ ] write(), pwrite():  fuse→write(), fuse→truncate()
+        [x] open():             fuse→getattr(), fuse→open()
+        [ ] close():            fuse→release()
+        [ ] creat():            fuse→mknod()
+        [x] unlink():           fuse→getattr(), fuse→unlink()
+        [x] mkdir():            fuse→mkdir()
+        [x] rmdir():            fuse→rmdir()
+        [ ] read(), pread():    fuse→read()
+        [ ] write(), pwrite():  fuse→write(), fuse→truncate()
     // https://linux.die.net/man/2/lstat
-		[x] stat():             fuse→getattr()
+        [x] stat():             fuse→getattr()
     [ ] fsync():            fuse→fsync()
-		[ ] readdir():          fuse→readdir()
+        [ ] readdir():          fuse→readdir()
 
 
  * TODO: remove unnecessary platform specific implementations
@@ -70,14 +70,39 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_open" << reset << std::endl;
-  int ret;
+  int ret, errornum = 0;
+  int consistence = -1;
   string _path = Utility::constructRelativePath(path);
 
   Cache c(_path);
 
   // check if cache entry for the path exists
   // TODO: and check is cache valid or stale
-  if (c.isCacheEntry() && true /* if valid cache **/)
+  struct stat localAttr, serverAttr;
+  if (lstat(c.fileCachePath.c_str(), &localAttr) != 0) {
+    cout << red << "client target doesn't exist" << errornum << reset << endl;
+    goto FetchToCache;
+  }
+
+  grpcClient->getFileAttributes(path, &serverAttr, errornum);
+  if (errornum == 2) {
+    cout << red << "server target doesn't exist" << errornum << reset << endl;
+    goto FetchToCache;
+  }
+
+  if (serverAttr.st_mtime > localAttr.st_mtime) {
+    // stale cache, need to fetch
+    consistence = -1;
+  } else if (serverAttr.st_mtime < localAttr.st_mtime) {
+    // TODO local didn't push new data
+    consistence = 1;
+    // goto ???
+  } else {
+    // valid cache
+    consistence = 0;
+  }
+
+  if (c.isCacheEntry() && consistence == 0 /* if valid cache **/)  // ATTENTION: c.isCacheEntry() is redundent
     goto OpenCachedFile;
 
 FetchToCache : {
@@ -186,18 +211,44 @@ int cppWrapper_truncate(const char* path, off_t length) {
 // trigger server create file -> download data
 int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
   std::cout << termcolor::yellow << "\ncppWrapper_create" << termcolor::reset << std::endl;
-  string _path = Utility::constructRelativePath(path);
-  int ret;
+  int ret, errornum = 0;
+  int consistence = -1;
   long timestamp;
+
+  string _path = Utility::constructRelativePath(path);
 
   Cache c(_path);
 
-  // if path not exist in the cache
+  // check if cache entry for the path exists
   // TODO: and check is cache valid or stale
-  if (c.isCacheEntry() && true /* if valid cache **/)
+  struct stat localAttr, serverAttr;
+  if (lstat(c.fileCachePath.c_str(), &localAttr) != 0) {
+    cout << red << "client target doesn't exist" << errornum << reset << endl;
+    goto FetchToCache;
+  }
+
+  grpcClient->getFileAttributes(path, &serverAttr, errornum);
+  if (errornum == 2) {
+    cout << red << "server target doesn't exist" << errornum << reset << endl;
+    goto FetchToCache;
+  }
+
+  if (serverAttr.st_mtime > localAttr.st_mtime) {
+    // stale cache, need to fetch
+    consistence = -1;
+  } else if (serverAttr.st_mtime < localAttr.st_mtime) {
+    // TODO local didn't push new data
+    consistence = 1;
+    // goto ???
+  } else {
+    // valid cache
+    consistence = 0;
+  }
+
+  if (c.isCacheEntry() && consistence == 0 /* if valid cache **/)  // ATTENTION: c.isCacheEntry() is redundent
     goto OpenCachedFile;
 
-FetchCache : {
+FetchToCache : {
   int numBytes;
   std::string buf;
   ret = grpcClient->OpenFile(_path, O_RDWR | O_CREAT, timestamp);
@@ -649,7 +700,7 @@ Original:
 #endif /* HAVE_UTIMENSAT */
 
 /** ------------------------------------------------------------------------------------
- * AFS initialization functions 
+ * AFS initialization functions
  */
 int cppWrapper_initialize(char* serverAddress, char* _cacheDirectory, char* argv[], char* _fsRootPath) {
   grpcClient = new GRPC_Client(grpc::CreateChannel(serverAddress, grpc::InsecureChannelCredentials()));
