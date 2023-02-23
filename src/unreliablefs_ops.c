@@ -409,7 +409,8 @@ int unreliable_statfs(const char *path, struct statvfs *buf) {
         return ret;
     }
 
-    return cppWrapper_statfs(path, buf);
+    // ❌ NOT REQUIRED
+    // return cppWrapper_statfs(path, buf);
 
 Original:
     ret = statvfs(path, buf);
