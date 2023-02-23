@@ -25,25 +25,25 @@ extern "C" {
 ** FUSE functions:
         [x] fuse→getattr()
         [x!] fuse→open()  // TODO- cache validation logic
-        [ ] fuse→mkdir()
+        [x] fuse→mkdir()
+        [x] fuse→rmdir()
+        [x] fuse→unlink()
         [ ] fuse→release()
         [ ] fuse→readdir()
         [ ] fuse→truncate()
         [ ] fuse→fsync()
         [ ] fuse→mknod()
-        [ ] fuse→unlink()
         [ ] fuse→read()
         [ ] fuse→write()
-        [ ] fuse→rmdir()
 
 * check manual pages for POSIX functions details https://linux.die.net/man/2/
 ** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
-        [ ] open():             fuse→getattr(), fuse→open()
+        [x] open():             fuse→getattr(), fuse→open()
         [ ] close():            fuse→release()
         [ ] creat():            fuse→mknod()
-        [ ] unlink():           fuse→getattr(), fuse→unlink()
-        [ ] mkdir():            fuse→mkdir()
-        [ ] rmdir():            fuse→rmdir()
+        [x] unlink():           fuse→getattr(), fuse→unlink()
+        [x] mkdir():            fuse→mkdir()
+        [x] rmdir():            fuse→rmdir()
         [ ] read(), pread():    fuse→read()
         [ ] write(), pwrite():  fuse→write(), fuse→truncate()
     // https://linux.die.net/man/2/lstat
@@ -77,6 +77,11 @@ Original:
   memset(buf, 0, sizeof(struct stat));
   if (lstat(path, buf) == -1) return -errno;
   return 0;
+}
+
+int cppWrapper_lstat(const char* path, struct stat* buf) {
+  std::cout << yellow << "\ncppWrapper_lstat —forward→ cppWrapper_getattr" << reset << std::endl;
+  return cppWrapper_getattr(path, buf);
 }
 
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
@@ -147,24 +152,23 @@ Original:
 
 int cppWrapper_mkdir(const char* path, mode_t mode) {
   std::cout << yellow << "\ncppWrapper_mkdir" << reset << std::endl;
-
   path = Utility::constructRelativePath(path).c_str();
-
   int errornum;
-  int ret = grpcClient->MakeDirectory(path, mode, errornum);
-  if (ret == -1) {
+
+  int ret = grpcClient->createDirectory(path, mode, errornum);
+  if (ret == -1)
     return -errornum;
-  }
+
   return 0;
 }
 
-int cppWrapper_lstat(const char* path, struct stat* buf) {
-  std::cout << yellow << "\ncppWrapper_lstat" << reset << std::endl;
-
+int cppWrapper_rmdir(const char* path) {
+  std::cout << yellow << "\ncppWrapper_rmdir" << reset << std::endl;
   path = Utility::constructRelativePath(path).c_str();
 
-  memset(buf, 0, sizeof(struct stat));
-  if (lstat(path, buf) == -1) return -errno;
+  int ret = grpcClient->removeDirectory(path);
+  if (ret == -1)
+    return -errno;
 
   return 0;
 }
@@ -177,12 +181,15 @@ int cppWrapper_unlink(const char* path) {
   Cache c(_path);
 
   // delete on server
-  ret = grpcClient->Unlink(_path);
+  ret = grpcClient->removeFile(_path);
   if (ret != 0) return -errno;
 
   // delete local
-  ret = c.deleteEntry();
-  if (ret != 0) return -errno;
+  if (c.isCacheEntry()) {
+    ret = c.deleteEntry();
+    if (ret != 0)
+      return -errno;
+  }
 
   return 0;
 }
@@ -207,19 +214,6 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
   path = Utility::constructRelativePath(path).c_str();
 
   int ret = mknod(path, mode, dev);
-  if (ret == -1) {
-    return -errno;
-  }
-
-  return 0;
-}
-
-int cppWrapper_rmdir(const char* path) {
-  std::cout << yellow << "\ncppWrapper_rmdir" << reset << std::endl;
-
-  path = Utility::constructRelativePath(path).c_str();
-
-  int ret = rmdir(path);
   if (ret == -1) {
     return -errno;
   }
@@ -656,7 +650,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
   struct dirent de;
   int errornum = 0;
   std::vector<std::string> results;
-  int ret = grpcClient->ReadDirectory(path, errornum, results);
+  int ret = grpcClient->readDirectory(path, errornum, results);
   if (ret != 0) {
     return -errornum;
   }

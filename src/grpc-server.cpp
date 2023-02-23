@@ -23,7 +23,6 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
   string path = Utility::concatenatePath(serverDirectory, request->path());
   /*
   if (lstat(path.c_str(), &attributes) == -1) {
-    cout << red << "`lstat` errno: " << errno << " for path: " << path << reset << endl;
     response->set_status(-1);
     response->set_errornum(errno);
     return Status::OK;
@@ -186,7 +185,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
 }
 
 Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
-  std::cout << "trigger redir" << std::endl;
+  std::cout << yellow << "GRPC_Server::readDirectory" << reset << std::endl;
 
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
@@ -227,55 +226,46 @@ Status GRPC_Server::ReadDir(ServerContext* context, const Path* request, ServerW
   return Status::OK;
 }
 
-Status GRPC_Server::MkDir(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
-  std::cout << "trigger mkdir" << std::endl;
-
+Status GRPC_Server::createDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
+  std::cout << yellow << "GRPC_Server::createDirectory" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
-
   mode_t mode = (mode_t)request->modet();
 
   int ret = mkdir(path.c_str(), mode);
-  if (ret != 0) {
+  if (ret != 0)
     response->set_erronum(errno);
-  }
+
   response->set_status(ret);
+
   return Status::OK;
 }
 
-Status GRPC_Server::RmDir(ServerContext* context, const Path* request, Response* response) {
-  std::cout << "trigger rmdir" << std::endl;
-
+Status GRPC_Server::removeDirectory(ServerContext* context, const Path* request, Response* response) {
+  std::cout << yellow << "GRPC_Server::removeDirectory" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
+  std::error_code errorCode;
 
-  response->set_status(1);
+  response->set_status(0);
 
-  if (fs::exists(path)) {
-    std::error_code errorCode;
-    if (!fs::remove(path, errorCode)) {
-      perror("Failed to rm directory.");
-      response->set_status(0);
-    }
-  } else {
-    response->set_status(0);
+  if (!fs::remove(path, errorCode)) {
+    perror("Failed to remove directory.");
+    response->set_status(-1);
+    response->set_erronum(errorCode.value());
   }
+
   return Status::OK;
 }
 
-Status GRPC_Server::Unlink(ServerContext* context, const Path* request, Response* response) {
-  std::cout << "trigger unlink" << std::endl;
-
+Status GRPC_Server::removeFile(ServerContext* context, const Path* request, Response* response) {
+  std::cout << yellow << "GRPC_Server::removeFile" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
+  std::error_code errorCode;
 
-  response->set_status(1);
-  if (fs::exists(path)) {
-    std::error_code errorCode;
-    if (!fs::remove(path, errorCode)) {
-      perror("Failed to rm file.");
-      response->set_status(0);
-    }
-  } else {
-    response->set_status(0);
+  if (!fs::remove(path, errorCode)) {
+    response->set_status(1);
+    response->set_erronum(errorCode.value());
   }
+
   return Status::OK;
 }
 

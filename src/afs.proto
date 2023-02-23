@@ -28,13 +28,13 @@ service AFS {
   // Store/Update/Write file           Store this file on the server (called on close())
   rpc Write(stream WriteRequest) returns (WriteReply) {};
   
-  // remove file
-  rpc Unlink(Path) returns (Response) {};
+  // remove file / unlink
+  rpc removeFile(Path) returns (Response) {};
   
   // create directory
-  rpc MkDir(MkDirRequest) returns (MkDirResponse) {};
+  rpc createDirectory(MkDirRequest) returns (MkDirResponse) {};
   // remove directory
-  rpc RmDir(Path) returns (Response) {}; 
+  rpc removeDirectory(Path) returns (Response) {}; 
 
   // ListDir         List the contents of a directory
   rpc ReadDir(Path) returns (stream ReadDirResponse) {};   
@@ -60,6 +60,7 @@ message Path {
 
 message Response {
     int32 status = 1;
+    int32 erronum = 2;
 }
 
 message MkDirRequest {
