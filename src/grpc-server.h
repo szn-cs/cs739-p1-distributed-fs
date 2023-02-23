@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 using namespace std;
 using namespace grpc;
 using namespace afs;
-using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
 // Logic and data behind the server's behavior.
 class GRPC_Server final : public AFS::Service {

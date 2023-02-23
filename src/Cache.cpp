@@ -10,7 +10,7 @@
 #include "Utility.cpp"
 
 using namespace std;
-using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
 extern std::string statusCachePath;
 

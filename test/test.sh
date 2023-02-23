@@ -1,8 +1,15 @@
-getFileAttributes() {
+MOUNTPOINT=$(pwd)/tmp/mount
+ROOT=$(pwd)/tmp/root
+SERVER=$(pwd)/tmp/server
+
+attribute() {
   # equivalent to `lstat``
   stat $MOUNTPOINT
   echo "content" >$SERVER/file.txt
-  stat $ROOT/file.txt
+  mkdir -p $SERVER/x/y/z/
+  echo "content" >$SERVER/x/y/z/file.txt
+  stat $MOUNTPOINT/file.txt
+  stat $MOUNTPOINT/x/y/z/file.txt
 
   # du -b file |cut -f1
 
@@ -16,13 +23,37 @@ getFileContents() {
   cat $MOUNTPOINT/file.txt
 }
 
-manipulateDirectories() {
+directory() {
   mkdir $MOUNTPOINT/x
   ls $SERVER
+
   mkdir $MOUNTPOINT/x
+
   rmdir $MOUNTPOINT/x
+
   ls $SERVER
   rmdir $MOUNTPOINT/x
+
+  mkdir $MOUNTPOINT/x
+  mkdir $MOUNTPOINT/x/y
+  ls $SERVER
+  stat $SERVER/x/y
+
+  # mkdir -p: triggers
+  # cppWrapper_getattr
+  # cppWrapper_opendir
+  # cppWrapper_access
+  # cppWrapper_releasedir
+  # cppWrapper_mkdir
+  mkdir -p $MOUNTPOINT/x/y/z/t
+  stat $SERVER/x/y/z/t
+
+  rmdir $MOUNTPOINT/x/y/z # error
+  rmdir $MOUNTPOINT/x/y/z/t
+  rmdir $MOUNTPOINT/x/y/z/
+  rmdir $MOUNTPOINT/x/y/
+  rmdir $MOUNTPOINT/x/
+
 }
 
 removeFile() {

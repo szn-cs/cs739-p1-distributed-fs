@@ -8,7 +8,7 @@
 
 namespace fs = std::filesystem;
 using namespace std;
-using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
 static GRPC_Client* grpcClient;
 std::string cacheDirectory;
@@ -23,10 +23,10 @@ extern "C" {
  * Main calls should be supported (check unreliablefs.c mapping)
 
 ** FUSE functions:
-        [x] fuse→getattr()
+        [xx] fuse→getattr()
+        [xx] fuse→mkdir()
+        [xx] fuse→rmdir()
         [x!] fuse→open()  // TODO- cache validation logic
-        [x] fuse→mkdir()
-        [x] fuse→rmdir()
         [x] fuse→unlink()
         [ ] fuse→readdir()
         [x!] fuse→read()
@@ -58,8 +58,9 @@ extern "C" {
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << blue << "cppWrapper_getattr" << reset << std::endl;
-  int errornum, r;
   path = Utility::constructRelativePath(path).c_str();
+  std::cout << cyan << "path: " << path << reset << endl;
+  int errornum, r;
 
   std::memset(buf, 0, sizeof(struct stat));
 
@@ -170,8 +171,9 @@ int cppWrapper_rmdir(const char* path) {
   path = Utility::constructRelativePath(path).c_str();
 
   int ret = grpcClient->removeDirectory(path);
-  if (ret == -1)
-    return -errno;
+
+  if (ret != 0)
+    return -ret;
 
   return 0;
 }
@@ -403,17 +405,16 @@ int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) 
   return 0;
 }
 
+// ✅
 int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_opendir" << reset << std::endl;
-Original:
-  DIR* dir = opendir(path);
+  return 0;  // by-pass
+}
 
-  if (!dir) {
-    return -errno;
-  }
-  fi->fh = (int64_t)dir;
-
-  return 0;
+// ✅
+int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
+  std::cout << blue << "\ncppWrapper_releasedir" << reset << std::endl;
+  return 0;  // by-pass
 }
 
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
@@ -435,19 +436,6 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
     st.st_mode = de.d_type << 12;
     std::cout << "de.d_name: " << de.d_name << std::endl;
     if (filler(buf, de.d_name, &st, 0)) break;
-  }
-
-  return 0;
-}
-
-int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_releasedir" << reset << std::endl;
-Original:
-  DIR* dir = (DIR*)fi->fh;
-
-  int ret = closedir(dir);
-  if (ret == -1) {
-    return -errno;
   }
 
   return 0;

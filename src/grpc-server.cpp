@@ -3,7 +3,7 @@
 namespace fs = std::filesystem;
 using namespace std;
 using namespace afs;
-using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
 using afs::AFS;
 using grpc::Server;
@@ -29,13 +29,13 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
   }
   */
   if (lstat(path.c_str(), &attributes) != 0) {
-    if (errno == ENOENT) {
-      cout << red << "`lstat` errno: " << errno << " doesn't exist for path: " << path << reset << endl;
-    } else if (errno == EACCES) {
-      cout << red << "`lstat` errno: " << errno << " no permission to know for path: " << path << reset << endl;
-    } else {
-      cout << red << "`lstat` errno: " << errno << " general error for path: " << path << reset << endl;
-    }
+    // if (errno == ENOENT) {
+    //   cout << red << "`lstat` errno: " << errno << " doesn't exist for path: " << path << reset << endl;
+    // } else if (errno == EACCES) {
+    //   cout << red << "`lstat` errno: " << errno << " no permission to know for path: " << path << reset << endl;
+    // } else {
+    //   cout << red << "`lstat` errno: " << errno << " general error for path: " << path << reset << endl;
+    // }
 
     response->set_status(-1);
     response->set_errornum(errno);
@@ -245,10 +245,10 @@ Status GRPC_Server::removeDirectory(ServerContext* context, const Path* request,
 
   response->set_status(0);
 
-  if (!fs::remove(path, errorCode)) {
-    perror("Failed to remove directory.");
+  int rc = rmdir(path.c_str());
+  if (rc != 0) {
     response->set_status(-1);
-    response->set_erronum(errorCode.value());
+    response->set_erronum(errno);
   }
 
   return Status::OK;
@@ -275,7 +275,7 @@ Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, Ope
   // rc = creat(path.c_str(), request->mode());
 
   rc = open(path.c_str(), request->mode(), S_IRWXG | S_IRWXO | S_IRWXU);
-  if (rc == -1) {
+  if (rc != 0) {
     // cout << "create returned wrong value\n";
     response->set_err(-errno);
     return Status::OK;

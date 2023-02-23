@@ -1,7 +1,7 @@
 
 #include "./grpc-client.h"
 using namespace std;
-using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
+using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
 GRPC_Client::GRPC_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
 
