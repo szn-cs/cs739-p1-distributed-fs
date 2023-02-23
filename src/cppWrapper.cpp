@@ -348,22 +348,8 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
   return 0;
 }
 
-int cppWrapper_statfs(const char* path, struct statvfs* buf) {
-  std::cout << yellow << "\ncppWrapper_statfs" << reset << std::endl;
-
-  const char* _path = Utility::constructRelativePath(path).c_str();
-
-  int ret = statvfs(_path, buf);
-  if (ret == -1) {
-    return -errno;
-  }
-
-  return 0;
-}
-
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   std::cout << yellow << "\ncppWrapper_flush" << reset << std::endl;
-
   path = Utility::constructRelativePath(path).c_str();
 
   int ret = close(dup(fi->fh));
