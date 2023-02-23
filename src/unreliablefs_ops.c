@@ -798,7 +798,8 @@ int unreliable_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info
         return ret;
     }
 
-    return cppWrapper_ioctl(path, cmd, arg, fi, flags, data);
+    // ❌ NOT REQUIRED
+    // return cppWrapper_ioctl(path, cmd, arg, fi, flags, data);
 
 Original:
     ret = ioctl(fi->fh, cmd, arg);
@@ -840,9 +841,10 @@ int unreliable_fallocate(const char *path, int mode, off_t offset, off_t len, st
         return ret;
     }
 
-    return cppWrapper_fallocate(path, mode, offset, len, fi);
+    // ❌ NOT REQUIRED
+    // return cppWrapper_fallocate(path, mode, offset, len, fi);
 
-Original : {
+    // ORIGINAL:
     int fd;
     (void)fi;
 
@@ -870,7 +872,6 @@ Original : {
     }
 
     return 0;
-}
 }
 #endif /* HAVE_FALLOCATE */
 

@@ -624,19 +624,6 @@ Original:
 }
 #endif /* HAVE_XATTR */
 
-#if !defined(__OpenBSD__)
-int cppWrapper_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi, unsigned int flags, void* data) {
-  std::cout << yellow << "\ncppWrapper_ioctl" << reset << std::endl;
-Original:
-  int ret = ioctl(fi->fh, cmd, arg);
-  if (ret == -1) {
-    return -errno;
-  }
-
-  return 0;
-}
-#endif /* __OpenBSD__ */
-
 #ifdef HAVE_FLOCK
 int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op) {
   std::cout << yellow << "\ncppWrapper_flock" << reset << std::endl;
@@ -649,41 +636,6 @@ Original:
   return 0;
 }
 #endif /* HAVE_FLOCK */
-
-#ifdef HAVE_FALLOCATE
-int cppWrapper_fallocate(const char* path, int mode, off_t offset, off_t len, struct fuse_file_info* fi) {
-  std::cout << yellow << "\ncppWrapper_fallocate" << reset << std::endl;
-Original:
-  int ret;
-  int fd;
-  (void)fi;
-
-  if (mode) {
-    return -EOPNOTSUPP;
-  }
-
-  if (fi == NULL) {
-    fd = open(path, O_WRONLY);
-  } else {
-    fd = fi->fh;
-  }
-
-  if (fd == -1) {
-    return -errno;
-  }
-
-  ret = fallocate((int)fi->fh, mode, offset, len);
-  if (ret == -1) {
-    return -errno;
-  }
-
-  if (fi == NULL) {
-    close(fd);
-  }
-
-  return 0;
-}
-#endif /* HAVE_FALLOCATE */
 
 #ifdef HAVE_UTIMENSAT
 int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
