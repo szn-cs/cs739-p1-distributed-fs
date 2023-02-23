@@ -158,14 +158,14 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
     fd = cppWrapper_open(path, fi);
     free_mark = 1;
   } else {
-    // cout << red << "fh already given" << reset << endl;
+    cout << red << "fh already given" << reset << endl;
 
     fd = fi->fh;
   }
   if (fd == -1)
     return -errno;
 
-  // cout << red << "read size: " << size << reset << endl;
+  cout << red << "read size: " << size << reset << endl;
 
   ret = pread(fd, buf, size, offset);
   if (ret == -1)
@@ -377,6 +377,11 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   std::ifstream is;
 
   Cache c(_path);
+
+  if (!c.isDirty())
+    return 0;  // by-pass
+
+  // write to server...
 
   // close file locally
   ret = close(fi->fh);

@@ -33,6 +33,10 @@ class Cache {
     return this->statusCache.find(this->relativePath) != this->statusCache.end();
   }
 
+  bool isDirty() {
+    return this->dirtyBit;
+  }
+
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
