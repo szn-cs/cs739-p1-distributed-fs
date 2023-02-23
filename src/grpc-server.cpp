@@ -21,9 +21,23 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
 
   struct stat attributes;
   string path = Utility::concatenatePath(serverDirectory, request->path());
-
+  /*
   if (lstat(path.c_str(), &attributes) == -1) {
     cout << red << "`lstat` errno: " << errno << " for path: " << path << reset << endl;
+    response->set_status(-1);
+    response->set_errornum(errno);
+    return Status::OK;
+  }
+  */
+  if (lstat(path.c_str(), &attributes) != 0) {
+    if (errno == ENOENT) {
+      cout << red << "`lstat` errno: " << errno << " doesn't exist for path: " << path << reset << endl;
+    } else if (errno == EACCES) {
+      cout << red << "`lstat` errno: " << errno << " no permission to know for path: " << path << reset << endl;
+    } else {
+      cout << red << "`lstat` errno: " << errno << " general error for path: " << path << reset << endl;
+    }
+
     response->set_status(-1);
     response->set_errornum(errno);
     return Status::OK;
