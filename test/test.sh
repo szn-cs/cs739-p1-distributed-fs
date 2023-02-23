@@ -25,6 +25,9 @@ file() {
   echo "content" >$SERVER/file.txt
   unlink $MOUNTPOINT/file.txt
 
+  echo "content" >$SERVER/file.txt
+  cat $SERVER/file.txt
+
 }
 
 directory() {
