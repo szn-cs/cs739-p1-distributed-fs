@@ -273,10 +273,9 @@ Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, Ope
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
   // rc = creat(path.c_str(), request->mode());
-
+  // rc is file handler if > 0
   rc = open(path.c_str(), request->mode(), S_IRWXG | S_IRWXO | S_IRWXU);
-  if (rc != 0) {
-    // cout << "create returned wrong value\n";
+  if (rc < 0) {
     response->set_err(-errno);
     return Status::OK;
   }

@@ -201,6 +201,7 @@ int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timest
   Status status = stub_->Open(&context, request, &reply);
   if (status.ok()) {
     timestamp = reply.timestamp();
+    std::cout << yellow << "reply err" << reply.err() << reset << std::endl;
     return reply.err();
   }
   // grpc fail

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <termcolor/termcolor.hpp>
+#include <tuple>
 
 #include "Utility.cpp"
 
@@ -14,10 +15,10 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, term
 
 extern std::string statusCachePath;
 
-/** Cache logic: 
- * Types of caches: 
+/** Cache logic:
+ * Types of caches:
  *   1. status cache (statusCachePath in AFS cache directory)
- *   2. file cache (fileCachePath in FUSE root directory) 
+ *   2. file cache (fileCachePath in FUSE root directory)
  */
 class Cache {
  public:
@@ -25,7 +26,17 @@ class Cache {
     this->statusCache = Cache::getStatusCache();
     this->hash = Cache::getPathHash(relativePath);
     this->fileCachePath = Utility::concatenatePath(fsRootPath, hash);
-    dirtyBit = 0;
+    if (isCacheEntry()) {
+      std::string hash_;
+      bool dirtyBit_;
+      long clock_;
+      tie(hash_, dirtyBit_, clock_) = this->statusCache[relativePath];
+      this->dirtyBit = dirtyBit_;
+      this->clock = clock_;
+    } else {
+      this->dirtyBit = 0;  // init
+      this->clock = 0;     // TODO:
+    }
   }
 
   // check if cache entry exists for the fileCachePath
@@ -35,6 +46,25 @@ class Cache {
 
   bool isDirty() {
     return this->dirtyBit;
+  }
+
+  void setDirtyBit() {
+    this->dirtyBit = 1;
+    commitStatusCache();
+  }
+
+  void resetDirtyBit() {
+    this->dirtyBit = 0;
+    commitStatusCache();
+  }
+
+  bool getClock() {
+    return this->clock;
+  }
+
+  void syncClock(long time) {
+    this->clock = time;
+    commitStatusCache();
   }
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
@@ -49,7 +79,7 @@ class Cache {
 
     rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str());
 
-    this->statusCache.insert(std::pair<std::string, std::string>(this->relativePath, this->hash));
+    this->statusCache[this->relativePath] = make_tuple(this->hash, this->dirtyBit, this->clock);
 
     return 0;
   }
@@ -62,8 +92,13 @@ class Cache {
     if (!tmp_cache_file.is_open())
       throw "Error @commitStatusCache: openning statusCachePath: " + statusCachePath;
 
-    for (auto i = this->statusCache.begin(); i != this->statusCache.end(); i++)
-      tmp_cache_file << i->first << ";" << i->second << std::endl;
+    for (auto i = this->statusCache.begin(); i != this->statusCache.end(); i++) {
+      std::string hash_;
+      bool dirtyBit_;
+      long clock_;
+      tie(hash_, dirtyBit_, clock_) = i->second;
+      tmp_cache_file << i->first << ";" << hash_ << ";" << dirtyBit_ << ";" << clock_ << std::endl;
+    }
 
     rename(tmp_statusCachePath.c_str(), statusCachePath.c_str());
 
@@ -86,11 +121,12 @@ class Cache {
   std::string fileCachePath;
   std::string hash;
   bool dirtyBit;
-
-  std::unordered_map<std::string, std::string> statusCache;  // in-memory copy from the statusCachePath contents
+  long clock;
+  //                                        hash, dirtybit, logical clock
+  std::unordered_map<std::string, std::tuple<std::string, bool, long>> statusCache;  // in-memory copy from the statusCachePath contents
 
   // static members
-  static std::unordered_map<std::string, std::string> getStatusCache();
+  static std::unordered_map<std::string, std::tuple<std::string, bool, long>> getStatusCache();
   static std::string getPathHash(const std::string& path);
 };
 
@@ -101,19 +137,28 @@ class Cache {
                 /temp/path/to/file;ijio1290ej9fjio
                 /temp/path/to/file2;ijio1290ej9fjio
   */
-std::unordered_map<std::string, std::string> Cache::getStatusCache() {
-  std::unordered_map<std::string, std::string> statusCache;
+std::unordered_map<std::string, std::tuple<std::string, bool, long>> Cache::getStatusCache() {
+  std::unordered_map<std::string, std::tuple<std::string, bool, long>> statusCache;
   std::ifstream statusCacheStream(statusCachePath);
   std::string line;
 
   while (std::getline(statusCacheStream, line)) {
     size_t pos = line.find(";");  // find delimiter `;` from statuc cache entry:  <txt>;<sha>
+    /*
     if (pos == std::string::npos)
       throw std::invalid_argument("Error @getStatusCache: bad format. Cannot find separator `;` in statusCacheFile:" + statusCachePath);
-
+    */
     std::string key = line.substr(0, pos);
-    std::string val = line.substr(pos + 1, line.size() - pos);
-    statusCache[key] = val;
+    line.erase(0, pos + 1);
+    pos = line.find(";");
+    std::string hash = line.substr(0, pos);
+    line.erase(0, pos + 1);
+    pos = line.find(";");
+    bool dirtyBit = stoi(line.substr(0, pos));
+    line.erase(0, pos + 1);
+    long clock = stoi(line.substr(0, pos));
+
+    statusCache[key] = make_tuple(hash, dirtyBit, clock);
   }
 
   return statusCache;
