@@ -35,7 +35,7 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue;
 class GRPC_Server final : public AFS::Service {
  public:
   Status readDirectory(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override;
-  Status createDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) override;
+  Status createDirectory(ServerContext* context, const MkDirRequest* request, Response* response) override;
   Status removeDirectory(ServerContext* context, const Path* request, Response* response) override;
   Status removeFile(ServerContext* context, const Path* request, Response* response) override;
   Status getFileAttributes(ServerContext* context, const Path* request, /*char* string*/ Attributes* response) override;

@@ -32,7 +32,7 @@ service AFS {
   rpc removeFile(Path) returns (Response) {};
   
   // create directory
-  rpc createDirectory(MkDirRequest) returns (MkDirResponse) {};
+  rpc createDirectory(MkDirRequest) returns (Response) {};
   // remove directory
   rpc removeDirectory(Path) returns (Response) {}; 
 
@@ -48,12 +48,6 @@ service AFS {
 
 }
 
-
-message ReadDirResponse {
-    int32 err = 2;
-    bytes buf = 1;
-}
-
 message Path {
     string path = 1;
 }
@@ -66,11 +60,6 @@ message Response {
 message MkDirRequest {
     string path = 1;
     uint32 modet = 2;
-}
-
-message MkDirResponse {
-    int32 status = 1;
-    int32 erronum = 2;
 }
 
 message Datablock {
@@ -91,6 +80,11 @@ message ReadRequest {
     string path = 1;
     // int32  size = 2;
     // int32  offset = 3;
+}
+
+message ReadDirResponse {
+    int32 err = 2;
+    bytes buf = 1;
 }
 
 message ReadReply {

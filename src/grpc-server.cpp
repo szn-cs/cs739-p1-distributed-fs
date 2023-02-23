@@ -224,7 +224,7 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
   return Status::OK;
 }
 
-Status GRPC_Server::createDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) {
+Status GRPC_Server::createDirectory(ServerContext* context, const MkDirRequest* request, Response* response) {
   std::cout << yellow << "GRPC_Server::createDirectory" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
   mode_t mode = (mode_t)request->modet();
