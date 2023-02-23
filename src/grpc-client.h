@@ -37,7 +37,7 @@ class GRPC_Client {
   int MakeDirectory(const std::string& path, mode_t mode, int& errornum);
   int RemoveDirectory(const std::string& path);
   int ReadDirectory(const std::string& path, int& errornum, std::vector<std::string>& results);
-  int Unlink(const std::string& path);
+  int RemoveFile(const std::string& path);
   int getFileAttributes(const std::string& path, struct stat* buf, int& errornum);
   // TODO: replace with Fetch & Store
   int OpenFile(const std::string& path, const int& mode, long& timestamp);

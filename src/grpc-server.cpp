@@ -242,21 +242,16 @@ Status GRPC_Server::RemoveDirectory(ServerContext* context, const Path* request,
   return Status::OK;
 }
 
-Status GRPC_Server::Unlink(ServerContext* context, const Path* request, Response* response) {
-  std::cout << "trigger unlink" << std::endl;
-
+Status GRPC_Server::RemoveFile(ServerContext* context, const Path* request, Response* response) {
+  std::cout << yellow << "GRPC_Server::RemoveFile" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
+  std::error_code errorCode;
 
-  response->set_status(1);
-  if (fs::exists(path)) {
-    std::error_code errorCode;
-    if (!fs::remove(path, errorCode)) {
-      perror("Failed to rm file.");
-      response->set_status(0);
-    }
-  } else {
-    response->set_status(0);
+  if (!fs::remove(path, errorCode)) {
+    response->set_status(1);
+    response->set_erronum(errorCode.value());
   }
+
   return Status::OK;
 }
 

@@ -28,8 +28,8 @@ service AFS {
   // Store/Update/Write file           Store this file on the server (called on close())
   rpc Write(stream WriteRequest) returns (WriteReply) {};
   
-  // remove file
-  rpc Unlink(Path) returns (Response) {};
+  // remove file / unlink
+  rpc RemoveFile(Path) returns (Response) {};
   
   // create directory
   rpc MakeDirectory(MkDirRequest) returns (MkDirResponse) {};

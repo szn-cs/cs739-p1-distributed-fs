@@ -27,12 +27,12 @@ extern "C" {
 		[x!] fuse→open()  // TODO- cache validation logic
 		[x] fuse→mkdir() 
 		[x] fuse→rmdir()
+		[x] fuse→unlink() 
 		[ ] fuse→release() 
 		[ ] fuse→readdir() 
 		[ ] fuse→truncate() 
 		[ ] fuse→fsync() 
 		[ ] fuse→mknod() 
-		[ ] fuse→unlink() 
 		[ ] fuse→read() 
 		[ ] fuse→write() 
 
@@ -41,7 +41,7 @@ extern "C" {
 		[x] open():             fuse→getattr(), fuse→open()
 		[ ] close():            fuse→release()
 		[ ] creat():            fuse→mknod()
-		[ ] unlink():           fuse→getattr(), fuse→unlink()
+		[x] unlink():           fuse→getattr(), fuse→unlink()
 		[x] mkdir():            fuse→mkdir()
 		[x] rmdir():            fuse→rmdir()
 		[ ] read(), pread():    fuse→read()
@@ -156,12 +156,15 @@ int cppWrapper_unlink(const char* path) {
   Cache c(_path);
 
   // delete on server
-  ret = grpcClient->Unlink(_path);
+  ret = grpcClient->RemoveFile(_path);
   if (ret != 0) return -errno;
 
   // delete local
-  ret = c.deleteEntry();
-  if (ret != 0) return -errno;
+  if (c.isCacheEntry()) {
+    ret = c.deleteEntry();
+    if (ret != 0)
+      return -errno;
+  }
 
   return 0;
 }

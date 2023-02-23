@@ -37,7 +37,7 @@ class GRPC_Server final : public AFS::Service {
   Status ReadDir(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override;
   Status MakeDirectory(ServerContext* context, const MkDirRequest* request, MkDirResponse* response) override;
   Status RemoveDirectory(ServerContext* context, const Path* request, Response* response) override;
-  Status Unlink(ServerContext* context, const Path* request, Response* response) override;
+  Status RemoveFile(ServerContext* context, const Path* request, Response* response) override;
   Status getFileAttributes(ServerContext* context, const Path* request, /*char* string*/ Attributes* response) override;
   Status Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) override;
   Status getFileContents(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) override;
