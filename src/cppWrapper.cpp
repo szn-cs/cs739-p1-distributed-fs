@@ -29,7 +29,7 @@ extern "C" {
         [x] fuse→rmdir()
         [x] fuse→unlink()
         [x] fuse→read()
-        [ ] fuse→write()
+        [x] fuse→write()  // TODO- test further for edge cases
         [ ] fuse→release()
         [ ] fuse→readdir()
         [ ] fuse→truncate()
