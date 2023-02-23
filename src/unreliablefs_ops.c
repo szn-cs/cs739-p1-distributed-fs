@@ -242,8 +242,8 @@ int unreliable_link(const char *oldpath, const char *newpath) {
     // return cppWrapper_link(oldpath, newpath);
 
 Original:
-    ret = truncate(path, length);
-    if (ret == -1) {
+    ret = link(oldpath, newpath);
+    if (ret < 0) {
         return -errno;
     }
 
@@ -262,8 +262,8 @@ int unreliable_chmod(const char *path, mode_t mode) {
     // return cppWrapper_chmod(path, mode);
 
 Original:
-    ret = truncate(path, length);
-    if (ret == -1) {
+    ret = chmod(path, mode);
+    if (ret < 0) {
         return -errno;
     }
 
@@ -282,7 +282,7 @@ int unreliable_chown(const char *path, uid_t owner, gid_t group) {
     // return cppWrapper_chown(path, owner, group);
 
 Original:
-    ret = truncate(path, length);
+    ret = chown(path, owner, group);
     if (ret == -1) {
         return -errno;
     }
@@ -339,7 +339,7 @@ int unreliable_read(const char *path, char *buf, size_t size, off_t offset, stru
 
     return cppWrapper_read(path, buf, size, offset, fi);
 
-Original:
+Original : {
     int fd;
 
     if (fi == NULL) {
@@ -363,6 +363,7 @@ Original:
 
     return ret;
 }
+}
 
 int unreliable_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
     int ret = error_inject(path, OP_WRITE);
@@ -374,7 +375,7 @@ int unreliable_write(const char *path, const char *buf, size_t size, off_t offse
 
     return cppWrapper_write(path, buf, size, offset, fi);
 
-Original:
+Original : {
     int fd;
     (void)fi;
     if (fi == NULL) {
@@ -397,6 +398,7 @@ Original:
     }
 
     return ret;
+}
 }
 
 int unreliable_statfs(const char *path, struct statvfs *buf) {
@@ -584,7 +586,7 @@ int unreliable_opendir(const char *path, struct fuse_file_info *fi) {
 
     return cppWrapper_opendir(path, fi);
 
-Original:
+Original : {
     DIR *dir = opendir(path);
 
     if (!dir) {
@@ -593,6 +595,7 @@ Original:
     fi->fh = (int64_t)dir;
 
     return 0;
+}
 }
 
 int unreliable_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
@@ -605,7 +608,7 @@ int unreliable_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 
     return cppWrapper_readdir(path, buf, filler, offset, fi);
 
-Original:
+Original : {
     DIR *dp = opendir(path);
     if (dp == NULL) {
         return -errno;
@@ -627,6 +630,7 @@ Original:
 
     return 0;
 }
+}
 
 int unreliable_releasedir(const char *path, struct fuse_file_info *fi) {
     int ret = error_inject(path, OP_RELEASEDIR);
@@ -638,7 +642,7 @@ int unreliable_releasedir(const char *path, struct fuse_file_info *fi) {
 
     return cppWrapper_releasedir(path, fi);
 
-Original:
+Original : {
     DIR *dir = (DIR *)fi->fh;
 
     ret = closedir(dir);
@@ -647,6 +651,7 @@ Original:
     }
 
     return 0;
+}
 }
 
 int unreliable_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi) {
@@ -659,7 +664,7 @@ int unreliable_fsyncdir(const char *path, int datasync, struct fuse_file_info *f
 
     return cppWrapper_fsyncdir(path, datasync, fi);
 
-Original:
+Original : {
     DIR *dir = opendir(path);
     if (!dir) {
         return -errno;
@@ -679,6 +684,7 @@ Original:
     closedir(dir);
 
     return 0;
+}
 }
 
 int unreliable_access(const char *path, int mode) {
@@ -836,7 +842,7 @@ int unreliable_fallocate(const char *path, int mode, off_t offset, off_t len, st
 
     return cppWrapper_fallocate(path, mode, offset, len, fi);
 
-Original:
+Original : {
     int fd;
     (void)fi;
 
@@ -864,6 +870,7 @@ Original:
     }
 
     return 0;
+}
 }
 #endif /* HAVE_FALLOCATE */
 

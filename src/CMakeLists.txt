@@ -86,7 +86,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${FUSE_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${TERMCOLOR_INCLUDE_DIRS})
 
 
-target_compile_options(${PROJECT_NAME} PUBLIC -D_FILE_OFFSET_BITS=64 -Wall -Wextra -Wno-unused-parameter)
+target_compile_options(${PROJECT_NAME} PUBLIC -D_FILE_OFFSET_BITS=64 -Wall -Wextra -Wno-unused -Wno-unused-parameter)
 target_compile_options(${PROJECT_NAME} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11 -D_FILE_OFFSET_BITS=64>)
 
 check_function_exists(fallocate HAVE_FALLOCATE)

@@ -246,10 +246,7 @@ int GRPC_Client::WriteFile(const std::string& path, const std::string& buf, cons
   return status.error_code();
 }
 
-/** EXAMPLE: keep it to make sure things are working
- * Assembles the client's payload, sends it and presents the response back
- * from the server.
- */
+/** EXAMPLE: keep it to make sure things are working - Assembles the client's payload, sends it and presents the response back from the server. */
 std::string GRPC_Client::SayHello(const std::string& user) {
   // Data we are sending to the server.
   HelloRequest request;
