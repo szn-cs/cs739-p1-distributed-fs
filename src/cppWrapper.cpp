@@ -324,9 +324,8 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   int ret = close(dup(fi->fh));
-  if (ret == -1) {
+  if (ret == -1)
     return -errno;
-  }
 
   return 0;
 }

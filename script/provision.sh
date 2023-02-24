@@ -1,5 +1,9 @@
 #!/bin/bash
 
+MOUNTPOINT=$(pwd)/tmp/mount
+ROOT=$(pwd)/tmp/root
+SERVER=$(pwd)/tmp/server
+
 ## setup & configure repository
 workspaceFolder=$PWD
 chmod +x ${workspaceFolder}/script/*
@@ -34,24 +38,28 @@ popd
 
 test() {
   libtoolize
+  automake
+  libtoolize
   aclocal
   autoheader
   automake --add-missing
   autoconf
 
-  curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz -o install.tgz
-
-  tar -xvf ./install.tgz
-
-  # cd into directory
-
+  pushd .
+  mkdir filebenchInstall && curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz | tar xzC filebenchInstall && cd filebenchInstall && cd *
   ./configure
   make
   sudo make install
+  mv ../../
+  popd
 
+  # Disable ASLR https://linux-audit.com/linux-aslr-and-kernelrandomize_va_space-setting/
+  sudo su -
   echo 0 >/proc/sys/kernel/randomize_va_space
+  exit
 
-  MOUNT_DIR=~/tmp/fsMountpoint
+  MOUNTPOINT=$(pwd)/tmp/mount
+  MOUNT_DIR=$MOUNTPOINT
 
-  # copy workload files over
+  # copy workload files over and run tests
 }
