@@ -79,7 +79,7 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   Cache c(_path);
 
   // check is cache valid or stale
-  _r = grpcClient->getFileAttributes(path, &serverAttr, errornum);
+  _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum);
   if (_r != 0)
     goto FetchToCache;
 
@@ -121,7 +121,7 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
   return 0;
 }
 
-/** read triggers: 
+/** read triggers:
       cppWrapper_getattr
       cppWrapper_open
       cppWrapper_read
@@ -248,7 +248,7 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
   Cache c(_path);
 
   // check is cache valid or stale
-  int _r = grpcClient->getFileAttributes(path, &serverAttr, errornum);
+  int _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum);
   if (_r != 0)
     goto FetchToCache;
 

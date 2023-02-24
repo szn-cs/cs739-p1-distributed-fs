@@ -389,7 +389,7 @@ int main(int argc, char** argv) {
 
   // set defaults
   const std::string address("0.0.0.0:50051");
-  serverDirectory = Utility::concatenatePath(fs::current_path().generic_string(), "tmp/fsServer");
+  serverDirectory = Utility::concatenatePath(fs::current_path().generic_string(), "tmp/server");
 
   // set configs from arguments
   if (argc == 2)

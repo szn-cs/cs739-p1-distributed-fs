@@ -3,6 +3,7 @@
 MOUNTPOINT=$(pwd)/tmp/mount
 ROOT=$(pwd)/tmp/root
 SERVER=$(pwd)/tmp/server
+CACHE=$(pwd)/tmp/cache
 BENCH=$(pwd)/filebench_workloads
 
 run_example() {
@@ -17,7 +18,7 @@ fs_mount() {
   sudo su -
 
   ######## [terminal instance 1] ##########################################################
-  mkdir -p $MOUNTPOINT $ROOT $SERVER
+  mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
 
   ## fix some issues probably with WSL2 setup
   # sudo ln -s /proc/self/mounts /etc/mtab
