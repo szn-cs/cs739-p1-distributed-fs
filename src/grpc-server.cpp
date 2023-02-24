@@ -286,6 +286,7 @@ Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, Ope
   clock_gettime(CLOCK_REALTIME, &spec);
   response->set_timestamp(spec.tv_sec);
   response->set_err(0);
+  close(rc);
   return Status::OK;
 }
 

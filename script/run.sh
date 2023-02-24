@@ -18,6 +18,7 @@ fs_mount() {
   sudo su -
 
   ######## [terminal instance 1] ##########################################################
+  # rm -rf $MOUNTPOINT/* $ROOT/* $SERVER/* $CACHE/*
   mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
 
   ## fix some issues probably with WSL2 setup
