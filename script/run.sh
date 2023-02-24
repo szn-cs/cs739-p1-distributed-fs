@@ -13,6 +13,8 @@ run_example() {
 }
 
 fs_mount() {
+  # run everything under root
+  sudo su -
 
   ######## [terminal instance 1] ##########################################################
   mkdir -p $MOUNTPOINT $ROOT $SERVER
@@ -86,7 +88,7 @@ filebench() {
   MOUNTPOINT=$(pwd)/tmp/mount
   BENCH=$(pwd)/filebench_workloads
   MOUNT_DIR=$MOUNTPOINT
-  pushd ./filebench_workloads/ && python3 set_dir.py $(pwd) && popd
+  pushd $BENCH && python3 set_dir.py $MOUNTPOINT/bench && popd
 
   # run filebench binary
   filebench -f $BENCH/filemicro_create.f
