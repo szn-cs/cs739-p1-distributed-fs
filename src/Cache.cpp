@@ -3,15 +3,15 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <shared_mutex>
 #include <sstream>
 #include <string>
 #include <termcolor/termcolor.hpp>
 #include <tuple>
-#include <shared_mutex>
 
 typedef std::shared_mutex Lock;
-typedef std::unique_lock< Lock >  WriteLock;
-typedef std::shared_lock< Lock >  ReadLock;
+typedef std::unique_lock<Lock> WriteLock;
+typedef std::shared_lock<Lock> ReadLock;
 
 Lock myLock;
 
@@ -79,8 +79,8 @@ class Cache {
 
   void updateCache() {
     auto it = this->statusCache.find(this->relativePath);
-    if(it != this->statusCache.end()) 
-        it->second = make_tuple(this->hash, this->dirtyBit, this->clock);
+    if (it != this->statusCache.end())
+      it->second = make_tuple(this->hash, this->dirtyBit, this->clock);
   }
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
@@ -131,6 +131,25 @@ class Cache {
     this->commitStatusCache();
 
     return ret;
+  }
+
+  bool isCacheValid(struct stat serverAttr) {
+    struct stat localAttr;
+
+    // check if cache entry for the path exists
+    if (lstat(this->fileCachePath.c_str(), &localAttr) != 0)
+      return false;
+
+    // stale cache, need to fetch
+    if (serverAttr.st_mtime > localAttr.st_mtime)
+      return false;
+
+    // local cache was stored after last server-modified (may have same content) or could be newer/locally-modified
+    // if (serverAttr.st_mtime < localAttr.st_mtime) {
+    //   goto OpenCachedFile;
+    // }
+
+    return true;
   }
 
  public:

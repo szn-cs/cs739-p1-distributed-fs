@@ -73,31 +73,18 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_open" << reset << std::endl;
   int ret, _r, errornum = 0;
-  bool isCacheValid = true;
   string _path = Utility::constructRelativePath(path);
+  struct stat serverAttr;
 
   Cache c(_path);
-
-  // check if cache entry for the path exists
-  struct stat localAttr, serverAttr;
-  if (lstat(c.fileCachePath.c_str(), &localAttr) != 0)
-    goto FetchToCache;
 
   // check is cache valid or stale
   _r = grpcClient->getFileAttributes(path, &serverAttr, errornum);
   if (_r != 0)
     goto FetchToCache;
 
-  if (serverAttr.st_mtime > localAttr.st_mtime) {
-    isCacheValid = false;  // stale cache, need to fetch
-  }
-
-  // local cache was stored after last server-modified (may have same content) or could be newer/locally-modified
-  // if (serverAttr.st_mtime < localAttr.st_mtime) {
-  //   goto OpenCachedFile;
-  // }
-
-  if (c.isCacheEntry() && isCacheValid /* if valid cache **/)
+  /* if valid cache **/
+  if (c.isCacheEntry() && c.isCacheValid(serverAttr))
     goto OpenCachedFile;
 
 FetchToCache : {
@@ -254,38 +241,19 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
   int ret, errornum = 0;
   int consistence = -1;
   long timestamp;
+  struct stat serverAttr;
 
   string _path = Utility::constructRelativePath(path);
 
   Cache c(_path);
 
-  // check if cache entry for the path exists
-  // TODO: and check is cache valid or stale
-  struct stat localAttr, serverAttr;
-  if (lstat(c.fileCachePath.c_str(), &localAttr) != 0) {
-    cout << red << "client target doesn't exist" << errornum << reset << endl;
+  // check is cache valid or stale
+  int _r = grpcClient->getFileAttributes(path, &serverAttr, errornum);
+  if (_r != 0)
     goto FetchToCache;
-  }
 
-  grpcClient->getFileAttributes(path, &serverAttr, errornum);
-  if (errornum == 2) {
-    cout << red << "server target doesn't exist" << errornum << reset << endl;
-    goto FetchToCache;
-  }
-
-  if (serverAttr.st_mtime > localAttr.st_mtime) {
-    // stale cache, need to fetch
-    consistence = -1;
-  } else if (serverAttr.st_mtime < localAttr.st_mtime) {
-    // TODO local didn't push new data
-    consistence = 1;
-    // goto ???
-  } else {
-    // valid cache
-    consistence = 0;
-  }
-
-  if (c.isCacheEntry() && consistence == 0 /* if valid cache **/)  // ATTENTION: c.isCacheEntry() is redundent
+  /* if valid cache **/
+  if (c.isCacheEntry() && c.isCacheValid(serverAttr))
     goto OpenCachedFile;
 
 FetchToCache : {
@@ -342,7 +310,6 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
   if (fd == -1)
     return -errno;
 
-  std::cout << "cppWrapper_write buf: " << buf << " size: " << size << std::endl;
   ret = pwrite(fd, buf, size, offset);
   if (ret == -1)
     ret = -errno;
@@ -356,8 +323,6 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
 }
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_flush" << reset << std::endl;
-
   int ret = close(dup(fi->fh));
   if (ret == -1) {
     return -errno;
@@ -480,9 +445,7 @@ Original:
     }
   } else {
     ret = fsync(dirfd(dir));
-    std::cout << blue << "before: " << path << std::endl;
     path = Utility::constructRelativePath(path).c_str();
-    std::cout << blue << "after: " << path << reset << std::endl;
   }
   closedir(dir);
   return 0;
