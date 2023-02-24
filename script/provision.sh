@@ -36,7 +36,7 @@ popd
 # yum install gcc-c++
 # yum install fuse fuse-devel
 
-test() {
+filebench() {
   libtoolize
   automake
   libtoolize
@@ -50,7 +50,7 @@ test() {
   ./configure
   make
   sudo make install
-  mv ../../
+  mv ./filebench ../../
   popd
 
   # Disable ASLR https://linux-audit.com/linux-aslr-and-kernelrandomize_va_space-setting/
@@ -58,8 +58,5 @@ test() {
   echo 0 >/proc/sys/kernel/randomize_va_space
   exit
 
-  MOUNTPOINT=$(pwd)/tmp/mount
-  MOUNT_DIR=$MOUNTPOINT
-
-  # copy workload files over and run tests
+  # run tests (check run.sh)
 }
