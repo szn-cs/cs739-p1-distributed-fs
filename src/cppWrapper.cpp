@@ -124,10 +124,10 @@ OpenCachedFile:  // open local cache file
 
 int cppWrapper_mkdir(const char* path, mode_t mode) {
   std::cout << blue << "\ncppWrapper_mkdir" << reset << std::endl;
-  path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
   int errornum;
 
-  int ret = grpcClient->createDirectory(path, mode, errornum);
+  int ret = grpcClient->createDirectory(_path, mode, errornum);
   if (ret == -1)
     return -errornum;
 
@@ -179,9 +179,9 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
 
 int cppWrapper_rmdir(const char* path) {
   std::cout << blue << "\ncppWrapper_rmdir" << reset << std::endl;
-  path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
 
-  int ret = grpcClient->removeDirectory(path);
+  int ret = grpcClient->removeDirectory(_path);
 
   if (ret != 0)
     return -ret;
@@ -357,7 +357,6 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_flush" << reset << std::endl;
-  path = Utility::constructRelativePath(path).c_str();
 
   int ret = close(dup(fi->fh));
   if (ret == -1) {
@@ -369,7 +368,7 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_release" << reset << std::endl;
-  std::string _path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
   int ret;
   int numOfBytes;
   long timestamp;
@@ -378,8 +377,6 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   Cache c(_path);
 
   // close file locally
- 
-  std::cout << blue << "check dirty: " <<  c.isDirty() << reset <<  std::endl;
   if (!c.isDirty()) {
     return 0;  // by-pass
     ret = close(fi->fh);
@@ -413,7 +410,6 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 
 int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_fsync" << reset << std::endl;
-  path = Utility::constructRelativePath(path).c_str();
   int ret;
 
   if (datasync) {
@@ -446,12 +442,12 @@ int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
 // ✅
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_readdir" << reset << std::endl;
-  path = Utility::constructRelativePath(path).c_str();
+  std::string _path = Utility::constructRelativePath(path);
   struct dirent de;
   int errornum = 0;
   std::vector<std::string> results;
 
-  int ret = grpcClient->readDirectory(path, errornum, results);
+  int ret = grpcClient->readDirectory(_path, errornum, results);
   if (ret != 0)
     return -errornum;
 

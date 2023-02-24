@@ -7,6 +7,13 @@
 #include <string>
 #include <termcolor/termcolor.hpp>
 #include <tuple>
+#include <shared_mutex>
+
+typedef std::shared_mutex Lock;
+typedef std::unique_lock< Lock >  WriteLock;
+typedef std::shared_lock< Lock >  ReadLock;
+
+Lock myLock;
 
 #include "Utility.cpp"
 
@@ -29,7 +36,7 @@ class Cache {
     if (isCacheEntry()) {
       std::string hash_;
       bool dirtyBit_;
-      long clock_;
+      int clock_;
       tie(hash_, dirtyBit_, clock_) = this->statusCache[relativePath];
       this->dirtyBit = dirtyBit_;
       this->clock = clock_;
@@ -64,7 +71,7 @@ class Cache {
     return this->clock;
   }
 
-  void syncClock(long time) {
+  void syncClock(int time) {
     this->clock = time;
     updateCache();
     commitStatusCache();
@@ -78,6 +85,7 @@ class Cache {
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
+    WriteLock w_lock(myLock);
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
     std::ofstream fileCacheStream(tmp_fileCachePath);
 
@@ -94,6 +102,7 @@ class Cache {
 
   // fsync update cache into local cache file.
   int commitStatusCache() {
+    WriteLock w_lock(myLock);
     std::string tmp_statusCachePath = statusCachePath + ".TMP";
 
     std::ofstream tmp_cache_file(tmp_statusCachePath);
@@ -103,7 +112,7 @@ class Cache {
     for (auto i = this->statusCache.begin(); i != this->statusCache.end(); i++) {
       std::string hash_;
       bool dirtyBit_;
-      long clock_;
+      int clock_;
       tie(hash_, dirtyBit_, clock_) = i->second;
       tmp_cache_file << i->first << ";" << hash_ << ";" << dirtyBit_ << ";" << clock_ << std::endl;
     }
@@ -129,7 +138,7 @@ class Cache {
   std::string fileCachePath;
   std::string hash;
   bool dirtyBit;
-  long clock;
+  int clock;
   //                                        hash, dirtybit, logical clock
   std::unordered_map<std::string, std::tuple<std::string, bool, long>> statusCache;  // in-memory copy from the statusCachePath contents
 
@@ -146,6 +155,7 @@ class Cache {
                 /temp/path/to/file2;ijio1290ej9fjio
   */
 std::unordered_map<std::string, std::tuple<std::string, bool, long>> Cache::getStatusCache() {
+  ReadLock r_lock(myLock);
   std::unordered_map<std::string, std::tuple<std::string, bool, long>> statusCache;
   std::ifstream statusCacheStream(statusCachePath);
   std::string line;
@@ -164,7 +174,7 @@ std::unordered_map<std::string, std::tuple<std::string, bool, long>> Cache::getS
     pos = line.find(";");
     bool dirtyBit = stoi(line.substr(0, pos));
     line.erase(0, pos + 1);
-    long clock = stoi(line.substr(0, pos));
+    int clock = stoi(line.substr(0, pos));
 
     statusCache[key] = make_tuple(hash, dirtyBit, clock);
   }

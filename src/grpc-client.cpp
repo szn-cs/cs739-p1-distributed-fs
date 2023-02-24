@@ -127,7 +127,7 @@ int GRPC_Client::createDirectory(const std::string& path, mode_t mode, int& erro
   MkDirRequest request;
   Response reply;
   ClientContext context;
-
+  std::cout << path << std::endl;
   request.set_path(path);
   request.set_modet(mode);
 
