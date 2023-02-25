@@ -38,7 +38,7 @@ popd
 
 filebench() {
   pushd .
-  mkdir filebenchInstall && curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz | tar xzC filebenchInstall && cd filebenchInstall && cd *
+  mkdir filebench_repo && curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz | tar xzC filebench_repo && cd filebench_repo && cd *
 
   libtoolize
   aclocal
