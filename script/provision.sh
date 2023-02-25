@@ -37,6 +37,9 @@ popd
 # yum install fuse fuse-devel
 
 filebench() {
+  # must be root
+  sudo su -
+
   pushd .
   mkdir filebench_repo && curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz | tar xzC filebench_repo && cd filebench_repo && cd *
 
@@ -53,7 +56,6 @@ filebench() {
   popd
 
   # Disable ASLR https://linux-audit.com/linux-aslr-and-kernelrandomize_va_space-setting/
-  # MUST be root  `sudo su -`
   echo 0 >/proc/sys/kernel/randomize_va_space
 
   # run tests (check run.sh)
