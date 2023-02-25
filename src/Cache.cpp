@@ -110,19 +110,21 @@ class Cache {
   int commitFileCache(std::string& buf) {
     std::cout << "commitFileCache" << std::endl;
     FILE* fp;
-    if ((fp = fopen(this->fileCachePath.c_str(), "w+")) != NULL) {
-      if (buf.size() != 0) {
-        if (fputs(buf.c_str(), fp) == EOF) {
-          std::cout << red << "EOF" << reset << std::endl;
-        }
-        fclose(fp);
-      } else {
-        std::cout << "buf size = 0" << std::endl;
-        fclose(fp);
-      }
-    } else {
+    if ((fp = fopen(this->fileCachePath.c_str(), "w+")) == NULL) {
       std::cout << red << "open file failed" << reset << std::endl;
+      exit(1);
     }
+
+    if (buf.size() != 0) {
+      if (fputs(buf.c_str(), fp) == EOF) {
+        std::cout << red << "EOF" << reset << std::endl;
+      }
+      fclose(fp);
+    } else {
+      std::cout << "buf size = 0" << std::endl;
+      fclose(fp);
+    }
+
     /*
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
     std::cout << "tmp_fileCachePath "<<tmp_fileCachePath << std::endl;
@@ -178,6 +180,7 @@ class Cache {
     */
 
     statusCache[this->relativePath] = make_tuple(this->hash, this->dirtyBit, this->clock);
+    fsync(fileno(fp));
     return 0;
   }
 
@@ -200,6 +203,7 @@ class Cache {
       tmp_cache_file << i->first << ";" << hash_ << ";" << std::to_string(dirtyBit_) << ";" << std::to_string(clock_) << "\n";
     }
     tmp_cache_file.close();
+    tmp_cache_file.flush();  // TODO: c++ implementation doesn't call fsync necessarily
     unlink(this->fileCachePath.c_str());
     if (rename(tmp_statusCachePath.c_str(), statusCachePath.c_str()) != 0) {
       std::cout << red << "rename fail" << reset << std::endl;
