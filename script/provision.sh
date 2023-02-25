@@ -37,16 +37,15 @@ popd
 # yum install fuse fuse-devel
 
 filebench() {
-  libtoolize
-  automake
+  pushd .
+  mkdir filebenchInstall && curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz | tar xzC filebenchInstall && cd filebenchInstall && cd *
+
   libtoolize
   aclocal
   autoheader
   automake --add-missing
   autoconf
 
-  pushd .
-  mkdir filebenchInstall && curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz | tar xzC filebenchInstall && cd filebenchInstall && cd *
   ./configure
   make
   sudo make install
@@ -54,9 +53,8 @@ filebench() {
   popd
 
   # Disable ASLR https://linux-audit.com/linux-aslr-and-kernelrandomize_va_space-setting/
-  sudo su -
+  # MUST be root  `sudo su -`
   echo 0 >/proc/sys/kernel/randomize_va_space
-  exit
 
   # run tests (check run.sh)
 }

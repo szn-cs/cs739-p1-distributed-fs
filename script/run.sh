@@ -74,6 +74,9 @@ client() {
 remote() {
   REMOTE=sq089ahy@c220g1-030620.wisc.cloudlab.us
   scp -rC ./target/release/* $REMOTE:~/target/release/
+
+  #########################
+
   ssh $REMOTE
   sudo su -
 }

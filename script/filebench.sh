@@ -2,7 +2,7 @@ MOUNTPOINT=$(pwd)/tmp/mount
 ROOT=$(pwd)/tmp/root
 SERVER=$(pwd)/tmp/server
 CACHE=$(pwd)/tmp/cache
-BENCH=$(pwd)/test/filebench_workloads
+BENCH=$(pwd)/filebench_workloads
 
 for f in $BENCH/*.f; do
   echo $f >>$f.log
@@ -23,8 +23,6 @@ filebench() {
   # cd /users/<name>/
 
   # run python file
-  MOUNTPOINT=$(pwd)/tmp/mount
-  BENCH=$(pwd)/filebench_workloads
   MOUNT_DIR=$MOUNTPOINT
   pushd $BENCH && python3 set_dir.py $MOUNTPOINT/bench && popd
 
