@@ -416,43 +416,6 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
     return -errno;
 
   return 0;
-
-
-  std::string _path = Utility::constructRelativePath(path);
-  
-  int numOfBytes;
-  long timestamp;
-  std::ifstream is;
-
-  Cache c(_path);
-
-  // close file locally
-  if (!c.isDirty()) {
-    close(fi->fh);
-    return 0;  // by-pass
-  }
-  ret = close(fi->fh);
-
-  if (ret == -1)
-    return -errno;
-
-  // write to server...
-  // stream file to server
-  is.open(c.fileCachePath.c_str(), std::ios::binary | std::ios::in);
-  is.seekg(0, is.end);
-  int length = (int)is.tellg() > 0 ? (int)is.tellg() : 0;
-  is.seekg(0, is.beg);
-  if (length > 0) {
-    std::string buf(length, '\0');
-    std::cout << blue << "length: " << length << std::endl;
-    is.read(&buf[0], length);
-    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
-  }
-  is.close();
-
-  // reset DirtyBit
-  c.resetDirtyBit();
-  return 0;
   
 }
 
