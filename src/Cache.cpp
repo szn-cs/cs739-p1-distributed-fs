@@ -24,6 +24,8 @@ extern std::string statusCachePath;
  *   2. file cache (fileCachePath in FUSE root directory)
  *
  * Notes: supporting multiple processes/threads using file-level locking is not required.
+ * 
+ * Client-side must tolerate a crash using local update protocol for caches.
  */
 class Cache {
  public:

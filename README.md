@@ -5,7 +5,7 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 - OSTEP book: AFSv1 Protocol Highlights (Early version: caches only files, while directories are kept on the server) - check protobuf interface.
   - Update visibility; Cache staleness
   - Provide consistency between processes on different machines
-  - Last writer/closer winds approach for race conditions
+  - AFS semantics: Last writer/closer winds approach for race conditions
   - 
 
 - [P1 Instructions](documentation/CS739.P1.md)
