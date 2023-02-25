@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -8,7 +10,7 @@
 #include <string>
 #include <termcolor/termcolor.hpp>
 #include <tuple>
-#include <stdio.h>
+
 #include "Utility.cpp"
 
 using namespace std;
@@ -20,6 +22,10 @@ extern std::string statusCachePath;
  * Types of caches:
  *   1. status cache (statusCachePath in AFS cache directory)
  *   2. file cache (fileCachePath in FUSE root directory)
+ *
+ * Notes: supporting multiple processes/threads using file-level locking is not required.
+ * 
+ * Client-side must tolerate a crash using local update protocol for caches.
  */
 class Cache {
  public:
@@ -103,20 +109,22 @@ class Cache {
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
     std::cout << "commitFileCache" << std::endl;
-    FILE *fp;
-    if ((fp = fopen(this->fileCachePath.c_str(), "w+")) != NULL) {
-      if (buf.size() != 0){
-        if (fputs(buf.c_str(), fp) == EOF) {
-          std::cout << red << "EOF" << reset << std::endl;
-        }
-        fclose(fp);
-      } else {
-        std::cout << "buf size = 0" << std::endl;
-        fclose(fp);
-      }
-    } else {
-      std::cout << red  << "open file failed" << reset  << std::endl;
+    FILE* fp;
+    if ((fp = fopen(this->fileCachePath.c_str(), "w+")) == NULL) {
+      std::cout << red << "open file failed" << reset << std::endl;
+      exit(1);
     }
+
+    if (buf.size() != 0) {
+      if (fputs(buf.c_str(), fp) == EOF) {
+        std::cout << red << "EOF" << reset << std::endl;
+      }
+      fclose(fp);
+    } else {
+      std::cout << "buf size = 0" << std::endl;
+      fclose(fp);
+    }
+
     /*
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
     std::cout << "tmp_fileCachePath "<<tmp_fileCachePath << std::endl;
@@ -172,12 +180,12 @@ class Cache {
     */
 
     statusCache[this->relativePath] = make_tuple(this->hash, this->dirtyBit, this->clock);
+    fsync(fileno(fp));
     return 0;
   }
 
   // fsync update cache into local cache file.
   int commitStatusCache() {
-
     return 0;
 
     cout << "begin commitStatusCache" << endl;
@@ -195,6 +203,7 @@ class Cache {
       tmp_cache_file << i->first << ";" << hash_ << ";" << std::to_string(dirtyBit_) << ";" << std::to_string(clock_) << "\n";
     }
     tmp_cache_file.close();
+    tmp_cache_file.flush();  // TODO: c++ implementation doesn't call fsync necessarily
     unlink(this->fileCachePath.c_str());
     if (rename(tmp_statusCachePath.c_str(), statusCachePath.c_str()) != 0) {
       std::cout << red << "rename fail" << reset << std::endl;
@@ -227,7 +236,7 @@ class Cache {
   static std::unordered_map<std::string, std::tuple<std::string, int, int>> getStatusCache();
   std::string getPathHash(const std::string& path);
 };
- std::unordered_map<std::string, std::tuple<std::string, int, int>> Cache::statusCache;
+std::unordered_map<std::string, std::tuple<std::string, int, int>> Cache::statusCache;
 
 /* if no file for cache then create new file for keeping cache file.
      after the file exists, read each line and add key value pair into cache in memory.
