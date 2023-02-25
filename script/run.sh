@@ -75,23 +75,5 @@ remote() {
   REMOTE=sq089ahy@c220g1-030620.wisc.cloudlab.us
   scp -rC ./target/release/* $REMOTE:~/target/release/
   ssh $REMOTE
-}
-
-filebench() {
-  # copy over workload files over and run tests
-  scp -rC ./test/filebench_workloads $REMOTE:~/
-
-  ############ $ REMOTE SHELL ################
   sudo su -
-
-  # cd go back to user directory
-
-  # run python file
-  MOUNTPOINT=$(pwd)/tmp/mount
-  BENCH=$(pwd)/filebench_workloads
-  MOUNT_DIR=$MOUNTPOINT
-  pushd $BENCH && python3 set_dir.py $MOUNTPOINT/bench && popd
-
-  # run filebench binary
-  filebench -f $BENCH/filemicro_create.f
 }

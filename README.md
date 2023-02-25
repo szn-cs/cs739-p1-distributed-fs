@@ -6,7 +6,7 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 
 - [P1 Instructions](documentation/CS739.P1.md)
 - build (adding AFS protocol based on RPC) on top of an existing FUSE filesystem [unreliablefs](https://github.com/ligurio/unreliablefs)
-- CloudLabs
+- CloudLabs Ubuntu 20.04
 
 # Setup
 
