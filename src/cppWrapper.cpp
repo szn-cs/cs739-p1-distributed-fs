@@ -271,7 +271,7 @@ FetchToCache : {
   //c.commitStatusCache();
 }
 
-OpenCachedFile:
+OpenCachedFile: {
   //  open local cache file
   ret = open(c.fileCachePath.c_str(), fi->flags, S_IRWXG | S_IRWXO | S_IRWXU);
   if (ret == -1) return -errno;
@@ -279,6 +279,8 @@ OpenCachedFile:
   fi->fh = ret;
 
   return 0;
+}
+  
 
 Original : {
   // int ret = open(path, 32768, mode);
@@ -327,15 +329,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
 }
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
-  int ret = close(dup(fi->fh));
-  if (ret == -1)
-    return -errno;
-
-  return 0;
-}
-
-int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_release" << reset << std::endl;
+  std::cout << blue << "\ncppWrapper_flush" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
   int ret;
   int numOfBytes;
@@ -346,10 +340,10 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 
   // close file locally
   if (!c.isDirty()) {
+    close(dup(fi->fh));
     return 0;  // by-pass
   }
-  ret = close(fi->fh);
-  std::cout << blue << "ret: " << ret << std::endl;
+  ret = close(dup(fi->fh));
   if (ret == -1)
     return -errno;
 
@@ -368,8 +362,98 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 
   // reset DirtyBit
   c.resetDirtyBit();
+  return 0;
+
+Original : 
+  ret = close(dup(fi->fh));
+  if (ret == -1)
+    return -errno;
 
   return 0;
+}
+
+int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
+  std::cout << blue << "\ncppWrapper_release" << reset << std::endl;
+
+  std::string _path = Utility::constructRelativePath(path);
+  int ret;
+  int numOfBytes;
+  long timestamp;
+  std::ifstream is;
+
+  Cache c(_path);
+
+  // close file locally
+  if (!c.isDirty()) {
+    close(fi->fh);
+    return 0;  // by-pass
+  }
+  ret = close(fi->fh);
+  if (ret == -1)
+    return -errno;
+
+  // write to server...
+  // stream file to server
+  is.open(c.fileCachePath.c_str(), std::ios::binary | std::ios::in);
+  is.seekg(0, is.end);
+  int length = (int)is.tellg() > 0 ? (int)is.tellg() : 0;
+  is.seekg(0, is.beg);
+  if (length > 0) {
+    std::string buf(length, '\0');
+    is.read(&buf[0], length);
+    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
+  }
+  is.close();
+
+  // reset DirtyBit
+  c.resetDirtyBit();
+  return 0;
+
+
+  Original : 
+  ret = close(fi->fh);
+  if (ret == -1)
+    return -errno;
+
+  return 0;
+
+
+  std::string _path = Utility::constructRelativePath(path);
+  
+  int numOfBytes;
+  long timestamp;
+  std::ifstream is;
+
+  Cache c(_path);
+
+  // close file locally
+  if (!c.isDirty()) {
+    close(fi->fh);
+    return 0;  // by-pass
+  }
+  ret = close(fi->fh);
+
+  if (ret == -1)
+    return -errno;
+
+  // write to server...
+  // stream file to server
+  is.open(c.fileCachePath.c_str(), std::ios::binary | std::ios::in);
+  is.seekg(0, is.end);
+  int length = (int)is.tellg() > 0 ? (int)is.tellg() : 0;
+  is.seekg(0, is.beg);
+  if (length > 0) {
+    std::string buf(length, '\0');
+    std::cout << blue << "length: " << length << std::endl;
+    is.read(&buf[0], length);
+    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
+  }
+  is.close();
+
+  // reset DirtyBit
+  c.resetDirtyBit();
+  return 0;
+  
 }
 
 int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
@@ -509,9 +593,13 @@ int cppWrapper_setxattr(const char* path, const char* name, const char* value, s
 
 int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t size) {
   std::cout << blue << "\ncppWrapper_getxattr" << reset << std::endl;
+    std::string _path = Utility::constructRelativePath(path);
+  Cache c(_path);
+
 Original:
   int ret;
-  ret = getxattr(path, name, value, size);
+  //ret = getxattr(path, name, value, size);
+  ret = getxattr(c.fileCachePath.c_str(), name, value, size);
   if (ret == -1)
     return -errno;
 
