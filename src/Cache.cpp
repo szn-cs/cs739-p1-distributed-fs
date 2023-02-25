@@ -8,7 +8,7 @@
 #include <string>
 #include <termcolor/termcolor.hpp>
 #include <tuple>
-
+#include <stdio.h>
 #include "Utility.cpp"
 
 using namespace std;
@@ -23,15 +23,15 @@ extern std::string statusCachePath;
  */
 class Cache {
  public:
-  Cache(string relativePath) : relativePath(relativePath) {
-    this->statusCache = Cache::getStatusCache();
+  Cache(std::string relativePath) : relativePath(relativePath) {
+    //this->statusCache = Cache::getStatusCache();
     this->hash = Cache::getPathHash(relativePath);
     this->fileCachePath = Utility::concatenatePath(fsRootPath, hash);
     if (isCacheEntry()) {
       std::string hash_;
       int dirtyBit_;
       int clock_;
-      tie(hash_, dirtyBit_, clock_) = this->statusCache[relativePath];
+      tie(hash_, dirtyBit_, clock_) = statusCache[relativePath];
       this->dirtyBit = dirtyBit_;
       this->clock = clock_;
     } else {
@@ -60,7 +60,7 @@ class Cache {
   }
   // check if cache entry exists for the fileCachePath
   bool isCacheEntry() {
-    return this->statusCache.find(this->relativePath) != this->statusCache.end();
+    return statusCache.find(this->relativePath) != statusCache.end();
   }
 
   bool isDirty() {
@@ -70,13 +70,13 @@ class Cache {
   void setDirtyBit() {
     this->dirtyBit = 1;
     updateCache();
-    commitStatusCache();
+    //commitStatusCache();
   }
 
   void resetDirtyBit() {
     this->dirtyBit = 0;
     updateCache();
-    commitStatusCache();
+    //commitStatusCache();
   }
 
   bool getClock() {
@@ -86,53 +86,120 @@ class Cache {
   void syncClock(int time) {
     this->clock = time;
     updateCache();
-    commitStatusCache();
+    //commitStatusCache();
   }
 
   void updateCache() {
+    auto it = statusCache.find(relativePath);
+    if (it != statusCache.end())
+      it->second = make_tuple(this->hash, this->dirtyBit, this->clock);
+    /*
     auto it = this->statusCache.find(this->relativePath);
     if (it != this->statusCache.end())
       it->second = make_tuple(this->hash, this->dirtyBit, this->clock);
+    */
   }
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
+    std::cout << "commitFileCache" << std::endl;
+    FILE *fp;
+    if ((fp = fopen(this->fileCachePath.c_str(), "w+")) != NULL) {
+      if (buf.size() != 0){
+        if (fputs(buf.c_str(), fp) == EOF) {
+          std::cout << red << "EOF" << reset << std::endl;
+        }
+        fclose(fp);
+      } else {
+        std::cout << "buf size = 0" << std::endl;
+        fclose(fp);
+      }
+    } else {
+      std::cout << red  << "open file failed" << reset  << std::endl;
+    }
+    /*
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
-    std::ofstream fileCacheStream(tmp_fileCachePath);
+    std::cout << "tmp_fileCachePath "<<tmp_fileCachePath << std::endl;
+    FILE *fp;
+    if ((fp = fopen(tmp_fileCachePath.c_str(), "w+")) != NULL) {
+      if (buf.size() != 0){
+        if (fputs(buf.c_str(), fp) == EOF) {
+          std::cout << red << "EOF" << reset << std::endl;
+        }
+        fclose(fp);
+      } else {
+        std::cout << "buf size = 0" << std::endl;
+        fclose(fp);
+      }
+    } else {
+      std::cout << red  << "open tmp file failed" << reset  << std::endl;
+    }
+    
 
-    if (!fileCacheStream.is_open())
-      throw "Error @commitFileCache: openning fileCachePath: " + this->fileCachePath;
+    FILE * fp1 = fopen(this->fileCachePath.c_str(), "r");
+    if ( fp1 != NULL ) {
+      std::cout  << "unlink this->fileCachePath.c_str()"  << std::endl;
+      fclose(fp1);
+      unlink(this->fileCachePath.c_str());
+    }
 
-    fileCacheStream << buf << std::endl;
-
+    fp1 = fopen(tmp_fileCachePath.c_str(), "r");
+    if ( fp1 == NULL ) {
+      std::cout << red  << "tmp file not exist" << reset  << std::endl;
+    } else {
+      fclose(fp1);
+    }
+    
     if (rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str()) != 0) {
       std::cout << red << "rename fail" << reset << std::endl;
     }
+    */
+    /*
+    std::ofstream fileCacheStream(tmp_fileCachePath.c_str(), std::ofstream::out | std::ofstream::binary);
 
-    this->statusCache[this->relativePath] = make_tuple(this->hash, this->dirtyBit, this->clock);
+    // don't use fileCacheStream.is_open()
+    // if (!fileCacheStream.is_open())
+    //   throw "Error @commitFileCache: openning fileCachePath: " + this->fileCachePath;
+    if (buf.size() != 0) {
+       fileCacheStream << buf;
+    }
+    fileCacheStream.close();
+
+    unlink(this->fileCachePath.c_str());
+    if (rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str()) != 0) {
+      std::cout << red << "rename fail" << reset << std::endl;
+    }
+    */
+
+    statusCache[this->relativePath] = make_tuple(this->hash, this->dirtyBit, this->clock);
     return 0;
   }
 
   // fsync update cache into local cache file.
   int commitStatusCache() {
+
+    return 0;
+
+    cout << "begin commitStatusCache" << endl;
     std::string tmp_statusCachePath = statusCachePath + ".TMP";
 
-    std::ofstream tmp_cache_file(tmp_statusCachePath);
-    if (!tmp_cache_file.is_open())
-      throw "Error @commitStatusCache: openning statusCachePath: " + statusCachePath;
-
+    std::ofstream tmp_cache_file(tmp_statusCachePath.c_str(), std::ofstream::out);
+    // if (!tmp_cache_file.is_open())
+    //   throw "Error @commitStatusCache: openning statusCachePath: " + statusCachePath;
+    cout << "tmp_cache_file opened" << endl;
     for (auto i = this->statusCache.begin(); i != this->statusCache.end(); i++) {
       std::string hash_;
       int dirtyBit_;
       int clock_;
       tie(hash_, dirtyBit_, clock_) = i->second;
-      tmp_cache_file << i->first << ";" << hash_ << ";" << dirtyBit_ << ";" << clock_ << "\n";
+      tmp_cache_file << i->first << ";" << hash_ << ";" << std::to_string(dirtyBit_) << ";" << std::to_string(clock_) << "\n";
     }
-
+    tmp_cache_file.close();
+    unlink(this->fileCachePath.c_str());
     if (rename(tmp_statusCachePath.c_str(), statusCachePath.c_str()) != 0) {
       std::cout << red << "rename fail" << reset << std::endl;
     }
-
+    cout << "end commitStatusCache" << endl;
     return 0;
   }
 
@@ -142,7 +209,7 @@ class Cache {
       return -errno;
 
     this->statusCache.erase(this->relativePath);
-    this->commitStatusCache();
+    //this->commitStatusCache();
 
     return ret;
   }
@@ -154,12 +221,13 @@ class Cache {
   int dirtyBit;
   int clock;
   //                                        hash, dirtybit, logical clock
-  std::unordered_map<std::string, std::tuple<std::string, int, int>> statusCache;  // in-memory copy from the statusCachePath contents
+  static std::unordered_map<std::string, std::tuple<std::string, int, int>> statusCache;  // in-memory copy from the statusCachePath contents
 
   // static members
   static std::unordered_map<std::string, std::tuple<std::string, int, int>> getStatusCache();
   std::string getPathHash(const std::string& path);
 };
+ std::unordered_map<std::string, std::tuple<std::string, int, int>> Cache::statusCache;
 
 /* if no file for cache then create new file for keeping cache file.
      after the file exists, read each line and add key value pair into cache in memory.
@@ -188,9 +256,10 @@ std::unordered_map<std::string, std::tuple<std::string, int, int>> Cache::getSta
     line.erase(0, pos + 1);
 
     int clock = stoi(line);
+
     statusCache[key] = make_tuple(hash, dirtyBit, clock);
   }
-
+  statusCacheStream.close();
   return statusCache;
 }
 

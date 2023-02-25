@@ -33,7 +33,11 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, term
 
 // Logic and data behind the server's behavior.
 class GRPC_Server final : public AFS::Service {
+  // pthread_mutex_t lock;
  public:
+//  explicit GRPC_Server() {
+//         pthread_mutex_init(&lock, NULL);
+//     }
   Status readDirectory(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override;
   Status createDirectory(ServerContext* context, const MkDirRequest* request, Response* response) override;
   Status removeDirectory(ServerContext* context, const Path* request, Response* response) override;

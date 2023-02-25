@@ -1,5 +1,6 @@
 #include "./grpc-server.h"
 
+
 namespace fs = std::filesystem;
 using namespace std;
 using namespace afs;
@@ -66,7 +67,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
   int numOfBytes = 0;
   int res;
   struct timespec spec;
-  string path = Utility::concatenatePath(serverDirectory, request->path());
+  std::string path = Utility::concatenatePath(serverDirectory, request->path());
 
   ReadReply* reply = new ReadReply();
 
@@ -74,7 +75,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
   is.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   try {
     // read data to buffer with offset and size
-    is.open(path, std::ios::binary | std::ios::ate);
+    is.open(path.c_str(), std::ios::binary | std::ios::ate);
 
     is.seekg(0, is.end);
     int length = is.tellg();
@@ -298,24 +299,22 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
   int fd = -1;
   int res, size, offset, numOfBytes = 0;
   reply->set_numbytes(numOfBytes);
-
+  //pthread_mutex_lock(&lock);
   while (reader->Read(&request)) {
     path = Utility::concatenatePath(serverDirectory, request.path());
-
     size = request.size();
     offset = request.offset();
     std::string buf = request.buf();
     if (numOfBytes == 0) {
       tempFilePath = path + ".TMP";
-      // cout << "Creating new temp file at path = " << tempFilePath << " size
-      // = " << size << "\n";
+
       fd = open(tempFilePath.c_str(), O_CREAT | O_SYNC | O_WRONLY, S_IRWXG | S_IRWXO | S_IRWXU);
       if (fd == -1) {
         reply->set_err(-errno);
         reply->set_numbytes(INT_MIN);
         return Status::OK;
       }
-      // printf("putFileContents Send: %s \n", path.c_str());
+
     }
     res = pwrite(fd, &buf[0], size, offset);
     fsync(fd);
@@ -327,7 +326,10 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
       return Status::OK;
     }
     numOfBytes += res;
+    if (numOfBytes == 0) break;
   }
+  close(fd);
+  //pthread_mutex_unlock(&lock);
   if (context->IsCancelled()) {
     fsync(fd);
     close(fd);
@@ -336,11 +338,6 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
     return Status::CANCELLED;
   }
   if (fd > 0) {
-    if (path.find("crash2") != std::string::npos) {
-      // cout << "Killing server process in write()\n";
-      kill(getpid(), SIGINT);
-    }
-    // printf("putFileContents Send: Calling fsync()\n");
     fsync(fd);
     close(fd);
     int res = rename(tempFilePath.c_str(), path.c_str());
@@ -354,6 +351,9 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
   reply->set_timestamp(stbuf.st_mtim.tv_sec);
   reply->set_numbytes(numOfBytes);
   reply->set_err(0);
+
+
+
   return Status::OK;
 }
 

@@ -232,16 +232,11 @@ int GRPC_Client::putFileContents(const std::string& path, const std::string& buf
       // Broken stream.
       break;
     }
-    if (buf.find("crash4") != std::string::npos) {
-      std::cout << "Killing client process in write()\n";
-      kill(getpid(), SIGABRT);
-    }
   }
   writer->WritesDone();
   Status status = writer->Finish();
 
   // std::cout << "There was an error in the server Write " << status.error_code() << std::endl;
-
   if (status.ok()) {
     numBytes = reply.numbytes();
     timestamp = reply.timestamp();
