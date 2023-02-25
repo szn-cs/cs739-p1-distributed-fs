@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -8,7 +10,7 @@
 #include <string>
 #include <termcolor/termcolor.hpp>
 #include <tuple>
-#include <stdio.h>
+
 #include "Utility.cpp"
 
 using namespace std;
@@ -20,6 +22,8 @@ extern std::string statusCachePath;
  * Types of caches:
  *   1. status cache (statusCachePath in AFS cache directory)
  *   2. file cache (fileCachePath in FUSE root directory)
+ *
+ * Notes: supporting multiple processes/threads using file-level locking is not required.
  */
 class Cache {
  public:
@@ -103,9 +107,9 @@ class Cache {
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
     std::cout << "commitFileCache" << std::endl;
-    FILE *fp;
+    FILE* fp;
     if ((fp = fopen(this->fileCachePath.c_str(), "w+")) != NULL) {
-      if (buf.size() != 0){
+      if (buf.size() != 0) {
         if (fputs(buf.c_str(), fp) == EOF) {
           std::cout << red << "EOF" << reset << std::endl;
         }
@@ -115,7 +119,7 @@ class Cache {
         fclose(fp);
       }
     } else {
-      std::cout << red  << "open file failed" << reset  << std::endl;
+      std::cout << red << "open file failed" << reset << std::endl;
     }
     /*
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
@@ -177,7 +181,6 @@ class Cache {
 
   // fsync update cache into local cache file.
   int commitStatusCache() {
-
     return 0;
 
     cout << "begin commitStatusCache" << endl;
@@ -227,7 +230,7 @@ class Cache {
   static std::unordered_map<std::string, std::tuple<std::string, int, int>> getStatusCache();
   std::string getPathHash(const std::string& path);
 };
- std::unordered_map<std::string, std::tuple<std::string, int, int>> Cache::statusCache;
+std::unordered_map<std::string, std::tuple<std::string, int, int>> Cache::statusCache;
 
 /* if no file for cache then create new file for keeping cache file.
      after the file exists, read each line and add key value pair into cache in memory.
