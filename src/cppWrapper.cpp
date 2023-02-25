@@ -73,7 +73,7 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_open" << reset << std::endl;
   int ret, _r, errornum = 0;
-  string _path = Utility::constructRelativePath(path);
+  std::string _path = Utility::constructRelativePath(path);
   struct stat serverAttr;
 
   Cache c(_path);
@@ -97,7 +97,7 @@ FetchToCache : {
   if (ret != 0) return ret;
 
   c.commitFileCache(buf);
-  c.commitStatusCache();
+  //c.commitStatusCache();
 }
 
 OpenCachedFile:  // open local cache file
@@ -135,21 +135,23 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
   int free_mark = 0;
 
   if (fi == NULL) {
-    cout << red << "fh requested from open " << reset << endl;
+    //cout << red << "fh requested from open " << reset << endl;
 
     fi = new fuse_file_info();
     fi->flags = O_RDONLY;
-    fd = cppWrapper_open(path, fi);
+    ret = cppWrapper_open(path, fi);
+    if (ret == -1) ret = -errno;
+    fd = fi->fh;
     free_mark = 1;
   } else {
-    cout << red << "fh already given fh " << fi->fh << reset << endl;
+    //cout << red << "fh already given fh " << fi->fh << reset << endl;
 
     fd = fi->fh;
   }
   if (fd == -1)
     return -errno;
 
-  cout << red << "read size: " << size << reset << endl;
+  //cout << red << "read size: " << size << reset << endl;
 
   ret = pread(fd, buf, size, offset);
   if (ret == -1)
@@ -179,7 +181,7 @@ int cppWrapper_rmdir(const char* path) {
 int cppWrapper_unlink(const char* path) {
   std::cout << blue << "\ncppWrapper_unlink" << reset << std::endl;
   int ret;
-  string _path = Utility::constructRelativePath(path);
+  std::string _path = Utility::constructRelativePath(path);
 
   Cache c(_path);
 
@@ -243,7 +245,7 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
   long timestamp;
   struct stat serverAttr;
 
-  string _path = Utility::constructRelativePath(path);
+  std::string _path = Utility::constructRelativePath(path);
 
   Cache c(_path);
 
@@ -266,7 +268,7 @@ FetchToCache : {
   if (ret != 0) return ret;
 
   c.commitFileCache(buf);
-  c.commitStatusCache();
+  //c.commitStatusCache();
 }
 
 OpenCachedFile:
@@ -301,7 +303,9 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
     std::cout << "fi == NULL" << std::endl;
     fi = new fuse_file_info();
     fi->flags = O_WRONLY;
-    fd = cppWrapper_open(path, fi);
+    ret = cppWrapper_open(path, fi);
+    if (ret != 0) ret = -errno;
+    fd = fi->fh;
     free_mark = 1;
   } else {
     fd = fi->fh;
@@ -318,7 +322,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
     delete fi;
     close(fd);
   }
-  c.setDirtyBit();
+  if (!c.isDirty()) c.setDirtyBit();
   return ret;
 }
 
@@ -343,10 +347,6 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   // close file locally
   if (!c.isDirty()) {
     return 0;  // by-pass
-    ret = close(fi->fh);
-    std::cout << blue << "ret: " << ret << std::endl;
-    if (ret == -1)
-      return -errno;
   }
   ret = close(fi->fh);
   std::cout << blue << "ret: " << ret << std::endl;
@@ -355,11 +355,11 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
 
   // write to server...
   // stream file to server
-  is.open(c.fileCachePath, std::ios::binary | std::ios::ate | std::ios::in | std::ios::out | std::ios::app);
+  is.open(c.fileCachePath.c_str(), std::ios::binary | std::ios::in);
   is.seekg(0, is.end);
   int length = (int)is.tellg() > 0 ? (int)is.tellg() : 0;
   is.seekg(0, is.beg);
-  if (length >= 0) {
+  if (length > 0) {
     std::string buf(length, '\0');
     is.read(&buf[0], length);
     ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
