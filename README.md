@@ -17,6 +17,7 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 - execute `./script/provision.sh` to setup repo and install dependencies
 - run script `build.sh` will result in binary files in `./target/release`
 - run individual commands (copy & paste) in `run.sh`
+- run tests: filebench and consistency setups.
 
 # FUSE resources:
 
