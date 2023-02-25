@@ -9,12 +9,6 @@
 #include <termcolor/termcolor.hpp>
 #include <tuple>
 
-typedef std::shared_mutex Lock;
-typedef std::unique_lock<Lock> WriteLock;
-typedef std::shared_lock<Lock> ReadLock;
-
-Lock myLock;
-
 #include "Utility.cpp"
 
 using namespace std;
@@ -35,7 +29,7 @@ class Cache {
     this->fileCachePath = Utility::concatenatePath(fsRootPath, hash);
     if (isCacheEntry()) {
       std::string hash_;
-      bool dirtyBit_;
+      int dirtyBit_;
       int clock_;
       tie(hash_, dirtyBit_, clock_) = this->statusCache[relativePath];
       this->dirtyBit = dirtyBit_;
@@ -45,7 +39,25 @@ class Cache {
       this->clock = 0;     // TODO:
     }
   }
+  // class functions
+  bool isCacheValid(struct stat serverAttr) {
+    struct stat localAttr;
 
+    // check if cache entry for the path exists
+    if (lstat(this->fileCachePath.c_str(), &localAttr) != 0)
+      return false;
+
+    // stale cache, need to fetch
+    if (serverAttr.st_mtime > localAttr.st_mtime)
+      return false;
+
+    // local cache was stored after last server-modified (may have same content) or could be newer/locally-modified
+    // if (serverAttr.st_mtime < localAttr.st_mtime) {
+    //   goto OpenCachedFile;
+    // }
+
+    return true;
+  }
   // check if cache entry exists for the fileCachePath
   bool isCacheEntry() {
     return this->statusCache.find(this->relativePath) != this->statusCache.end();
@@ -85,7 +97,6 @@ class Cache {
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
-    WriteLock w_lock(myLock);
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
     std::ofstream fileCacheStream(tmp_fileCachePath);
 
@@ -94,7 +105,9 @@ class Cache {
 
     fileCacheStream << buf << std::endl;
 
-    rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str());
+    if (rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str()) != 0) {
+      std::cout << red << "rename fail" << reset << std::endl;
+    }
 
     this->statusCache[this->relativePath] = make_tuple(this->hash, this->dirtyBit, this->clock);
     return 0;
@@ -102,7 +115,6 @@ class Cache {
 
   // fsync update cache into local cache file.
   int commitStatusCache() {
-    WriteLock w_lock(myLock);
     std::string tmp_statusCachePath = statusCachePath + ".TMP";
 
     std::ofstream tmp_cache_file(tmp_statusCachePath);
@@ -111,13 +123,15 @@ class Cache {
 
     for (auto i = this->statusCache.begin(); i != this->statusCache.end(); i++) {
       std::string hash_;
-      bool dirtyBit_;
+      int dirtyBit_;
       int clock_;
       tie(hash_, dirtyBit_, clock_) = i->second;
-      tmp_cache_file << i->first << ";" << hash_ << ";" << dirtyBit_ << ";" << clock_ << std::endl;
+      tmp_cache_file << i->first << ";" << hash_ << ";" << dirtyBit_ << ";" << clock_ << "\n";
     }
 
-    rename(tmp_statusCachePath.c_str(), statusCachePath.c_str());
+    if (rename(tmp_statusCachePath.c_str(), statusCachePath.c_str()) != 0) {
+      std::cout << red << "rename fail" << reset << std::endl;
+    }
 
     return 0;
   }
@@ -133,37 +147,18 @@ class Cache {
     return ret;
   }
 
-  bool isCacheValid(struct stat serverAttr) {
-    struct stat localAttr;
-
-    // check if cache entry for the path exists
-    if (lstat(this->fileCachePath.c_str(), &localAttr) != 0)
-      return false;
-
-    // stale cache, need to fetch
-    if (serverAttr.st_mtime > localAttr.st_mtime)
-      return false;
-
-    // local cache was stored after last server-modified (may have same content) or could be newer/locally-modified
-    // if (serverAttr.st_mtime < localAttr.st_mtime) {
-    //   goto OpenCachedFile;
-    // }
-
-    return true;
-  }
-
  public:
   std::string relativePath;
   std::string fileCachePath;
   std::string hash;
-  bool dirtyBit;
+  int dirtyBit;
   int clock;
   //                                        hash, dirtybit, logical clock
-  std::unordered_map<std::string, std::tuple<std::string, bool, long>> statusCache;  // in-memory copy from the statusCachePath contents
+  std::unordered_map<std::string, std::tuple<std::string, int, int>> statusCache;  // in-memory copy from the statusCachePath contents
 
   // static members
-  static std::unordered_map<std::string, std::tuple<std::string, bool, long>> getStatusCache();
-  static std::string getPathHash(const std::string& path);
+  static std::unordered_map<std::string, std::tuple<std::string, int, int>> getStatusCache();
+  std::string getPathHash(const std::string& path);
 };
 
 /* if no file for cache then create new file for keeping cache file.
@@ -173,28 +168,26 @@ class Cache {
                 /temp/path/to/file;ijio1290ej9fjio
                 /temp/path/to/file2;ijio1290ej9fjio
   */
-std::unordered_map<std::string, std::tuple<std::string, bool, long>> Cache::getStatusCache() {
-  ReadLock r_lock(myLock);
-  std::unordered_map<std::string, std::tuple<std::string, bool, long>> statusCache;
+std::unordered_map<std::string, std::tuple<std::string, int, int>> Cache::getStatusCache() {
+  std::unordered_map<std::string, std::tuple<std::string, int, int>> statusCache;
   std::ifstream statusCacheStream(statusCachePath);
   std::string line;
 
   while (std::getline(statusCacheStream, line)) {
     size_t pos = line.find(";");  // find delimiter `;` from statuc cache entry:  <txt>;<sha>
-    /*
-    if (pos == std::string::npos)
-      throw std::invalid_argument("Error @getStatusCache: bad format. Cannot find separator `;` in statusCacheFile:" + statusCachePath);
-    */
     std::string key = line.substr(0, pos);
     line.erase(0, pos + 1);
+
     pos = line.find(";");
     std::string hash = line.substr(0, pos);
     line.erase(0, pos + 1);
-    pos = line.find(";");
-    bool dirtyBit = stoi(line.substr(0, pos));
-    line.erase(0, pos + 1);
-    int clock = stoi(line.substr(0, pos));
 
+    pos = line.find(";");
+    std::string dirtyBit_ = line.substr(0, pos);
+    int dirtyBit = stoi(dirtyBit_);
+    line.erase(0, pos + 1);
+
+    int clock = stoi(line);
     statusCache[key] = make_tuple(hash, dirtyBit, clock);
   }
 
