@@ -194,6 +194,8 @@ class Cache {
     tmp_cache_file.close();
     tmp_cache_file.flush();  // TODO: c++ implementation doesn't call fsync necessarily
     unlink(this->fileCachePath.c_str());
+
+    // atomicity of rename - https://stackoverflow.com/questions/7054844/is-rename-atomic
     if (rename(tmp_statusCachePath.c_str(), statusCachePath.c_str()) != 0) {
       std::cout << red << "rename fail" << reset << std::endl;
     }
