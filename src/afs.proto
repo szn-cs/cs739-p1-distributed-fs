@@ -31,16 +31,16 @@ service WiscAFS {
 
   // ListDir         List the contents of a directory
   rpc readDirectory(Path) returns (stream ReadDirResponse) {};   
-
+  
+    // TestAuth        Test whether a file has changed (used to validate cached entries). 
+    //                          check whether a local file (or its stat information) 
+    // approach 1: get modified time 
+    // approach 2: logical clocks ? or hashing content ? 
+    // TODO: not required could use GetAttr instead
+    rpc checkCacheValidity(Path) returns (Response) {};
+  
   // rename implementation required ? 
   // TODO: if needed
-
-  // TestAuth        Test whether a file has changed (used to validate cached entries). 
-  //                          check whether a local file (or its stat information) 
-  // approach 1: get modified time 
-  // approach 2: logical clocks ? or hashing content ? 
-  // TODO: not required could use GetAttr instead
-  rpc checkCacheValidity(Path) returns (Response) {};
   
 }
 
