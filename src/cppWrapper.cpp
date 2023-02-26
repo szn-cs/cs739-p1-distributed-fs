@@ -60,7 +60,7 @@ extern "C" {
 int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << blue << "cppWrapper_getattr" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
-  std::cout << cyan << "path: " << path << reset << endl;
+  // std::cout << cyan << "path: " << path << reset << endl;
   int errornum, r;
 
   std::memset(buf, 0, sizeof(struct stat));
@@ -305,7 +305,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
   int free_mark = 0;
   Cache c(_path);
   if (fi == NULL) {
-    std::cout << "fi == NULL" << std::endl;
+    // std::cout << "fi == NULL" << std::endl;
     fi = new fuse_file_info();
     fi->flags = O_WRONLY;
     ret = cppWrapper_open(path, fi);

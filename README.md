@@ -65,7 +65,7 @@ NOTE: run funcitons in script files using: `. ./script/<scriptname>.sh && <funct
 - Status cache & File cache <https://pdfs.semanticscholar.org/d25f/9f6b4ec93cffbdcc56f0aa2c7fa0edeaaa25.pdf>
 - <https://www.slideshare.net/GiorgioVitiello/andrew-file-system>
 - NFS functions <https://docs.oracle.com/cd/E19620-01/805-4448/z4000027624/index.html>
-
+- Question <https://piazza.com/class/ld3h27skahd2bl/post/28>
 
 # papers: 
 - Crash recovery issues: All File Systems Are Not Created Equal: On the Complexity of Crafting Crash-Consistent Applications 
@@ -75,7 +75,7 @@ NOTE: run funcitons in script files using: `. ./script/<scriptname>.sh && <funct
 - AFSv1 actual name “ITC DFS”: File system description <https://www.cs.cmu.edu/~satya/docdir/satya-sosp-afs-1985.pdf>
 - Contribution to AFS <https://www.cs.cmu.edu/~coda/docdir/s11.pdf>
 - Summaries of AFS 
-- <https://www.researchgate.net/publication/324486144_THE_ANDREW_FILE_SYSTEM>
-- <https://pages.cs.wisc.edu/~remzi/Classes/537/Fall2008/Notes/distributed-afs.txt>
-- <https://slideplayer.com/slide/4842653/>
-- <https://people.engr.tamu.edu/bettati/Courses/662/2007A/Slides/Handouts/DFS.pdf>   
+  - <https://www.researchgate.net/publication/324486144_THE_ANDREW_FILE_SYSTEM>
+  - <https://pages.cs.wisc.edu/~remzi/Classes/537/Fall2008/Notes/distributed-afs.txt>
+  - <https://slideplayer.com/slide/4842653/>
+  - <https://people.engr.tamu.edu/bettati/Courses/662/2007A/Slides/Handouts/DFS.pdf>   

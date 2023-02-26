@@ -96,7 +96,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
       reply->set_err(0);
       reply->set_timestamp(spec.tv_sec);
       writer->Write(*reply);
-      std::cout << "File is empty." << std::endl;
+      // std::cout << "File is empty." << std::endl;
       is.close();
       return Status::OK;
     }
@@ -226,9 +226,7 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
 
 Status GRPC_Server::createDirectory(ServerContext* context, const MkDirRequest* request, Response* response) {
   std::cout << yellow << "GRPC_Server::createDirectory" << reset << std::endl;
-  std::cout << "here" << std::endl;
   std::string s(request->path());
-  std::cout << "here: " << s << std::endl;
   string path = Utility::concatenatePath(serverDirectory, s);
   mode_t mode = (mode_t)request->modet();
 
