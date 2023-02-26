@@ -6,7 +6,7 @@ filebench_test() {
   # run filebench
 
   # cd go back to user directory
-  cd $PROJECT
+  pushd $PROJECT
 
   # run python file
   MOUNT_DIR=$MOUNTPOINT # seems to be used by set_dir.py
@@ -22,10 +22,20 @@ filebench_test() {
       trap "exit" 1
     fi
     rm -rf $ROOT/* $SERVER/* $CACHE/* $MOUNTPOINT/*
-    # filebench -f $f >>$f.log
-    filebench -f $f 2>&1 | tee -a $f.log
+
+    # redirect to files
+    filebench -f $f >>$f.log
+
+    # redirect to file and print to stdout while testing
+    # filebench -f $f 2>&1 | tee -a $f.log
+
     # filebench -f $BENCH/filemicro_create.f
   done
+
+  mkdir -p results
+  mv $BENCH/*.log ./results
+
+  popd
 
 }
 
