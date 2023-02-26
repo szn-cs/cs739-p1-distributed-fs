@@ -1,6 +1,5 @@
 #include "./grpc-server.h"
 
-
 namespace fs = std::filesystem;
 using namespace std;
 using namespace afs;
@@ -314,7 +313,6 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
         reply->set_numbytes(INT_MIN);
         return Status::OK;
       }
-
     }
     res = pwrite(fd, &buf[0], size, offset);
     fsync(fd);
@@ -329,7 +327,9 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
     if (numOfBytes == 0) break;
   }
   close(fd);
+
   //pthread_mutex_unlock(&lock);
+  // error: cancel operation
   if (context->IsCancelled()) {
     fsync(fd);
     close(fd);
@@ -337,22 +337,23 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
     reply->set_numbytes(INT_MIN);
     return Status::CANCELLED;
   }
+
   if (fd > 0) {
     fsync(fd);
     close(fd);
+    // get new attributes in server timestamp
     int res = rename(tempFilePath.c_str(), path.c_str());
     if (res) {
       reply->set_err(-errno);
       reply->set_numbytes(INT_MIN);
     }
   }
+
   struct stat stbuf;
   int rc = stat(path.c_str(), &stbuf);
   reply->set_timestamp(stbuf.st_mtim.tv_sec);
   reply->set_numbytes(numOfBytes);
   reply->set_err(0);
-
-
 
   return Status::OK;
 }

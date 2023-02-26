@@ -271,7 +271,7 @@ FetchToCache : {
   //c.commitStatusCache();
 }
 
-OpenCachedFile: {
+OpenCachedFile : {
   //  open local cache file
   ret = open(c.fileCachePath.c_str(), fi->flags, S_IRWXG | S_IRWXO | S_IRWXU);
   if (ret == -1) return -errno;
@@ -280,7 +280,6 @@ OpenCachedFile: {
 
   return 0;
 }
-  
 
 Original : {
   // int ret = open(path, 32768, mode);
@@ -364,7 +363,7 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   c.resetDirtyBit();
   return 0;
 
-Original : 
+Original:
   ret = close(dup(fi->fh));
   if (ret == -1)
     return -errno;
@@ -409,14 +408,12 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   c.resetDirtyBit();
   return 0;
 
-
-  Original : 
+Original:
   ret = close(fi->fh);
   if (ret == -1)
     return -errno;
 
   return 0;
-  
 }
 
 int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
@@ -556,7 +553,7 @@ int cppWrapper_setxattr(const char* path, const char* name, const char* value, s
 
 int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t size) {
   std::cout << blue << "\ncppWrapper_getxattr" << reset << std::endl;
-    std::string _path = Utility::constructRelativePath(path);
+  std::string _path = Utility::constructRelativePath(path);
   Cache c(_path);
 
 Original:
