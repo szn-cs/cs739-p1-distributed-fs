@@ -53,6 +53,7 @@ class Cache {
     if (lstat(this->fileCachePath.c_str(), &localAttr) != 0)
       return false;
 
+    // TODO impl. clock using server timestamp
     // stale cache, need to fetch
     if (serverAttr.st_mtime > localAttr.st_mtime)
       return false;
