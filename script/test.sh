@@ -27,7 +27,6 @@ filebench_test() {
     # filebench -f $BENCH/filemicro_create.f
   done
 
-  # TODO: check additional required packages to solve webserver.f workload issue
 }
 
 other() {
