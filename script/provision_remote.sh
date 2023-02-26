@@ -19,8 +19,8 @@ remote_setup() {
   ssh $REMOTE
   {
     sudo su -
-    # . ./<myScript>.sh && <function_name>
-    (source ./script/provision_remote.sh && filebench) # call filebench function from file
+    # . ./<myScript>.sh && <function_name> # call filebench function from file
+    (source ./script/provision_remote.sh && filebench)
   }
 
 }
@@ -29,8 +29,17 @@ filebench() {
   # must be root
   # sudo su -
 
+  # Disable ASLR https://linux-audit.com/linux-aslr-and-kernelrandomize_va_space-setting/
+  echo 0 >/proc/sys/kernel/randomize_va_space
+
+  ##### INSTALL filebench command
+
   pushd .
-  mkdir repo_filebench && curl -L https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz | tar xzC repo_filebench && cd repo_filebench && cd *
+  # REPO=https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz
+  # mkdir repo_filebench && curl -L $REPO | tar xzC repo_filebench && cd repo_filebench && cd *
+
+  REPO=https://github.com/filebench/filebench/
+  mkdir -p repo_filebench && cd repo_filebench && git clone $REPO && cd ./filebench
 
   libtoolize
   aclocal
@@ -44,9 +53,6 @@ filebench() {
   # mv ./filebench ../../
   popd
   rm -r repo_filebench
-
-  # Disable ASLR https://linux-audit.com/linux-aslr-and-kernelrandomize_va_space-setting/
-  echo 0 >/proc/sys/kernel/randomize_va_space
 
   # run tests (check run.sh)
 }
