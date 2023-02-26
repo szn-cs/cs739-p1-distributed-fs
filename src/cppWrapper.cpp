@@ -215,7 +215,11 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
 int cppWrapper_rename(const char* oldpath, const char* newpath) {
   std::cout << blue << "\ncppWrapper_rename" << reset << std::endl;
 
-  int ret = rename(oldpath, newpath);
+  std::string _oldpath = Utility::constructRelativePath(oldpath);
+  std::string _newpath = Utility::constructRelativePath(newpath);
+  Cache old_c(_oldpath);
+  Cache new_c(_newpath);
+  int ret = rename(_oldpath.c_str(), _newpath.c_str());
   if (ret == -1) {
     return -errno;
   }
