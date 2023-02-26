@@ -21,6 +21,8 @@ filebench_test() {
     if [[ (! $ROOT) && (! $SERVER) && (! $CACHE) && (! $MOUNTPOINT) ]]; then
       trap "exit" 1
     fi
+
+    // TODO: For some reason subsequent tests are faced with stale data in the mounted point which causes failures.
     rm -rf $ROOT/* $SERVER/* $CACHE/* $MOUNTPOINT/*
 
     # redirect to files
