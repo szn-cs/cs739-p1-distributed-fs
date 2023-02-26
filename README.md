@@ -79,3 +79,4 @@ NOTE: run funcitons in script files using: `. ./script/<scriptname>.sh && <funct
   - <https://pages.cs.wisc.edu/~remzi/Classes/537/Fall2008/Notes/distributed-afs.txt>
   - <https://slideplayer.com/slide/4842653/>
   - <https://people.engr.tamu.edu/bettati/Courses/662/2007A/Slides/Handouts/DFS.pdf>   
+- ALICE <https://research.cs.wisc.edu/adsl/Publications/alice-osdi14.pdf>
