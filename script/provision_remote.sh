@@ -62,3 +62,24 @@ filebench() {
 
   # run tests (check run.sh)
 }
+
+# run with $` (source ./script/provision_remote.sh && multiple_remote_upload) `
+multiple_remote_upload() {
+  source ./script/setenv.sh
+  U=sq089ahy
+
+  # Declare an array of string with type
+  declare -a REMOTES=(
+    "c220g2-010810"
+    "c220g2-010813"
+    "c220g2-010822"
+    "c220g2-010820"
+    "c220g2-010804"
+    "c220g2-010825"
+  )
+
+  # Iterate the string array using for loop
+  for i in ${REMOTES[@]}; do
+    scp -rC ./script ./target/release/* ./test/filebench_workloads ./config/unreliablefs.conf $U@$i.wisc.cloudlab.us:$PROJECT
+  done
+}

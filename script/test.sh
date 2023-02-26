@@ -36,7 +36,6 @@ filebench_test() {
   mv $BENCH/*.log ./results
 
   popd
-
 }
 
 other() {
