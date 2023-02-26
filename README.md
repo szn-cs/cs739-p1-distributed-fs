@@ -19,6 +19,10 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 - run individual commands (copy & paste) in `run.sh`
 - run tests: filebench and consistency setups.
 
+NOTE: run funcitons in script files using: `. ./script/<scriptname>.sh && <functioname>`
+
+
+
 # FUSE resources:
 
 - [ ] official specification <https://libfuse.github.io/doxygen/index.html>

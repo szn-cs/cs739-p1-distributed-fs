@@ -1,14 +1,20 @@
 - [ ] create
 - [ ] createfile
 - [ ] createrand
-- [ ] delete
-- [ ] rread
-- [ ] rwritedsync
+- [ ] varmail
+- [ ] webserver
+
+- [ ] delete: remove parallel allcoation
 - [ ] seqread
 - [ ] seqwrite
+- [ ] rread
+- [ ] rwritedsync
 - [ ] statfile
 - [ ] writefsync
 - [ ] fileserver
 - [ ] mongo
-- [ ] varmail
-- [ ] webserver
+
+
+# skip 
+
+

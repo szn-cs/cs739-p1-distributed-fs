@@ -1,34 +1,24 @@
 #!/bin/bash
+# all command must be run on `Cloudlab.us` with `sudo su -`
+# on an isntance of UBUNTU 20.04 with Temporary Filesystem Size of 40 GB mounted to /root
+# copy over binaries from ./target/release
 
-MOUNTPOINT=$(pwd)/tmp/mount
-ROOT=$(pwd)/tmp/root
-SERVER=$(pwd)/tmp/server
-CACHE=$(pwd)/tmp/cache
-BENCH=$(pwd)/filebench_workloads
+server() {
+  source ./script/setenv.sh
 
-run_example() {
-  # terminal 1 ###########################################################################################
-  ./target/release/example-grpc/greeter_server
-  # terminal 2 ###########################################################################################
-  ./target/release/example-grpc/greeter_client
+  ./server $SERVER
 }
 
 fs_mount() {
   # run everything under root
-  sudo su -
+  source ./script/setenv.sh
 
   ######## [terminal instance 1] ##########################################################
   # rm -rf $MOUNTPOINT/* $ROOT/* $SERVER/* $CACHE/*
   mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
 
-  ## fix some issues probably with WSL2 setup
-  # sudo ln -s /proc/self/mounts /etc/mtab
-  ## make sure it is unmounted
-  fusermount -uz $MOUNTPOINT && fusermount -uz $ROOT
-  umount $MOUNTPOINT
-
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  ./target/release/unreliablefs $MOUNTPOINT -basedir=$ROOT -seed=1618680646 -d
+  ./unreliablefs $MOUNTPOINT -basedir=$ROOT -seed=1618680646 -d
 
   ######## [terminal instance 2] ##########################################################
 
@@ -42,13 +32,30 @@ fs_mount() {
   # EOF
 
   ## use existing config file instead
-  cat ./config/unreliablefs.conf $ROOT/unreliablefs.conf
+}
 
-  ls -la $MOUNTPOINT
-  pushd $MOUNTPOINT
-  echo " " >>file.txt
-  popd
+fs_config() {
+  source ./script/setenv.sh
 
+  ./unreliablefs.conf $ROOT/unreliablefs.conf
+}
+
+fs_unmount() {
+  source ./script/setenv.sh
+
+  ## fix some issues probably with WSL2 setup
+  # sudo ln -s /proc/self/mounts /etc/mtab
+  ## make sure it is unmounted
+  fusermount -uz $MOUNTPOINT && fusermount -uz $ROOT
+  umount $MOUNTPOINT
+
+}
+
+example_run() {
+  # terminal 1 ###########################################################################################
+  ./target/release/example-grpc/greeter_server
+  # terminal 2 ###########################################################################################
+  ./target/release/example-grpc/greeter_client
 }
 
 example_grpc() {
@@ -59,24 +66,4 @@ example_grpc() {
   # assuming vcpkg manages grpc installation.
   # DOESN'T WORK, SOMETHING TODO WITH THE PATHS
   #cmake -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/../../../../../dependency/vcpkg/scripts/buildsystems/vcpkg.cmake .
-}
-
-server() {
-  ./target/release/server $SERVER
-  echo 0
-}
-
-client() {
-  ./target/release/client
-  echo 0
-}
-
-remote() {
-  REMOTE=sq089ahy@c220g1-030620.wisc.cloudlab.us
-  scp -rC ./target/release/* $REMOTE:~/target/release/
-
-  #########################
-
-  ssh $REMOTE
-  sudo su -
 }

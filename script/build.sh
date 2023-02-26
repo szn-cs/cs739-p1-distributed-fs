@@ -1,10 +1,25 @@
-# create make files &
-# build through `cmake`  or use `make -w -C ./target/config/`
-cmake -S . -B ./target/config && cmake --build ./target/config --verbose --parallel
-## move binaries from nested builds
-mkdir -p ./target/release
-cp ./target/config/src/unreliablefs ./target/release/unreliablefs
-cp ./target/config/src/grpc-server ./target/release/grpc-server
+#!/bin/bash
+
+# run using $` (source ./script/build.sh && build) `
+build() {
+  source ./script/setenv.sh
+
+  # create make files &
+  # build through `cmake`  or use `make -w -C ./target/config/`
+  cmake -S . -B ./target/config && cmake --build ./target/config --verbose --parallel
+  ## move binaries from nested builds
+  mkdir -p ./target/release
+  cp ./target/config/src/unreliablefs ./target/release/unreliablefs
+  cp ./target/config/src/grpc-server ./target/release/grpc-server
+}
+
+# original implementation build
+originalUnreliablefs() {
+  pushd ./dependency/unreliablefs
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --parallel
+  ls ./build/unreliable/unreliablefs
+  popd
+}
 
 # copy grpc example binaries
 example() {
@@ -14,14 +29,6 @@ example() {
 
 test() {
   gcc -Wall ./test/testSystemCall.c -o ./target/testSystemCall
-}
-
-# original implementation build
-originalUnreliablefs() {
-  pushd ./dependency/unreliablefs
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --parallel
-  ls ./build/unreliable/unreliablefs
-  popd
 }
 
 ## clean

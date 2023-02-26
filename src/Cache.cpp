@@ -108,6 +108,8 @@ class Cache {
 
   // fsync commit fileCache to the root directory of FUSE/Unreliablefs FS
   int commitFileCache(std::string& buf) {
+    // TODO: log transaction before changing actual file content.
+
     std::cout << "commitFileCache" << std::endl;
     FILE* fp;
     if ((fp = fopen(this->fileCachePath.c_str(), "w+")) == NULL) {

@@ -1,6 +1,46 @@
-MOUNTPOINT=$(pwd)/tmp/mount
-ROOT=$(pwd)/tmp/root
-SERVER=$(pwd)/tmp/server
+#!/bin/bash
+source ./script/setenv.sh
+
+filebench_test() {
+  source ./script/setenv.sh
+  # run filebench
+
+  # cd go back to user directory
+  cd $PROJECT
+
+  # run python file
+  MOUNT_DIR=$MOUNTPOINT # seems to be used by set_dir.py
+  pushd $BENCH && python3 set_dir.py $MOUNTPOINT/bench && popd
+
+  # run filebench binary
+  for f in $BENCH/*.f; do
+    C='\033[1;36m'
+    NC='\033[0m' # No Color
+    echo -e "${C}Running filebench: ${f}${NC}"
+    echo $f >>$f.log
+    if [[ (! $ROOT) && (! $SERVER) && (! $CACHE) && (! $MOUNTPOINT) ]]; then
+      trap "exit" 1
+    fi
+    rm -rf $ROOT/* $SERVER/* $CACHE/* $MOUNTPOINT/*
+    # filebench -f $f >>$f.log
+    filebench -f $f 2>&1 | tee -a $f.log
+    # filebench -f $BENCH/filemicro_create.f
+  done
+
+  # TODO: check additional required packages to solve webserver.f workload issue
+}
+
+other() {
+  ls -la $MOUNTPOINT
+  pushd $MOUNTPOINT
+  echo " " >>file.txt
+  popd
+}
+
+trace() {
+  touch file.txt
+  strace -s 2000 -o unlink.log unlink file.txt
+}
 
 attribute() {
   # equivalent to `lstat``
@@ -67,9 +107,4 @@ directory() {
   ls $MOUNTPOINT/x
   ls $MOUNTPOINT/m/t/q
 
-}
-
-trace() {
-  touch file.txt
-  strace -s 2000 -o unlink.log unlink file.txt
 }
