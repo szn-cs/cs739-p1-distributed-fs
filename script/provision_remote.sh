@@ -12,7 +12,7 @@ remote_setup() {
   }
 
   # copy over workload files over and run tests
-  source ./script/./script/setenv.sh
+  source ./script/setenv.sh
   scp -rC ./script ./target/release/* ./test/filebench_workloads ./config/unreliablefs.conf $REMOTE:$PROJECT
 
   # install filebench
