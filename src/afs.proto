@@ -23,7 +23,7 @@ service AFS {
 
   // Fetch/GetFileContents/Read/Open functionality         Fetch the contents of file
   rpc getFileContents(ReadRequest) returns (stream ReadReply) {}; // TODO: remove redundant
-  rpc Open(OpenRequest) returns (OpenResponse) {};
+  rpc createEmptyFile(OpenRequest) returns (OpenResponse) {};
 
   // Store/Update/Write file           Store this file on the server (called on close())
   rpc putFileContents(stream WriteRequest) returns (WriteReply) {};

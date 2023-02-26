@@ -189,17 +189,17 @@ int GRPC_Client::removeFile(const std::string& path) {
 }
 
 // HOW to call:
-//   ret = grpcClient->OpenFile(_path, O_RDWR | O_CREAT | S_IRWXU, timestamp);
+//   ret = grpcClient->createEmptyFile(_path, O_RDWR | O_CREAT | S_IRWXU, timestamp);
 //    if (ret != 0) return ret;
 // TODO: ? touch functionality: only create file without contents
-int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timestamp) {
-  std::cout << yellow << "GRPC_Client::OpenFile" << reset << std::endl;
+int GRPC_Client::createEmptyFile(const std::string& path, const int& mode, long& timestamp) {
+  std::cout << yellow << "GRPC_Client::createEmptyFile" << reset << std::endl;
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
   OpenResponse reply;
   ClientContext context;
-  Status status = stub_->Open(&context, request, &reply);
+  Status status = stub_->createEmptyFile(&context, request, &reply);
   if (status.ok()) {
     timestamp = reply.timestamp();
     std::cout << yellow << "reply err" << reply.err() << reset << std::endl;

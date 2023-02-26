@@ -16,8 +16,7 @@ using grpc::Status;  // https://grpc.github.io/grpc/core/md_doc_statuscodes.html
 static std::string serverDirectory;
 
 // local cache clock
-static std::unordered_map<std::string, int> serverclock ;
-
+static std::unordered_map<std::string, int> serverclock;
 
 /** mimics `stat`/`lstat` functionality */
 Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* request, Attributes* response) {
@@ -47,7 +46,7 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
   }
   auto it = serverclock.find(path);
   if (it == serverclock.end()) {
-      serverclock.insert(std::make_pair(path, 0));
+    serverclock.insert(std::make_pair(path, 0));
   }
 
   response->set_status(0);
@@ -278,8 +277,8 @@ Status GRPC_Server::removeFile(ServerContext* context, const Path* request, Resp
   return Status::OK;
 }
 
-Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
-  std::cout << yellow << "GRPC_Server::Open" << reset << std::endl;
+Status GRPC_Server::createEmptyFile(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
+  std::cout << yellow << "GRPC_Server::createEmptyFile" << reset << std::endl;
   int rc;
   string path = Utility::concatenatePath(serverDirectory, request->path());
 

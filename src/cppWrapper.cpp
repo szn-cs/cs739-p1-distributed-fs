@@ -266,7 +266,7 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
 FetchToCache : {
   int numBytes;
   std::string buf;
-  ret = grpcClient->OpenFile(_path, O_RDWR | O_CREAT, timestamp);
+  ret = grpcClient->createEmptyFile(_path, O_RDWR | O_CREAT, timestamp);
   std::cout << "ret " << ret << std::endl;
   if (ret != 0) return ret;
   ret = grpcClient->getFileContents(_path, numBytes, buf, timestamp);
