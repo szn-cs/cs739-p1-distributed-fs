@@ -5,7 +5,7 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, term
 
 GRPC_Client::GRPC_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
 
-int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, int& errornum) {
+int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, int& errornum, int& logical_clock) {
   std::cout << yellow << "GRPC_Client::getFileAttributes" << reset << std::endl;
 
   Attributes reply;
@@ -38,6 +38,7 @@ int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, in
   buf->st_atime = reply.grpc_st_atime();
   buf->st_mtime = reply.grpc_st_mtime();
   buf->st_ctime = reply.grpc_st_ctime();
+  logical_clock = reply.logical_clock();
 
   return 0;
 }
@@ -209,7 +210,7 @@ int GRPC_Client::OpenFile(const std::string& path, const int& mode, long& timest
   // return status.error_code();
 }
 
-int GRPC_Client::putFileContents(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, long& timestamp) {
+int GRPC_Client::putFileContents(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, int& logical_clock) {
   std::cout << yellow << "GRPC_Client::putFileContents" << reset << std::endl;
   std::cout << "GRPC client write\n";
   WriteRequest request;
@@ -239,7 +240,7 @@ int GRPC_Client::putFileContents(const std::string& path, const std::string& buf
   // std::cout << "There was an error in the server Write " << status.error_code() << std::endl;
   if (status.ok()) {
     numBytes = reply.numbytes();
-    timestamp = reply.timestamp();
+    logical_clock = reply.logical_clock();
     return reply.err();
   }
   // cout << "There was an error in the server Write " << status.error_code() << endl;
