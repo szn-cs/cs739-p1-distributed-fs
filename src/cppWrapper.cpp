@@ -21,6 +21,11 @@ extern "C" {
 
 /** Mappings of FUSE to AFS handler logic
  * Main calls should be supported (check unreliablefs.c mapping)
+* check manual pages for POSIX functions details https://linux.die.net/man/2/
+  // https://linux.die.net/man/2/lstat
+ * TODO: remove unnecessary platform specific implementations
+
+
 
 ** FUSE functions:
         [x] fuse→getattr()
@@ -29,31 +34,27 @@ extern "C" {
         [x] fuse→readdir()
         [x] fuse→unlink()
         [x] fuse→open()
-        [x!] fuse→read()
-        [x!] fuse→release() //TODO dirty bit
-        [x!] fuse→write()  // TODO- test further for edge cases
-
+        [x] fuse→read()
+        [x] fuse→release() 
+        [x] fuse→write() 
+        [x] fuse→truncate()
         [ ] fuse→fsync()
-        [ ] fuse→truncate()
         [ ] fuse→mknod()
 
-* check manual pages for POSIX functions details https://linux.die.net/man/2/
-** POSIX→FUSE mapping:  FUSE operations that get triggered for each of the POSIX calls
-        [x] open():             fuse→getattr(), fuse→open()
-        [ ] close():            fuse→release()
-        [ ] creat():            fuse→mknod()
-        [x] unlink():           fuse→getattr(), fuse→unlink()
-        [x] mkdir():            fuse→mkdir()
-        [x] rmdir():            fuse→rmdir()
-        [ ] read(), pread():    fuse→read()
-        [ ] write(), pwrite():  fuse→write(), fuse→truncate()
-    // https://linux.die.net/man/2/lstat
-        [x] stat():             fuse→getattr()
-        [ ] fsync():            fuse→fsync()
-        [x] readdir():          fuse→readdir()
+** POSIX→FUSE mapping (FUSE operations that get triggered for each of the POSIX calls)
+        [x] open():                          fuse→getattr(), fuse→open()
+        [x] close():                         fuse→release()
+        [x] creat():                         fuse→mknod()
+        [x] unlink():                        fuse→getattr(), fuse→unlink()
+        [x] mkdir():                         fuse→mkdir()
+        [x] rmdir():                         fuse→rmdir()
+        [x] read(), pread():                 fuse→read()
+        [x] write(), pwrite():               fuse→write(), fuse→truncate()
+        [x] stat():                          fuse→getattr()
+        [x] fsync():                         fuse→fsync()
+        [x] readdir():                       fuse→readdir()
 
 
- * TODO: remove unnecessary platform specific implementations
 
 */
 
@@ -79,7 +80,7 @@ int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   Cache c(_path);
 
   // check is cache valid or stale
-  _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum, logical_clock); // add clock*
+  _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum, logical_clock);  // add clock*
   if (_r != 0)
     goto FetchToCache;
 
@@ -359,7 +360,7 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   if (length > 0) {
     std::string buf(length, '\0');
     is.read(&buf[0], length);
-    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, logical_clock); // update local clock in cache
+    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, logical_clock);  // update local clock in cache
   }
   is.close();
 
