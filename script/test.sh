@@ -1,6 +1,6 @@
 #!/bin/bash
-source ./script/setenv.sh
 
+# run with $` (source ./script/test.sh && filebench_test) `
 filebench_test() {
   source ./script/setenv.sh
   # run filebench
@@ -16,7 +16,7 @@ filebench_test() {
   for f in $BENCH/*.f; do
     C='\033[1;36m'
     NC='\033[0m' # No Color
-    echo -e "${C}Running filebench: ${f}${NC}"
+    echo -e "\n\n\n\n${C}Running filebench: ${f}${NC}"
     echo $f >>$f.log
     if [[ (! $ROOT) && (! $SERVER) && (! $CACHE) && (! $MOUNTPOINT) ]]; then
       trap "exit" 1
