@@ -4,7 +4,7 @@ package afs;   // similar to namespace, avoid conflicts
 
 
 /**
-  * AFS (AFS basic protocol version 1) gRPC services:
+  * WiscAFS gRPC services (AFS basic protocol version 1) :
 */
 service WiscAFS {
   
