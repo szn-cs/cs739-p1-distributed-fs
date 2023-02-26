@@ -41,7 +41,11 @@ service WiscAFS {
   
   // rename implementation required ? 
   // TODO: if needed
-  
+
+    // EXAMPLE API: keep this for debudding
+  rpc SayHello(HelloRequest) returns (HelloReply) {};
+  rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {};
+
 }
 
 message Path {
