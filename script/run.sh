@@ -6,7 +6,7 @@
 server() {
   source ./script/setenv.sh
 
-  ./server $SERVER
+  ./grpc-server $SERVER
 }
 
 fs_mount() {
@@ -18,7 +18,9 @@ fs_mount() {
   mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
 
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  ./unreliablefs $MOUNTPOINT -basedir=$ROOT -seed=1618680646 -d
+  # SERVER_ADDRESS=0.0.0.0:50051
+  SERVER_ADDRESS=c220g2-010810.wisc.cloudlab.us:50051
+  ./unreliablefs $MOUNTPOINT -basedir=$ROOT -seed=1618680646 -d -serverAddress=$SERVER_ADDRESS
 
   ######## [terminal instance 2] ##########################################################
 
@@ -32,6 +34,13 @@ fs_mount() {
   # EOF
 
   ## use existing config file instead
+}
+
+fs_mount_nodebug() {
+  source ./script/setenv.sh
+  mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
+  SERVER_ADDRESS=0.0.0.0:50051
+  ./unreliablefs $MOUNTPOINT -basedir=$ROOT -serverAddress=$SERVER_ADDRESS
 }
 
 fs_config() {

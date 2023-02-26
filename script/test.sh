@@ -46,11 +46,12 @@ filebench_retrieveResults() {
   # Declare an array of string with type
   declare -a REMOTES=(
     "c220g2-010810"
-    "c220g2-010813"
-    "c220g2-010822"
+    # "c220g2-010813"
+    # "c220g2-010822"
+
     "c220g2-010820"
-    "c220g2-010804"
-    "c220g2-010825"
+    # "c220g2-010804"
+    # "c220g2-010825"
   )
 
   # Iterate the string array using for loop
