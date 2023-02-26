@@ -46,23 +46,9 @@ class Cache {
     }
   }
   // class functions
-  bool isCacheValid(struct stat serverAttr) {
-    struct stat localAttr;
-
-    // check if cache entry for the path exists
-    if (lstat(this->fileCachePath.c_str(), &localAttr) != 0)
-      return false;
-
-    // TODO impl. clock using server timestamp
-    // stale cache, need to fetch
-    if (serverAttr.st_mtime > localAttr.st_mtime)
-      return false;
-
-    // local cache was stored after last server-modified (may have same content) or could be newer/locally-modified
-    // if (serverAttr.st_mtime < localAttr.st_mtime) {
-    //   goto OpenCachedFile;
-    // }
-
+  bool isCacheValid(int server_clock) {
+    if (server_clock > this->clock) return false;
+    // TODO: elif <: Durability problem.
     return true;
   }
   // check if cache entry exists for the fileCachePath

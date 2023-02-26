@@ -61,30 +61,30 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
   std::cout << blue << "cppWrapper_getattr" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
   std::cout << cyan << "path: " << path << reset << endl;
-  int errornum, r;
+  int errornum, r, logical_clock;
 
   std::memset(buf, 0, sizeof(struct stat));
 
-  r = grpcClient->getFileAttributes(_path, buf, errornum);
+  r = grpcClient->getFileAttributes(_path, buf, errornum, logical_clock);
 
   return (r == -1) ? -errornum : 0;
 }
 
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
   std::cout << blue << "\ncppWrapper_open" << reset << std::endl;
-  int ret, _r, errornum = 0;
+  int ret, _r, errornum, logical_clock = 0;
   std::string _path = Utility::constructRelativePath(path);
   struct stat serverAttr;
 
   Cache c(_path);
 
   // check is cache valid or stale
-  _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum);
+  _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum, logical_clock); // add clock*
   if (_r != 0)
     goto FetchToCache;
 
   /* if valid cache **/
-  if (c.isCacheEntry() && c.isCacheValid(serverAttr))
+  if (c.isCacheEntry() && c.isCacheValid(logical_clock))
     goto OpenCachedFile;
 
 FetchToCache : {
@@ -240,7 +240,7 @@ int cppWrapper_truncate(const char* path, off_t length) {
 // trigger server create file -> download data
 int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
   std::cout << termcolor::blue << "\ncppWrapper_create" << termcolor::reset << std::endl;
-  int ret, errornum = 0;
+  int ret, errornum, logical_clock = 0;
   int consistence = -1;
   long timestamp;
   struct stat serverAttr;
@@ -250,12 +250,12 @@ int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
   Cache c(_path);
 
   // check is cache valid or stale
-  int _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum);
+  int _r = grpcClient->getFileAttributes(_path, &serverAttr, errornum, logical_clock);
   if (_r != 0)
     goto FetchToCache;
 
   /* if valid cache **/
-  if (c.isCacheEntry() && c.isCacheValid(serverAttr))
+  if (c.isCacheEntry() && c.isCacheValid(logical_clock))
     goto OpenCachedFile;
 
 FetchToCache : {
@@ -332,7 +332,7 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   std::string _path = Utility::constructRelativePath(path);
   int ret;
   int numOfBytes;
-  long timestamp;
+  int logical_clock;
   std::ifstream is;
 
   Cache c(_path);
@@ -355,12 +355,13 @@ int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
   if (length > 0) {
     std::string buf(length, '\0');
     is.read(&buf[0], length);
-    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
+    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, logical_clock); // update local clock in cache
   }
   is.close();
 
   // reset DirtyBit
   c.resetDirtyBit();
+  c.syncClock(logical_clock);
   return 0;
 
 Original:
@@ -377,7 +378,7 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   std::string _path = Utility::constructRelativePath(path);
   int ret;
   int numOfBytes;
-  long timestamp;
+  int logical_clock;
   std::ifstream is;
 
   Cache c(_path);
@@ -400,12 +401,13 @@ int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
   if (length > 0) {
     std::string buf(length, '\0');
     is.read(&buf[0], length);
-    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, timestamp);
+    ret = grpcClient->putFileContents(_path, buf, length, 0, numOfBytes, logical_clock);
   }
   is.close();
 
   // reset DirtyBit
   c.resetDirtyBit();
+  c.syncClock(logical_clock);
   return 0;
 
 Original:

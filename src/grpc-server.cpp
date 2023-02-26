@@ -15,6 +15,10 @@ using grpc::Status;  // https://grpc.github.io/grpc/core/md_doc_statuscodes.html
 
 static std::string serverDirectory;
 
+// local cache clock
+static std::unordered_map<std::string, int> serverclock ;
+
+
 /** mimics `stat`/`lstat` functionality */
 Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* request, Attributes* response) {
   std::cout << yellow << "GRPC_Server::getFileAttributes" << reset << std::endl;
@@ -41,6 +45,10 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
     response->set_errornum(errno);
     return Status::OK;
   }
+  auto it = serverclock.find(path);
+  if (it == serverclock.end()) {
+      serverclock.insert(std::make_pair(path, 0));
+  }
 
   response->set_status(0);
   // map satus info to equivalent grpc message structure
@@ -57,6 +65,7 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
   response->set_grpc_st_atime(attributes.st_atime);
   response->set_grpc_st_mtime(attributes.st_mtime);
   response->set_grpc_st_ctime(attributes.st_ctime);
+  response->set_logical_clock(serverclock[path]);
 
   return Status::OK;
 }
@@ -266,6 +275,7 @@ Status GRPC_Server::removeFile(ServerContext* context, const Path* request, Resp
     response->set_status(1);
     response->set_erronum(errorCode.value());
   }
+  serverclock.erase(path);
 
   return Status::OK;
 }
@@ -348,10 +358,10 @@ Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRe
       reply->set_numbytes(INT_MIN);
     }
   }
-
+  serverclock[path] = serverclock[path] + 1;
   struct stat stbuf;
   int rc = stat(path.c_str(), &stbuf);
-  reply->set_timestamp(stbuf.st_mtim.tv_sec);
+  reply->set_logical_clock(serverclock[path]);
   reply->set_numbytes(numOfBytes);
   reply->set_err(0);
 

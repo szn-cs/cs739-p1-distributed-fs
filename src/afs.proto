@@ -104,7 +104,7 @@ message WriteRequest {
 message WriteReply {
     int32 numBytes = 1;
     int32 err = 2;
-    int64 timestamp = 3;
+    int32 logical_clock = 3;
 }
 
 
@@ -140,7 +140,8 @@ message Attributes {
     int64 grpc_st_blocks = 12; 
     int64 grpc_st_atime = 13;  
     int64 grpc_st_mtime = 14;  
-    int64 grpc_st_ctime = 15;  
+    int64 grpc_st_ctime = 15;
+    int32 logical_clock = 16;
 }
 
 
