@@ -1,0 +1,14 @@
+/root/filebench_workloads/filemicro_seqwrite.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.001: FileMicro-SeqWrite Version 2.2 personality successfully loaded
+0.001: Populating and pre-allocating filesets
+0.002: Removing bigfile tree (if exists)
+0.004: Pre-allocating directories in bigfile tree
+0.004: Pre-allocating files in bigfile tree
+0.004: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+0.004: Population and pre-allocation of filesets completed
+0.005: Starting 1 filewriter instances
+1.008: Running...
+8.009: Run took 7 seconds...
+8.009: Shutting down processes

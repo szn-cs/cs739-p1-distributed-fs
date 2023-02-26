@@ -1,0 +1,20 @@
+/root/filebench_workloads/filemicro_delete.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.012: FileMicro-Delete Version 2.4 personality successfully loaded
+0.012: Populating and pre-allocating filesets
+0.043: bigfileset populated: 50000 files, avg. dir. width = 100, avg. dir. depth = 2.3, 0 leafdirs, 781.250MB total size
+0.043: Removing bigfileset tree (if exists)
+0.046: Pre-allocating directories in bigfileset tree
+0.057: Pre-allocating files in bigfileset tree
+1.537: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+1.537: Population and pre-allocation of filesets completed
+1.537: Starting 1 filedelete instances
+2.542: Running...
+3.542: Run took 1 seconds...
+3.543: Per-Operation Breakdown
+finish               5001ops     5000ops/s   0.0mb/s    0.000ms/op [0.000ms - 0.007ms]
+limit                0ops        0ops/s   0.0mb/s    0.000ms/op [0.000ms - 0.000ms]
+deletefile1          5016ops     5015ops/s   0.0mb/s    0.114ms/op [0.018ms - 0.804ms]
+3.543: IO Summary:  5016 ops 5014.927 ops/s 0/0 rd/wr   0.0mb/s 0.114ms/op
+3.543: Shutting down processes

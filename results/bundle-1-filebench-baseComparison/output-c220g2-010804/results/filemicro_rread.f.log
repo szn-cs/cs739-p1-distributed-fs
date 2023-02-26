@@ -1,0 +1,14 @@
+/root/filebench_workloads/filemicro_rread.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.001: FileMicro-ReadRand Version 2.2 personality successfully loaded
+0.001: Populating and pre-allocating filesets
+0.002: Removing bigfile1 tree (if exists)
+0.004: Pre-allocating directories in bigfile1 tree
+0.004: Pre-allocating files in bigfile1 tree
+2.378: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+2.378: Population and pre-allocation of filesets completed
+2.378: Starting 1 filereader instances
+3.382: Running...
+4.382: Run took 1 seconds...
+4.382: Shutting down processes

@@ -1,0 +1,17 @@
+/root/filebench_workloads/filemicro_seqread.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.005: FileMicro-SeqRead Version 2.1 personality successfully loaded
+0.005: Populating and pre-allocating filesets
+0.005: Removing largefile tree (if exists)
+0.008: Pre-allocating directories in largefile tree
+0.008: Pre-allocating files in largefile tree
+0.647: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+0.647: Population and pre-allocation of filesets completed
+0.647: Starting 1 filereader instances
+1.651: Running...
+11.653: Run took 10 seconds...
+11.653: Per-Operation Breakdown
+seqread-file         51018ops     5101ops/s 5096.0mb/s    0.194ms/op [0.001ms - 0.505ms]
+11.653: IO Summary: 51018 ops 5101.034 ops/s 5101/0 rd/wr 5096.0mb/s 0.194ms/op
+11.653: Shutting down processes
