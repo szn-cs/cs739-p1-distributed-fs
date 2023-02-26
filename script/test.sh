@@ -38,6 +38,28 @@ filebench_test() {
   popd
 }
 
+# run with $` (source ./script/test.sh && filebench_retrieveResults) `
+filebench_retrieveResults() {
+  N=bundle-1
+  U=sq089ahy
+
+  # Declare an array of string with type
+  declare -a REMOTES=(
+    "c220g2-010810"
+    "c220g2-010813"
+    "c220g2-010822"
+    "c220g2-010820"
+    "c220g2-010804"
+    "c220g2-010825"
+  )
+
+  # Iterate the string array using for loop
+  for i in ${REMOTES[@]}; do
+    mkdir -p ./results/$N/output-$i
+    scp -rC $U@$i.wisc.cloudlab.us:$PROJECT/results ./results/$N/output-$i
+  done
+}
+
 other() {
   ls -la $MOUNTPOINT
   pushd $MOUNTPOINT
