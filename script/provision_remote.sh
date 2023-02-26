@@ -35,6 +35,8 @@ filebench() {
   ##### INSTALL filebench command
 
   pushd .
+
+  # NOTE: tagged release version causes error
   # REPO=https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz
   # mkdir repo_filebench && curl -L $REPO | tar xzC repo_filebench && cd repo_filebench && cd *
 
