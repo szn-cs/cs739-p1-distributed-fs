@@ -22,7 +22,7 @@ using grpc::ClientWriter;
 using grpc::Status;
 
 using namespace afs;
-using afs::AFS;
+using afs::WiscAFS;
 
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply, afs::HelloRequest;
@@ -48,5 +48,5 @@ class GRPC_Client {
   std::string SayHello(const std::string& user);
 
  private:
-  std::unique_ptr<AFS::Stub> stub_;
+  std::unique_ptr<WiscAFS::Stub> stub_;
 };

@@ -5,7 +5,7 @@ using namespace std;
 using namespace afs;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
-using afs::AFS;
+using afs::WiscAFS;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;

@@ -32,7 +32,7 @@ using namespace afs;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
 // Logic and data behind the server's behavior.
-class GRPC_Server final : public AFS::Service {
+class GRPC_Server final : public WiscAFS::Service {
   // pthread_mutex_t lock;
  public:
   //  explicit GRPC_Server() {

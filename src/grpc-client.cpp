@@ -3,7 +3,7 @@
 using namespace std;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
-GRPC_Client::GRPC_Client(std::shared_ptr<Channel> channel) : stub_(AFS::NewStub(channel)) {}
+GRPC_Client::GRPC_Client(std::shared_ptr<Channel> channel) : stub_(WiscAFS::NewStub(channel)) {}
 
 int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, int& errornum, int& logical_clock) {
   std::cout << yellow << "GRPC_Client::getFileAttributes" << reset << std::endl;
