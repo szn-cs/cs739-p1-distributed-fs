@@ -9,6 +9,13 @@ server() {
   ./grpc-server $SERVER
 }
 
+server_background() {
+  source ./script/setenv.sh
+
+  # ./grpc-server $SERVER &
+  ./grpc-server $SERVER >/dev/null 2>&1 &
+}
+
 fs_mount() {
   # run everything under root
   source ./script/setenv.sh
@@ -18,8 +25,8 @@ fs_mount() {
   mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
 
   ## unreliable Binary options <https://ligurio.github.io/unreliablefs/unreliablefs.1.html>
-  # SERVER_ADDRESS=0.0.0.0:50051
-  SERVER_ADDRESS=c220g2-010810.wisc.cloudlab.us:50051
+  SERVER_ADDRESS=0.0.0.0:50051
+  # SERVER_ADDRESS=c220g2-010810.wisc.cloudlab.us:50051
   ./unreliablefs $MOUNTPOINT -basedir=$ROOT -seed=1618680646 -d -serverAddress=$SERVER_ADDRESS
 
   ######## [terminal instance 2] ##########################################################
@@ -40,7 +47,8 @@ fs_mount_nodebug() {
   source ./script/setenv.sh
   mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
   SERVER_ADDRESS=0.0.0.0:50051
-  ./unreliablefs $MOUNTPOINT -basedir=$ROOT -serverAddress=$SERVER_ADDRESS
+  # ./unreliablefs $MOUNTPOINT -basedir=$ROOT -serverAddress=$SERVER_ADDRESS -f &
+  ./unreliablefs $MOUNTPOINT -basedir=$ROOT -serverAddress=$SERVER_ADDRESS -f >/dev/null 2>&1 &
 }
 
 fs_config() {
@@ -57,7 +65,6 @@ fs_unmount() {
   ## make sure it is unmounted
   fusermount -uz $MOUNTPOINT && fusermount -uz $ROOT
   umount $MOUNTPOINT
-
 }
 
 example_run() {

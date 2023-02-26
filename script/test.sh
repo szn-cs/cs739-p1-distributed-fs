@@ -24,10 +24,10 @@ filebench_test() {
     rm -rf $ROOT/* $SERVER/* $CACHE/* $MOUNTPOINT/*
 
     # redirect to files
-    filebench -f $f >>$f.log
+    # filebench -f $f >>$f.log
 
     # redirect to file and print to stdout while testing
-    # filebench -f $f 2>&1 | tee -a $f.log
+    filebench -f $f 2>&1 | tee -a $f.log
 
     # filebench -f $BENCH/filemicro_create.f
   done
@@ -45,13 +45,17 @@ filebench_retrieveResults() {
 
   # Declare an array of string with type
   declare -a REMOTES=(
-    "c220g2-010810"
-    # "c220g2-010813"
-    # "c220g2-010822"
+    # running togeter
+    "c220g2-010625" # client
+    "c220g2-010624" # server
 
-    "c220g2-010820"
-    # "c220g2-010804"
-    # "c220g2-010825"
+    "c220g2-011121" # runs locally in background without console output
+
+    "c220g2-010623" # running local filebench with console ouput
+
+    # running togher
+    "c220g1-031120" # client
+    "c220g2-011126" # server
   )
 
   # Iterate the string array using for loop

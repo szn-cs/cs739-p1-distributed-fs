@@ -2,8 +2,8 @@
 
 remote_setup() {
   REMOTE=sq089ahy@c220g5-111332.wisc.cloudlab.us
-  ssh $REMOTE
 
+  ssh $REMOTE
   {
     sudo su -
     if ! uname -a | grep -q "microsoft"; then
@@ -11,8 +11,6 @@ remote_setup() {
     else
       echo "NOT REMOTE !"
     fi
-    exit # exit root
-    exit # exit ssh
   }
 
   # copy over workload files over and run tests
@@ -70,12 +68,12 @@ multiple_remote_upload() {
 
   # Declare an array of string with type
   declare -a REMOTES=(
-    "c220g2-010810"
-    "c220g2-010813"
-    "c220g2-010822"
-    "c220g2-010820"
-    "c220g2-010804"
-    "c220g2-010825"
+    "c220g2-010625"
+    "c220g2-010624"
+    # "c220g2-011121"
+    # "c220g2-010623"
+    # "c220g1-031120"
+    # "c220g2-011126"
   )
 
   # Iterate the string array using for loop
