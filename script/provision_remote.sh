@@ -6,7 +6,11 @@ remote_setup() {
 
   {
     sudo su -
-    chmod -R 777 .
+    if ! uname -a | grep -q "microsoft"; then
+      chmod -R 777 .
+    else
+      echo "NOT REMOTE !"
+    fi
     exit # exit root
     exit # exit ssh
   }
