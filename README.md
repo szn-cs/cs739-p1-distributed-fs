@@ -23,7 +23,7 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 
 NOTE: run funcitons in script files using: `. ./script/<scriptname>.sh && <functioname>`
 
-
+- Compiler optimizations <https://waterprogramming.wordpress.com/2017/10/29/simple-tricks-to-make-your-cc-code-ran-faster/>
 
 # FUSE resources:
 
