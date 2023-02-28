@@ -59,9 +59,9 @@ extern "C" {
 */
 
 int cppWrapper_getattr(const char* path, struct stat* buf) {
-  std::cout << blue << "cppWrapper_getattr" << reset << std::endl;
+  //std::cout << blue << "cppWrapper_getattr" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
-  std::cout << cyan << "path: " << path << reset << endl;
+  //std::cout << cyan << "path: " << path << reset << endl;
   int errornum, r, logical_clock;
 
   std::memset(buf, 0, sizeof(struct stat));
@@ -72,7 +72,7 @@ int cppWrapper_getattr(const char* path, struct stat* buf) {
 }
 
 int cppWrapper_open(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_open" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_open" << reset << std::endl;
   int ret, _r, errornum, logical_clock = 0;
   std::string _path = Utility::constructRelativePath(path);
   struct stat serverAttr;
@@ -111,7 +111,7 @@ OpenCachedFile:  // open local cache file
 }
 
 int cppWrapper_mkdir(const char* path, mode_t mode) {
-  std::cout << blue << "\ncppWrapper_mkdir" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_mkdir" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
   int errornum;
 
@@ -131,7 +131,7 @@ int cppWrapper_mkdir(const char* path, mode_t mode) {
       cppWrapper_release
 */
 int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_read" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_read" << reset << std::endl;
   int ret, fd;
   int free_mark = 0;
 
@@ -168,7 +168,7 @@ int cppWrapper_read(const char* path, char* buf, size_t size, off_t offset, stru
 }
 
 int cppWrapper_rmdir(const char* path) {
-  std::cout << blue << "\ncppWrapper_rmdir" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_rmdir" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
 
   int ret = grpcClient->removeDirectory(_path);
@@ -180,7 +180,7 @@ int cppWrapper_rmdir(const char* path) {
 }
 
 int cppWrapper_unlink(const char* path) {
-  std::cout << blue << "\ncppWrapper_unlink" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_unlink" << reset << std::endl;
   int ret;
   std::string _path = Utility::constructRelativePath(path);
 
@@ -202,7 +202,7 @@ int cppWrapper_unlink(const char* path) {
 
 // TODO:
 int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
-  std::cout << blue << "\ncppWrapper_mknod" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_mknod" << reset << std::endl;
   path = Utility::constructRelativePath(path).c_str();
 
   int ret = mknod(path, mode, dev);
@@ -214,7 +214,7 @@ int cppWrapper_mknod(const char* path, mode_t mode, dev_t dev) {
 }
 
 int cppWrapper_rename(const char* oldpath, const char* newpath) {
-  std::cout << blue << "\ncppWrapper_rename" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_rename" << reset << std::endl;
 
   std::string _oldpath = Utility::constructRelativePath(oldpath);
   std::string _newpath = Utility::constructRelativePath(newpath);
@@ -229,7 +229,7 @@ int cppWrapper_rename(const char* oldpath, const char* newpath) {
 }
 
 int cppWrapper_truncate(const char* path, off_t length) {
-  std::cout << blue << "\ncppWrapper_truncate" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_truncate" << reset << std::endl;
 
   std::string _path = Utility::constructRelativePath(path);
   Cache c(_path);
@@ -244,7 +244,7 @@ int cppWrapper_truncate(const char* path, off_t length) {
 
 // trigger server create file -> download data
 int cppWrapper_create(const char* path, mode_t mode, struct fuse_file_info* fi) {
-  std::cout << termcolor::blue << "\ncppWrapper_create" << termcolor::reset << std::endl;
+  //std::cout << termcolor::blue << "\ncppWrapper_create" << termcolor::reset << std::endl;
   int ret, errornum, logical_clock = 0;
   int consistence = -1;
   long timestamp;
@@ -267,7 +267,7 @@ FetchToCache : {
   int numBytes;
   std::string buf;
   ret = grpcClient->createEmptyFile(_path, O_RDWR | O_CREAT, timestamp);
-  std::cout << "ret " << ret << std::endl;
+  //std::cout << "ret " << ret << std::endl;
   if (ret != 0) return ret;
   ret = grpcClient->getFileContents(_path, numBytes, buf, timestamp);
   if (ret != 0) return ret;
@@ -299,14 +299,14 @@ Original : {
 }
 
 int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_write" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_write" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
 
   int ret, fd;
   int free_mark = 0;
   Cache c(_path);
   if (fi == NULL) {
-    // std::cout << "fi == NULL" << std::endl;
+    // //std::cout << "fi == NULL" << std::endl;
     fi = new fuse_file_info();
     fi->flags = O_WRONLY;
     ret = cppWrapper_open(path, fi);
@@ -333,7 +333,7 @@ int cppWrapper_write(const char* path, const char* buf, size_t size, off_t offse
 }
 
 int cppWrapper_flush(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_flush" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_flush" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
   int ret;
   int numOfBytes;
@@ -378,7 +378,7 @@ Original:
 }
 
 int cppWrapper_release(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_release" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_release" << reset << std::endl;
 
   std::string _path = Utility::constructRelativePath(path);
   int ret;
@@ -424,7 +424,7 @@ Original:
 }
 
 int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_fsync" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_fsync" << reset << std::endl;
   int ret;
 
   if (datasync) {
@@ -444,19 +444,19 @@ int cppWrapper_fsync(const char* path, int datasync, struct fuse_file_info* fi) 
 
 // ✅
 int cppWrapper_opendir(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_opendir" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_opendir" << reset << std::endl;
   return 0;  // by-pass
 }
 
 // ✅
 int cppWrapper_releasedir(const char* path, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_releasedir" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_releasedir" << reset << std::endl;
   return 0;  // by-pass
 }
 
 // ✅
 int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_readdir" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_readdir" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
   struct dirent de;
   int errornum = 0;
@@ -472,7 +472,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
     memcpy(&de, &result[0], result.size());
     st.st_ino = de.d_ino;
     st.st_mode = de.d_type << 12;
-    std::cout << "de.d_name: " << de.d_name << std::endl;
+    //std::cout << "de.d_name: " << de.d_name << std::endl;
     if (filler(buf, de.d_name, &st, 0)) break;
   }
 
@@ -480,7 +480,7 @@ int cppWrapper_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_
 }
 
 int cppWrapper_fsyncdir(const char* path, int datasync, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_fsyncdir" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_fsyncdir" << reset << std::endl;
 Original:
   int ret;
   DIR* dir = opendir(path);
@@ -502,12 +502,12 @@ Original:
 }
 
 int cppWrapper_access(const char* path, int mode) {
-  std::cout << blue << "\ncppWrapper_access" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_access" << reset << std::endl;
   return 0;  // by-pass access control
 }
 
 int cppWrapper_ftruncate(const char* path, off_t length, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_ftruncate" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_ftruncate" << reset << std::endl;
 Original:
   int ret = truncate(path, length);
   if (ret == -1) {
@@ -518,7 +518,7 @@ Original:
 }
 
 int cppWrapper_fgetattr(const char* path, struct stat* buf, struct fuse_file_info* fi) {
-  std::cout << blue << "\ncppWrapper_fgetattr" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_fgetattr" << reset << std::endl;
 Original:
   int ret = fstat((int)fi->fh, buf);
   if (ret == -1) {
@@ -529,7 +529,7 @@ Original:
 }
 
 int cppWrapper_lock(const char* path, struct fuse_file_info* fi, int cmd, struct flock* fl) {
-  std::cout << blue << "\ncppWrapper_lock" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_lock" << reset << std::endl;
 Original:
   int ret = fcntl((int)fi->fh, cmd, fl);
   if (ret == -1) {
@@ -541,7 +541,7 @@ Original:
 
 #ifdef HAVE_XATTR
 int cppWrapper_setxattr(const char* path, const char* name, const char* value, size_t size, int flags) {
-  std::cout << blue << "\ncppWrapper_setxattr" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_setxattr" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
   Cache c(_path);
 
@@ -559,7 +559,7 @@ int cppWrapper_setxattr(const char* path, const char* name, const char* value, s
 }
 
 int cppWrapper_getxattr(const char* path, const char* name, char* value, size_t size) {
-  std::cout << blue << "\ncppWrapper_getxattr" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_getxattr" << reset << std::endl;
   std::string _path = Utility::constructRelativePath(path);
   Cache c(_path);
 
@@ -574,7 +574,7 @@ Original:
 }
 
 int cppWrapper_listxattr(const char* path, char* list, size_t size) {
-  std::cout << blue << "\ncppWrapper_listxattr" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_listxattr" << reset << std::endl;
 Original:
   int ret;
 #ifdef __APPLE__
@@ -590,7 +590,7 @@ Original:
 }
 
 int cppWrapper_removexattr(const char* path, const char* name) {
-  std::cout << blue << "\ncppWrapper_removexattr" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_removexattr" << reset << std::endl;
 Original:
   int ret;
 #ifdef __APPLE__
@@ -608,7 +608,7 @@ Original:
 
 #ifdef HAVE_FLOCK
 int cppWrapper_flock(const char* path, struct fuse_file_info* fi, int op) {
-  std::cout << blue << "\ncppWrapper_flock" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_flock" << reset << std::endl;
 Original:
   int ret = flock(((int)fi->fh), op);
   if (ret == -1) {
@@ -621,7 +621,7 @@ Original:
 
 #ifdef HAVE_UTIMENSAT
 int cppWrapper_utimens(const char* path, const struct timespec ts[2]) {
-  std::cout << blue << "\ncppWrapper_utimens" << reset << std::endl;
+  //std::cout << blue << "\ncppWrapper_utimens" << reset << std::endl;
 Original:
   /* don't use utime/utimes since they follow symlinks */
   int ret = utimensat(0, path, ts, AT_SYMLINK_NOFOLLOW);

@@ -6,7 +6,7 @@ using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, term
 GRPC_Client::GRPC_Client(std::shared_ptr<Channel> channel) : stub_(WiscAFS::NewStub(channel)) {}
 
 int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, int& errornum, int& logical_clock) {
-  std::cout << yellow << "GRPC_Client::getFileAttributes" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Client::getFileAttributes" << reset << std::endl;
 
   Attributes reply;
   ClientContext context;
@@ -15,7 +15,7 @@ int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, in
   Status status = stub_->getFileAttributes(&context, request, &reply);
 
   if (!status.ok()) {
-    std::cout << red << "GRPC error @getFileAttributes: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
+    //std::cout << red << "GRPC error @getFileAttributes: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
     return -1;
   }
 
@@ -44,7 +44,7 @@ int GRPC_Client::getFileAttributes(const std::string& path, struct stat* buf, in
 }
 
 int GRPC_Client::getFileContents(const std::string& path, /*const int& size,const int& offset,*/ int& numBytes, std::string& buf, long& timestamp) {
-  std::cout << yellow << "GRPC_Client::getFileContents" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Client::getFileContents" << reset << std::endl;
   ReadRequest request;
   ReadReply reply;
   ClientContext context;
@@ -61,10 +61,10 @@ int GRPC_Client::getFileContents(const std::string& path, /*const int& size,cons
 
   while (reader->Read(&reply)) {
     // if (reply.buf().find("crash3") != std::string::npos) {
-    //   std::cout << "Killing client process in read()\n";
+    //   //std::cout << "Killing client process in read()\n";
     //   kill(getpid(), SIGABRT);
     // }
-    // std::cout << reply.buf() << std::endl;
+    // //std::cout << reply.buf() << std::endl;
     buf.append(reply.buf());
     if (reply.numbytes() < 0)
       break;
@@ -72,7 +72,7 @@ int GRPC_Client::getFileContents(const std::string& path, /*const int& size,cons
 
   Status status = reader->Finish();
   if (!status.ok()) {
-    std::cout << red << "GRPC error @getFileContents: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
+    //std::cout << red << "GRPC error @getFileContents: " << status.error_code() << ": " << status.error_message() << reset << std::endl;
     return -1;
   }
 
@@ -81,13 +81,13 @@ int GRPC_Client::getFileContents(const std::string& path, /*const int& size,cons
 
   numBytes = reply.numbytes();
   timestamp = reply.timestamp();
-  std::cout << "grpc getFileContents client complete " << numBytes << " " << timestamp << std::endl;
+  //std::cout << "grpc getFileContents client complete " << numBytes << " " << timestamp << std::endl;
 
   return 0;
 }
 
 int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vector<std::string>& results) {
-  std::cout << yellow << "GRPC_Client::readDirectory" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Client::readDirectory" << reset << std::endl;
   // return cppWrapper_readdir(path, buf, filler, offset, fi);
   // const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi
   Path request;
@@ -116,7 +116,7 @@ int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vect
     return 0;
   } else {
     errornum = -1;
-    std::cout << status.error_code() << ": " << status.error_message()
+    //std::cout << status.error_code() << ": " << status.error_message()
               << std::endl;
     return -1;
   }
@@ -124,11 +124,11 @@ int GRPC_Client::readDirectory(const std::string& path, int& errornum, std::vect
 }
 
 int GRPC_Client::createDirectory(const std::string& path, mode_t mode, int& errornum) {
-  std::cout << yellow << "GRPC_Client::createDirectory" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Client::createDirectory" << reset << std::endl;
   MkDirRequest request;
   Response reply;
   ClientContext context;
-  std::cout << path << std::endl;
+  //std::cout << path << std::endl;
   request.set_path(path);
   request.set_modet(mode);
 
@@ -136,7 +136,7 @@ int GRPC_Client::createDirectory(const std::string& path, mode_t mode, int& erro
 
   if (!status.ok()) {
     errornum = -1;
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    //std::cout << status.error_code() << ": " << status.error_message() << std::endl;
     return -1;
   }
 
@@ -147,7 +147,7 @@ int GRPC_Client::createDirectory(const std::string& path, mode_t mode, int& erro
 }
 
 int GRPC_Client::removeDirectory(const std::string& path) {
-  std::cout << yellow << "GRPC_Client::removeDirectory" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Client::removeDirectory" << reset << std::endl;
   Path request;
   Response reply;
   ClientContext context;
@@ -156,7 +156,7 @@ int GRPC_Client::removeDirectory(const std::string& path) {
 
   Status status = stub_->removeDirectory(&context, request, &reply);
   if (!status.ok()) {
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    //std::cout << status.error_code() << ": " << status.error_message() << std::endl;
     return -1;
   }
 
@@ -167,7 +167,7 @@ int GRPC_Client::removeDirectory(const std::string& path) {
 }
 
 int GRPC_Client::removeFile(const std::string& path) {
-  std::cout << yellow << "GRPC_Client::removeFile" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Client::removeFile" << reset << std::endl;
   Path request;
   Response reply;
   ClientContext context;
@@ -178,7 +178,7 @@ int GRPC_Client::removeFile(const std::string& path) {
   Status status = stub_->removeFile(&context, request, &reply);
 
   if (!status.ok()) {
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    //std::cout << status.error_code() << ": " << status.error_message() << std::endl;
     return -1;
   }
 
@@ -193,7 +193,7 @@ int GRPC_Client::removeFile(const std::string& path) {
 //    if (ret != 0) return ret;
 // TODO: ? touch functionality: only create file without contents
 int GRPC_Client::createEmptyFile(const std::string& path, const int& mode, long& timestamp) {
-  std::cout << yellow << "GRPC_Client::createEmptyFile" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Client::createEmptyFile" << reset << std::endl;
   OpenRequest request;
   request.set_path(path);
   request.set_mode(mode);
@@ -202,7 +202,7 @@ int GRPC_Client::createEmptyFile(const std::string& path, const int& mode, long&
   Status status = stub_->createEmptyFile(&context, request, &reply);
   if (status.ok()) {
     timestamp = reply.timestamp();
-    std::cout << yellow << "reply err" << reply.err() << reset << std::endl;
+    //std::cout << yellow << "reply err" << reply.err() << reset << std::endl;
     return reply.err();
   }
   // grpc fail
@@ -211,8 +211,8 @@ int GRPC_Client::createEmptyFile(const std::string& path, const int& mode, long&
 }
 
 int GRPC_Client::putFileContents(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, int& logical_clock) {
-  std::cout << yellow << "GRPC_Client::putFileContents" << reset << std::endl;
-  std::cout << "GRPC client write\n";
+  //std::cout << yellow << "GRPC_Client::putFileContents" << reset << std::endl;
+  //std::cout << "GRPC client write\n";
   WriteRequest request;
   WriteReply reply;
   ClientContext context;
@@ -237,7 +237,7 @@ int GRPC_Client::putFileContents(const std::string& path, const std::string& buf
   writer->WritesDone();
   Status status = writer->Finish();
 
-  // std::cout << "There was an error in the server Write " << status.error_code() << std::endl;
+  // //std::cout << "There was an error in the server Write " << status.error_code() << std::endl;
   if (status.ok()) {
     numBytes = reply.numbytes();
     logical_clock = reply.logical_clock();
@@ -268,8 +268,7 @@ std::string GRPC_Client::SayHello(const std::string& user) {
   if (status.ok()) {
     return reply.message();
   } else {
-    std::cout << status.error_code() << ": " << status.error_message()
-              << std::endl;
+    //std::cout << status.error_code() << ": " << status.error_message() << std::endl;
     return "RPC failed";
   }
 }

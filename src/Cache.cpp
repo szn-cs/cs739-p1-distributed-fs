@@ -97,58 +97,58 @@ class Cache {
   int commitFileCache(std::string& buf) {
     // TODO: log transaction before changing actual file content.
 
-    std::cout << "commitFileCache" << std::endl;
+    //std::cout << "commitFileCache" << std::endl;
     FILE* fp;
     if ((fp = fopen(this->fileCachePath.c_str(), "w+")) == NULL) {
-      std::cout << red << "open file failed" << reset << std::endl;
+      //std::cout << red << "open file failed" << reset << std::endl;
       exit(1);
     }
 
     if (buf.size() != 0) {
       if (fputs(buf.c_str(), fp) == EOF) {
-        std::cout << red << "EOF" << reset << std::endl;
+        //std::cout << red << "EOF" << reset << std::endl;
       }
       fclose(fp);
     } else {
-      std::cout << "buf size = 0" << std::endl;
+      //std::cout << "buf size = 0" << std::endl;
       fclose(fp);
     }
 
     /*
     std::string tmp_fileCachePath = this->fileCachePath + ".TMP";
-    std::cout << "tmp_fileCachePath "<<tmp_fileCachePath << std::endl;
+    //std::cout << "tmp_fileCachePath "<<tmp_fileCachePath << std::endl;
     FILE *fp;
     if ((fp = fopen(tmp_fileCachePath.c_str(), "w+")) != NULL) {
       if (buf.size() != 0){
         if (fputs(buf.c_str(), fp) == EOF) {
-          std::cout << red << "EOF" << reset << std::endl;
+          //std::cout << red << "EOF" << reset << std::endl;
         }
         fclose(fp);
       } else {
-        std::cout << "buf size = 0" << std::endl;
+        //std::cout << "buf size = 0" << std::endl;
         fclose(fp);
       }
     } else {
-      std::cout << red  << "open tmp file failed" << reset  << std::endl;
+      //std::cout << red  << "open tmp file failed" << reset  << std::endl;
     }
     
 
     FILE * fp1 = fopen(this->fileCachePath.c_str(), "r");
     if ( fp1 != NULL ) {
-      std::cout  << "unlink this->fileCachePath.c_str()"  << std::endl;
+      //std::cout  << "unlink this->fileCachePath.c_str()"  << std::endl;
       fclose(fp1);
       unlink(this->fileCachePath.c_str());
     }
 
     fp1 = fopen(tmp_fileCachePath.c_str(), "r");
     if ( fp1 == NULL ) {
-      std::cout << red  << "tmp file not exist" << reset  << std::endl;
+      //std::cout << red  << "tmp file not exist" << reset  << std::endl;
     } else {
       fclose(fp1);
     }
     
     if (rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str()) != 0) {
-      std::cout << red << "rename fail" << reset << std::endl;
+      //std::cout << red << "rename fail" << reset << std::endl;
     }
     */
     /*
@@ -164,7 +164,7 @@ class Cache {
 
     unlink(this->fileCachePath.c_str());
     if (rename(tmp_fileCachePath.c_str(), this->fileCachePath.c_str()) != 0) {
-      std::cout << red << "rename fail" << reset << std::endl;
+      //std::cout << red << "rename fail" << reset << std::endl;
     }
     */
 
@@ -177,13 +177,13 @@ class Cache {
   int commitStatusCache() {
     return 0;
 
-    cout << "begin commitStatusCache" << endl;
+    //cout << "begin commitStatusCache" << endl;
     std::string tmp_statusCachePath = statusCachePath + ".TMP";
 
     std::ofstream tmp_cache_file(tmp_statusCachePath.c_str(), std::ofstream::out);
     // if (!tmp_cache_file.is_open())
     //   throw "Error @commitStatusCache: openning statusCachePath: " + statusCachePath;
-    cout << "tmp_cache_file opened" << endl;
+    //cout << "tmp_cache_file opened" << endl;
     for (auto i = this->statusCache.begin(); i != this->statusCache.end(); i++) {
       std::string hash_;
       int dirtyBit_;
@@ -197,9 +197,9 @@ class Cache {
 
     // atomicity of rename - https://stackoverflow.com/questions/7054844/is-rename-atomic
     if (rename(tmp_statusCachePath.c_str(), statusCachePath.c_str()) != 0) {
-      std::cout << red << "rename fail" << reset << std::endl;
+      //std::cout << red << "rename fail" << reset << std::endl;
     }
-    cout << "end commitStatusCache" << endl;
+    //cout << "end commitStatusCache" << endl;
     return 0;
   }
 

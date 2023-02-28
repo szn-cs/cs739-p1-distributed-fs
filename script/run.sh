@@ -17,7 +17,7 @@ server_background() {
 }
 
 fs_mount() {
-  SERVER_ADDRESS=c220g2-011121.wisc.cloudlab.us:50051
+  SERVER_ADDRESS=c220g5-110912.wisc.cloudlab.us:50051
   # run everything under root
   source ./script/setenv.sh
 
@@ -64,7 +64,7 @@ fs_unmount() {
   ## fix some issues probably with WSL2 setup
   # sudo ln -s /proc/self/mounts /etc/mtab
   ## make sure it is unmounted
-  fusermount -uz $MOUNTPOINT && fusermount -uz $ROOT
+  fusermount -uz $MOUNTPOINT || fusermount -uz $ROOT
   umount $MOUNTPOINT
 }
 

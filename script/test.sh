@@ -23,7 +23,7 @@ filebench_test() {
     fi
 
     // TODO: For some reason subsequent tests are faced with stale data in the mounted point which causes failures.
-    rm -rf $ROOT/* $SERVER/* $CACHE/* $MOUNTPOINT/*
+    rm -rf $MOUNTPOINT/* $ROOT/* $SERVER/* $CACHE/*
 
     # redirect to files
     # filebench -f $f >>$f.log
