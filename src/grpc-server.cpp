@@ -96,7 +96,6 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
     }
     */
 
-    // is.seekg(offset, std::ios::beg);
     if (length == 0) {
       clock_gettime(CLOCK_REALTIME, &spec);
       reply->set_buf("");
@@ -183,7 +182,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
     bytesRead -= std::min(CHUNK_SIZE, bytesRead);
 
     writer->Write(*reply);
-  }
+      }
 
   if (fd > 0) {
     printf("Read Send: Calling close()\n");
@@ -209,13 +208,6 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
     data.resize(sizeof(struct dirent));
     memcpy(&data[0], de, sizeof(struct dirent));
     alldata.push_back(data);
-    /*
-    struct stat st;
-    memset(&st, 0, sizeof(st));
-    st.st_ino = de->d_ino;
-    st.st_mode = de->d_type << 12;
-    if (filler(buf, de->d_name, &st, 0)) break;
-    */
   }
 
   closedir(dp);
@@ -224,10 +216,6 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
     response->set_buf(entry);
     writer->Write(*response);
   }
-
-  // (void)offset;
-  // (void)fi;
-  // response->mutable_buf()->Add(alldata.begin(), alldata.end());
 
   return Status::OK;
 }
@@ -282,8 +270,6 @@ Status GRPC_Server::createEmptyFile(ServerContext* context, const OpenRequest* r
   int rc;
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
-  // rc = creat(path.c_str(), request->mode());
-  // rc is file handler if > 0
   rc = open(path.c_str(), request->mode(), S_IRWXG | S_IRWXO | S_IRWXU);
   if (rc < 0) {
     response->set_err(-errno);
