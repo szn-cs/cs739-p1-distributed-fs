@@ -17,7 +17,6 @@ filebench_test() {
     C='\033[1;36m'
     NC='\033[0m' # No Color
     echo -e "\n\n\n\n${C}Running filebench: ${f}${NC}"
-    echo $f >>$f.log
     if [[ (! $ROOT) && (! $SERVER) && (! $CACHE) && (! $MOUNTPOINT) ]]; then
       trap "exit" 1
     fi
@@ -25,13 +24,19 @@ filebench_test() {
     // TODO: For some reason subsequent tests are faced with stale data in the mounted point which causes failures.
     rm -rf $MOUNTPOINT/* $ROOT/* $SERVER/* $CACHE/*
 
-    # redirect to files
-    # filebench -f $f >>$f.log
+    read -p "Run this workload? (Y/y for yes)" -n 1 -r
+    echo # (optional) move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      echo $f >>$f.log
+      # redirect to files
+      # filebench -f $f >>$f.log
 
-    # redirect to file and print to stdout while testing
-    filebench -f $f 2>&1 | tee -a $f.log
+      # redirect to file and print to stdout while testing
+      filebench -f $f 2>&1 | tee -a $f.log
 
-    # filebench -f $BENCH/filemicro_create.f
+      # filebench -f $BENCH/filemicro_create.f
+    fi
+
   done
 
   mkdir -p results
