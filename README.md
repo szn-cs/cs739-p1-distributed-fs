@@ -6,11 +6,13 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
   - Update visibility; Cache staleness
   - Provide consistency between processes on different machines
   - AFS semantics: Last writer/closer winds approach for race conditions
-  - 
-
+  
 - [P1 Instructions](documentation/CS739.P1.md)
 - build (adding AFS protocol based on RPC) on top of an existing FUSE filesystem [unreliablefs](https://github.com/ligurio/unreliablefs)
 - CloudLabs Ubuntu 20.04
+
+![Design Overview](./documentation/design-overview.png)
+
 
 # Setup
 
@@ -21,7 +23,7 @@ AFS-like Distributed FS project based on <https://github.com/ligurio/unreliablef
 
 NOTE: run funcitons in script files using: `. ./script/<scriptname>.sh && <functioname>`
 
-
+- Compiler optimizations <https://waterprogramming.wordpress.com/2017/10/29/simple-tricks-to-make-your-cc-code-ran-faster/>
 
 # FUSE resources:
 

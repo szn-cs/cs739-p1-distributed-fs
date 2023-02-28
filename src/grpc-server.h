@@ -32,18 +32,18 @@ using namespace afs;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
 // Logic and data behind the server's behavior.
-class GRPC_Server final : public AFS::Service {
+class GRPC_Server final : public WiscAFS::Service {
   // pthread_mutex_t lock;
  public:
-//  explicit GRPC_Server() {
-//         pthread_mutex_init(&lock, NULL);
-//     }
+  //  explicit GRPC_Server() {
+  //         pthread_mutex_init(&lock, NULL);
+  //     }
   Status readDirectory(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) override;
   Status createDirectory(ServerContext* context, const MkDirRequest* request, Response* response) override;
   Status removeDirectory(ServerContext* context, const Path* request, Response* response) override;
   Status removeFile(ServerContext* context, const Path* request, Response* response) override;
   Status getFileAttributes(ServerContext* context, const Path* request, /*char* string*/ Attributes* response) override;
-  Status Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) override;
+  Status createEmptyFile(ServerContext* context, const OpenRequest* request, OpenResponse* response) override;
   Status getFileContents(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) override;
   Status putFileContents(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) override;
   Status SayHello(ServerContext* context, const HelloRequest* request, HelloReply* reply) override;

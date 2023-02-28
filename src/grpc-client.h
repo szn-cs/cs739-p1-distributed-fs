@@ -22,7 +22,7 @@ using grpc::ClientWriter;
 using grpc::Status;
 
 using namespace afs;
-using afs::AFS;
+using afs::WiscAFS;
 
 // EXAMPLE API keep it to amke sure thigns are working
 using afs::HelloReply, afs::HelloRequest;
@@ -40,7 +40,7 @@ class GRPC_Client {
   int removeFile(const std::string& path);
   int getFileAttributes(const std::string& path, struct stat* buf, int& errornum, int& logical_clock);
   // TODO: replace with Fetch & Store
-  int OpenFile(const std::string& path, const int& mode, long& timestamp);
+  int createEmptyFile(const std::string& path, const int& mode, long& timestamp);
   int getFileContents(const std::string& path, /*const int& size, const int& offset,*/ int& numBytes, std::string& buf, long& timestamp);
   int putFileContents(const std::string& path, const std::string& buf, const int& size, const int& offset, int& numBytes, int& logical_clock);
 
@@ -48,5 +48,5 @@ class GRPC_Client {
   std::string SayHello(const std::string& user);
 
  private:
-  std::unique_ptr<AFS::Stub> stub_;
+  std::unique_ptr<WiscAFS::Stub> stub_;
 };

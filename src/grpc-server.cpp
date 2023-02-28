@@ -5,7 +5,7 @@ using namespace std;
 using namespace afs;
 using termcolor::reset, termcolor::yellow, termcolor::red, termcolor::blue, termcolor::cyan;
 
-using afs::AFS;
+using afs::WiscAFS;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -16,12 +16,11 @@ using grpc::Status;  // https://grpc.github.io/grpc/core/md_doc_statuscodes.html
 static std::string serverDirectory;
 
 // local cache clock
-static std::unordered_map<std::string, int> serverclock ;
-
+static std::unordered_map<std::string, int> serverclock;
 
 /** mimics `stat`/`lstat` functionality */
 Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* request, Attributes* response) {
-  std::cout << yellow << "GRPC_Server::getFileAttributes" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Server::getFileAttributes" << reset << std::endl;
 
   struct stat attributes;
   string path = Utility::concatenatePath(serverDirectory, request->path());
@@ -47,7 +46,7 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
   }
   auto it = serverclock.find(path);
   if (it == serverclock.end()) {
-      serverclock.insert(std::make_pair(path, 0));
+    serverclock.insert(std::make_pair(path, 0));
   }
 
   response->set_status(0);
@@ -71,7 +70,7 @@ Status GRPC_Server::getFileAttributes(ServerContext* context, const Path* reques
 }
 
 Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* request, ServerWriter<ReadReply>* writer) {
-  std::cout << yellow << "GRPC_Server::getFileContents" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Server::getFileContents" << reset << std::endl;
   int numOfBytes = 0;
   int res;
   struct timespec spec;
@@ -90,14 +89,13 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
     is.seekg(0, is.beg);
     /*
     if (offset + size > is.tellg()) {
-      std::cout << "The offset + size is greater then the file size.\n"
+      //std::cout << "The offset + size is greater then the file size.\n"
                 << "file size: " << is.tellg() << "\n"
                 << "offset: " << offset << "\n"
                 << "size: " << size << std::endl;
     }
     */
 
-    // is.seekg(offset, std::ios::beg);
     if (length == 0) {
       clock_gettime(CLOCK_REALTIME, &spec);
       reply->set_buf("");
@@ -105,14 +103,14 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
       reply->set_err(0);
       reply->set_timestamp(spec.tv_sec);
       writer->Write(*reply);
-      // std::cout << "File is empty." << std::endl;
+      // //std::cout << "File is empty." << std::endl;
       is.close();
       return Status::OK;
     }
 
     std::string buffer(length, '\0');
     is.read(&buffer[0], length);
-    // std::cout << "buffer" << buffer << std::endl;
+    // //std::cout << "buffer" << buffer << std::endl;
     // send data chunk to client
     int bytesRead = 0;
     int minSize = std::min(CHUNK_SIZE, length);
@@ -121,7 +119,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
       clock_gettime(CLOCK_REALTIME, &spec);
       std::string subBuffer = buffer.substr(bytesRead, minSize);
       // if (subBuffer.find("SERVER_READ_CRASH") != std::string::npos) {
-      //   std::cout << "Killing server process in read\n";
+      //   //std::cout << "Killing server process in read\n";
       //   kill(getpid(), SIGINT);
       // }
       reply->set_buf(subBuffer);
@@ -140,7 +138,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
     reply->set_err(-1);
     reply->set_timestamp(-1);
     writer->Write(*reply);
-    std::cout << "Caught a failure when read.\n Explanatory string: " << e.what() << "'\nError code: " << e.code() << std::endl;
+    //std::cout << "Caught a failure when read.\n Explanatory string: " << e.what() << "'\nError code: " << e.code() << std::endl;
     is.close();
   }
 
@@ -172,7 +170,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
   int curr = 0;
   while (bytesRead > 0) {
     if (buf.find("crash1") != std::string::npos) {
-      std::cout << "Killing server process in read\n";
+      //std::cout << "Killing server process in read\n";
       kill(getpid(), SIGINT);
     }
     clock_gettime(CLOCK_REALTIME, &spec);
@@ -184,7 +182,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
     bytesRead -= std::min(CHUNK_SIZE, bytesRead);
 
     writer->Write(*reply);
-  }
+      }
 
   if (fd > 0) {
     printf("Read Send: Calling close()\n");
@@ -194,7 +192,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
 }
 
 Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
-  std::cout << yellow << "GRPC_Server::readDirectory" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Server::readDirectory" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
   std::vector<std::string> alldata;
   struct dirent* de;
@@ -210,13 +208,6 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
     data.resize(sizeof(struct dirent));
     memcpy(&data[0], de, sizeof(struct dirent));
     alldata.push_back(data);
-    /*
-    struct stat st;
-    memset(&st, 0, sizeof(st));
-    st.st_ino = de->d_ino;
-    st.st_mode = de->d_type << 12;
-    if (filler(buf, de->d_name, &st, 0)) break;
-    */
   }
 
   closedir(dp);
@@ -226,15 +217,11 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
     writer->Write(*response);
   }
 
-  // (void)offset;
-  // (void)fi;
-  // response->mutable_buf()->Add(alldata.begin(), alldata.end());
-
   return Status::OK;
 }
 
 Status GRPC_Server::createDirectory(ServerContext* context, const MkDirRequest* request, Response* response) {
-  std::cout << yellow << "GRPC_Server::createDirectory" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Server::createDirectory" << reset << std::endl;
   std::string s(request->path());
   string path = Utility::concatenatePath(serverDirectory, s);
   mode_t mode = (mode_t)request->modet();
@@ -249,7 +236,7 @@ Status GRPC_Server::createDirectory(ServerContext* context, const MkDirRequest* 
 }
 
 Status GRPC_Server::removeDirectory(ServerContext* context, const Path* request, Response* response) {
-  std::cout << yellow << "GRPC_Server::removeDirectory" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Server::removeDirectory" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
   std::error_code errorCode;
 
@@ -265,7 +252,7 @@ Status GRPC_Server::removeDirectory(ServerContext* context, const Path* request,
 }
 
 Status GRPC_Server::removeFile(ServerContext* context, const Path* request, Response* response) {
-  std::cout << yellow << "GRPC_Server::removeFile" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Server::removeFile" << reset << std::endl;
   string path = Utility::concatenatePath(serverDirectory, request->path());
   std::error_code errorCode;
 
@@ -278,13 +265,11 @@ Status GRPC_Server::removeFile(ServerContext* context, const Path* request, Resp
   return Status::OK;
 }
 
-Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
-  std::cout << yellow << "GRPC_Server::Open" << reset << std::endl;
+Status GRPC_Server::createEmptyFile(ServerContext* context, const OpenRequest* request, OpenResponse* response) {
+  //std::cout << yellow << "GRPC_Server::createEmptyFile" << reset << std::endl;
   int rc;
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
-  // rc = creat(path.c_str(), request->mode());
-  // rc is file handler if > 0
   rc = open(path.c_str(), request->mode(), S_IRWXG | S_IRWXO | S_IRWXU);
   if (rc < 0) {
     response->set_err(-errno);
@@ -299,7 +284,7 @@ Status GRPC_Server::Open(ServerContext* context, const OpenRequest* request, Ope
 }
 
 Status GRPC_Server::putFileContents(ServerContext* context, ServerReader<WriteRequest>* reader, WriteReply* reply) {
-  std::cout << yellow << "GRPC_Server::putFileContents" << reset << std::endl;
+  //std::cout << yellow << "GRPC_Server::putFileContents" << reset << std::endl;
   std::string path;
   WriteRequest request;
   std::string tempFilePath = serverDirectory;

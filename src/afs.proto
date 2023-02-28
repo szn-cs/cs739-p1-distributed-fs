@@ -4,26 +4,19 @@ package afs;   // similar to namespace, avoid conflicts
 
 
 /**
-  * AFS (AFS basic protocol version 1) gRPC services:
+  * WiscAFS gRPC services (AFS basic protocol version 1) :
 */
-service AFS {
-  // TestAuth        Test whether a file has changed (used to validate cached entries). 
-  //                          check whether a local file (or its stat information) 
-  // approach 1: get modified time 
-  // approach 2: logical clocks ? or hashing content ? 
-  // TODO: not required could use GetAttr instead
-  rpc checkCacheValidity(Path) returns (Response) {};
+service WiscAFS {
   
-  // [x] GetFileStat/GetAttr/Stat     Get the stat info for a file (Gets status info about files absent from cache)
+  // GetFileStat/GetAttr/Stat     Get the stat info for a file (Gets status info about files absent from cache)
   rpc getFileAttributes(Path) returns (Attributes) {};
 
   // SetFileStat     Set the stat info for a file
-  // TODO:
   rpc SetFileStat(Attributes) returns (Response) {}; 
 
   // Fetch/GetFileContents/Read/Open functionality         Fetch the contents of file
-  rpc getFileContents(ReadRequest) returns (stream ReadReply) {}; // TODO: remove redundant
-  rpc Open(OpenRequest) returns (OpenResponse) {};
+  rpc getFileContents(ReadRequest) returns (stream ReadReply) {}; 
+  rpc createEmptyFile(OpenRequest) returns (OpenResponse) {};
 
   // Store/Update/Write file           Store this file on the server (called on close())
   rpc putFileContents(stream WriteRequest) returns (WriteReply) {};
@@ -38,11 +31,18 @@ service AFS {
 
   // ListDir         List the contents of a directory
   rpc readDirectory(Path) returns (stream ReadDirResponse) {};   
-
+  
+  // TestAuth        Test whether a file has changed (used to validate cached entries). 
+  //                          check whether a local file (or its stat information) 
+  // approach 1: get modified time 
+  // approach 2: logical clocks ? or hashing content ? 
+  // TODO: not required could use GetAttr instead
+  rpc checkCacheValidity(Path) returns (Response) {};
+  
   // rename implementation required ? 
   // TODO: if needed
 
-  // EXAMPLE API: keep this for debudding
+    // EXAMPLE API: keep this for debudding
   rpc SayHello(HelloRequest) returns (HelloReply) {};
   rpc SayHelloStreamReply(HelloRequest) returns (stream HelloReply) {};
 
