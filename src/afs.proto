@@ -12,7 +12,7 @@ service WiscAFS {
   rpc getFileAttributes(Path) returns (Attributes) {};
 
   // SetFileStat     Set the stat info for a file
-  rpc SetFileStat(Attributes) returns (Response) {}; 
+  rpc setFileStat(Attributes) returns (Response) {}; 
 
   // Fetch/GetFileContents/Read/Open functionality         Fetch the contents of file
   rpc getFileContents(ReadRequest) returns (stream ReadReply) {}; 
