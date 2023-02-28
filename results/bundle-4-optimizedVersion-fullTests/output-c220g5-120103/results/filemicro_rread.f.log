@@ -1,0 +1,17 @@
+/root/filebench_workloads/filemicro_rread.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.001: FileMicro-ReadRand Version 2.2 personality successfully loaded
+0.001: Populating and pre-allocating filesets
+0.002: Removing bigfile1 tree (if exists)
+0.005: Pre-allocating directories in bigfile1 tree
+0.005: Pre-allocating files in bigfile1 tree
+2.565: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+2.565: Population and pre-allocation of filesets completed
+2.565: Starting 1 filereader instances
+3.570: Running...
+3.790: WARNING! Run stopped early:
+                flowop finish-1 could not obtain a file. Please
+                reduce runtime, increase fileset entries ($nfiles), or switch modes.
+4.571: Run took 1 seconds...
+4.571: Shutting down processes

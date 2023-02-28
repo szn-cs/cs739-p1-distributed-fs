@@ -46,8 +46,8 @@ fs_mount() {
 fs_mount_nodebug() {
   source ./script/setenv.sh
   mkdir -p $MOUNTPOINT $ROOT $SERVER $CACHE
-  SERVER_ADDRESS=c220g2-011121.wisc.cloudlab.us:50051
-  # SERVER_ADDRESS=0.0.0.0:50051
+  # SERVER_ADDRESS=c220g2-011121.wisc.cloudlab.us:50051
+  SERVER_ADDRESS=0.0.0.0:50051
   # ./unreliablefs $MOUNTPOINT -basedir=$ROOT -serverAddress=$SERVER_ADDRESS -f &
   ./unreliablefs $MOUNTPOINT -basedir=$ROOT -serverAddress=$SERVER_ADDRESS -f >/dev/null 2>&1 &
 }

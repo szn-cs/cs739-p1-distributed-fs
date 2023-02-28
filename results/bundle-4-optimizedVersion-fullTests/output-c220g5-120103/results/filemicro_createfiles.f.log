@@ -1,0 +1,36 @@
+/root/filebench_workloads/filemicro_createfiles.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.002: FileMicro-Createfiles Version 2.2 personality successfully loaded
+0.002: Populating and pre-allocating filesets
+0.099: bigfileset populated: 200000 files, avg. dir. width = 100000, avg. dir. depth = 1.1, 0 leafdirs, 195.312MB total size
+0.099: Removing bigfileset tree (if exists)
+0.102: Pre-allocating directories in bigfileset tree
+0.102: Pre-allocating files in bigfileset tree
+2.416: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+2.416: Population and pre-allocation of filesets completed
+2.417: Starting 1 filecreate instances
+3.422: Running...
+6.034: WARNING! Run stopped early:
+                flowop createfile1-1 could not obtain a file. Please
+                reduce runtime, increase fileset entries ($nfiles), or switch modes.
+6.423: Run took 3 seconds...
+6.423: Shutting down processes
+/root/filebench_workloads/filemicro_createfiles.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.001: FileMicro-Createfiles Version 2.2 personality successfully loaded
+0.001: Populating and pre-allocating filesets
+0.100: bigfileset populated: 200000 files, avg. dir. width = 100000, avg. dir. depth = 1.1, 0 leafdirs, 195.312MB total size
+0.100: Removing bigfileset tree (if exists)
+0.103: Pre-allocating directories in bigfileset tree
+0.103: Pre-allocating files in bigfileset tree
+2.487: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+2.487: Population and pre-allocation of filesets completed
+2.488: Starting 1 filecreate instances
+3.493: Running...
+6.135: WARNING! Run stopped early:
+                flowop createfile1-1 could not obtain a file. Please
+                reduce runtime, increase fileset entries ($nfiles), or switch modes.
+6.494: Run took 3 seconds...
+6.494: Shutting down processes
