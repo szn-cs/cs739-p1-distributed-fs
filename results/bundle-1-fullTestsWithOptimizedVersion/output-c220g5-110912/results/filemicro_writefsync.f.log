@@ -1,0 +1,19 @@
+/root/filebench_workloads/filemicro_writefsync.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.002: FileMicro-WriteFsync Version 2.1 personality successfully loaded
+0.002: Populating and pre-allocating filesets
+0.004: Removing bigfile tree (if exists)
+0.009: Pre-allocating directories in bigfile tree
+0.023: Pre-allocating files in bigfile tree
+0.026: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+0.026: Population and pre-allocation of filesets completed
+0.026: Starting 1 filewriter instances
+1.031: Running...
+11.033: Run took 10 seconds...
+11.033: Per-Operation Breakdown
+finish               10ops        1ops/s   0.0mb/s    0.000ms/op [0.000ms - 0.000ms]
+sync-file            10ops        1ops/s   0.0mb/s   69.466ms/op [62.693ms - 80.675ms]
+append-file          10509ops     1051ops/s   8.2mb/s    0.880ms/op [0.497ms - 5.288ms]
+11.033: IO Summary: 10519 ops 1051.782 ops/s 0/1051 rd/wr   8.2mb/s 0.945ms/op
+11.033: Shutting down processes

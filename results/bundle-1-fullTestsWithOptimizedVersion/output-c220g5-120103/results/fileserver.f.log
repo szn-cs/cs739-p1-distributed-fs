@@ -1,0 +1,19 @@
+/root/filebench_workloads/fileserver.f
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.002: File-server Version 3.0 personality successfully loaded
+0.002: Populating and pre-allocating filesets
+0.017: bigfileset populated: 20000 files, avg. dir. width = 20, avg. dir. depth = 3.3, 0 leafdirs, 2487.318MB total size
+0.018: Removing bigfileset tree (if exists)
+0.024: Pre-allocating directories in bigfileset tree
+6.046: Pre-allocating files in bigfileset tree
+578.500: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+578.500: Population and pre-allocation of filesets completed
+578.501: Starting 1 filereader instances
+579.511: Running...
+580.036: Failed to open file 383, /root/tmp/mount/bench/bigfileset/00000002/00000009, with status 10: Operation not permitted
+580.036: failed to create file createfile1
+580.036: filereaderthread-41: flowop createfile1-1 failed
+580.513: Run took 1 seconds...
+580.514: NO VALID RESULTS! Filebench run terminated prematurely around line 57
+580.514: Shutting down processes

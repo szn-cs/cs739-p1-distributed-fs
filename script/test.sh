@@ -53,16 +53,20 @@ filebench_retrieveResults() {
   # Declare an array of string with type
   declare -a REMOTES=(
     # running togeter
-    "c220g2-010625" # client
-    "c220g2-010624" # server
+    # "c220g2-010625" # client
+    # "c220g2-010624" # server
 
-    "c220g2-011121" # runs locally in background without console output
+    # "c220g2-011121" # runs locally in background without console output
 
-    "c220g2-010623" # running local filebench with console ouput
+    # "c220g2-010623" # running local filebench with console ouput
 
-    # running togher
-    "c220g1-031120" # client
-    "c220g2-011126" # server
+    # # running togher
+    # "c220g1-031120" # client
+    # "c220g2-011126" # server
+
+    "c220g5-120103"
+    "c220g5-110912"
+
   )
 
   # Iterate the string array using for loop
