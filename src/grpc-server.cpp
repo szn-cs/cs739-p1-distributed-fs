@@ -87,16 +87,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
     is.seekg(0, is.end);
     int length = is.tellg();
     is.seekg(0, is.beg);
-    /*
-    if (offset + size > is.tellg()) {
-      std::cout << "The offset + size is greater then the file size.\n"
-                << "file size: " << is.tellg() << "\n"
-                << "offset: " << offset << "\n"
-                << "size: " << size << std::endl;
-    }
-    */
 
-    // is.seekg(offset, std::ios::beg);
     if (length == 0) {
       clock_gettime(CLOCK_REALTIME, &spec);
       reply->set_buf("");
@@ -104,25 +95,20 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
       reply->set_err(0);
       reply->set_timestamp(spec.tv_sec);
       writer->Write(*reply);
-      // std::cout << "File is empty." << std::endl;
       is.close();
       return Status::OK;
     }
 
     std::string buffer(length, '\0');
     is.read(&buffer[0], length);
-    // std::cout << "buffer" << buffer << std::endl;
-    // send data chunk to client
+
     int bytesRead = 0;
     int minSize = std::min(CHUNK_SIZE, length);
 
     while (bytesRead < is.tellg()) {
       clock_gettime(CLOCK_REALTIME, &spec);
       std::string subBuffer = buffer.substr(bytesRead, minSize);
-      // if (subBuffer.find("SERVER_READ_CRASH") != std::string::npos) {
-      //   std::cout << "Killing server process in read\n";
-      //   kill(getpid(), SIGINT);
-      // }
+ 
       reply->set_buf(subBuffer);
       reply->set_numbytes(minSize);
       reply->set_err(0);
@@ -145,51 +131,7 @@ Status GRPC_Server::getFileContents(ServerContext* context, const ReadRequest* r
 
   return Status::OK;
 
-  /*
-  int fd = open(path.c_str(), O_RDONLY);
 
-  if (fd == -1) {
-    reply->set_err(-errno);
-    reply->set_numbytes(INT_MIN);
-    return Status::OK;
-  }
-
-  std::string buf;
-  buf.resize(size);
-
-  int bytesRead = pread(fd, &buf[0], size, offset);
-  if (bytesRead != size) {
-    printf("Read Send: PREAD didn't read %d bytes from offset %d\n", size,
-            offset);
-  }
-
-  if (bytesRead == -1) {
-    reply->set_err(-errno);
-    reply->set_numbytes(INT_MIN);
-  }
-
-  int curr = 0;
-  while (bytesRead > 0) {
-    if (buf.find("crash1") != std::string::npos) {
-      std::cout << "Killing server process in read\n";
-      kill(getpid(), SIGINT);
-    }
-    clock_gettime(CLOCK_REALTIME, &spec);
-    reply->set_buf(buf.substr(curr, std::min(CHUNK_SIZE, bytesRead)));
-    reply->set_numbytes(std::min(CHUNK_SIZE, bytesRead));
-    reply->set_err(0);
-    reply->set_timestamp(spec.tv_sec);
-    curr += std::min(CHUNK_SIZE, bytesRead);
-    bytesRead -= std::min(CHUNK_SIZE, bytesRead);
-
-    writer->Write(*reply);
-  }
-
-  if (fd > 0) {
-    printf("Read Send: Calling close()\n");
-    close(fd);
-  }
-  */
 }
 
 Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, ServerWriter<afs::ReadDirResponse>* writer) {
@@ -209,13 +151,7 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
     data.resize(sizeof(struct dirent));
     memcpy(&data[0], de, sizeof(struct dirent));
     alldata.push_back(data);
-    /*
-    struct stat st;
-    memset(&st, 0, sizeof(st));
-    st.st_ino = de->d_ino;
-    st.st_mode = de->d_type << 12;
-    if (filler(buf, de->d_name, &st, 0)) break;
-    */
+
   }
 
   closedir(dp);
@@ -224,10 +160,6 @@ Status GRPC_Server::readDirectory(ServerContext* context, const Path* request, S
     response->set_buf(entry);
     writer->Write(*response);
   }
-
-  // (void)offset;
-  // (void)fi;
-  // response->mutable_buf()->Add(alldata.begin(), alldata.end());
 
   return Status::OK;
 }
@@ -282,8 +214,6 @@ Status GRPC_Server::createEmptyFile(ServerContext* context, const OpenRequest* r
   int rc;
   string path = Utility::concatenatePath(serverDirectory, request->path());
 
-  // rc = creat(path.c_str(), request->mode());
-  // rc is file handler if > 0
   rc = open(path.c_str(), request->mode(), S_IRWXG | S_IRWXO | S_IRWXU);
   if (rc < 0) {
     response->set_err(-errno);
